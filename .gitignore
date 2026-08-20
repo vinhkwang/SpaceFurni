@@ -9,15 +9,3 @@ target/
 .env
 .env.*
 !.env.example
-
-CLAUDE.md
-SETUP.md
-PROGRESS.md
-.claude/
-docs/tasks/
-docs/SPEC.md
-docs/DESIGN_SYSTEM.md
-docs/VERSION_NOTES.md
-docs/CV_HIGHLIGHTS.md
-**/AGENTS.md
-design/
