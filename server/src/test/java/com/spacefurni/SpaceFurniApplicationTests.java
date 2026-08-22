@@ -1,10 +1,10 @@
-package com.example.spacefurni;
+package com.spacefurni;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class SpacefurniApplicationTests {
+class SpaceFurniApplicationTests {
 
 	@Test
 	void contextLoads() {

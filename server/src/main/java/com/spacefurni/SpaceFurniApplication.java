@@ -1,13 +1,13 @@
-package com.example.spacefurni;
+package com.spacefurni;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class SpacefurniApplication {
+public class SpaceFurniApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(SpacefurniApplication.class, args);
+		SpringApplication.run(SpaceFurniApplication.class, args);
 	}
 
 }

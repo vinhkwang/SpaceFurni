@@ -8,11 +8,11 @@
 		<version>4.1.0</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.example</groupId>
+	<groupId>com.spacefurni</groupId>
 	<artifactId>spacefurni</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name/>
-	<description/>
+	<name>spacefurni</name>
+	<description>API server for the SpaceFurni furniture e-commerce platform</description>
 	<url/>
 	<licenses>
 		<license/>
