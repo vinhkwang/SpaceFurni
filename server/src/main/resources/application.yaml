@@ -1,3 +1,26 @@
 spring:
   application:
     name: spacefurni
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:spacefurni}
+    username: ${POSTGRES_USER:spacefurni}
+    password: ${POSTGRES_PASSWORD:spacefurni}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+server:
+  port: 8080
+
+spacefurni:
+  jwt:
+    secret: ${JWT_SECRET:replace-with-a-long-random-string-in-every-environment}
+    access-token-ttl-minutes: ${JWT_ACCESS_TTL_MINUTES:15}
+    refresh-token-ttl-days: ${JWT_REFRESH_TTL_DAYS:7}
