@@ -49,6 +49,7 @@ class RegistrationServiceTest {
         assertThat(response.accessToken()).isNotBlank();
         assertThat(response.refreshToken()).isNotBlank();
         assertThat(userRepository.findByEmailIgnoreCase("new.user@example.com")).isPresent();
+        assertThat(refreshTokenRepository.count()).isEqualTo(1);
     }
 
     @Test
