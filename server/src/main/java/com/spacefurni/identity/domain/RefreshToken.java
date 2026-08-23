@@ -61,4 +61,18 @@ public class RefreshToken {
     public Instant getRevokedAt() {
         return revokedAt;
     }
+
+    public void revoke() {
+        if (revokedAt == null) {
+            revokedAt = Instant.now();
+        }
+    }
+
+    public boolean isRevoked() {
+        return revokedAt != null;
+    }
+
+    public boolean isExpired() {
+        return Instant.now().isAfter(expiresAt);
+    }
 }
