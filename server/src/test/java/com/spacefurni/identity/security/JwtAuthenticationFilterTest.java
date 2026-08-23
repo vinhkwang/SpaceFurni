@@ -55,7 +55,9 @@ class JwtAuthenticationFilterTest {
     @Test
     void clearsSecurityContextForTamperedToken() throws Exception {
         String token = jwtTokenProvider.generateAccessToken("user-1", "jane@example.com", UserRole.CUSTOMER);
-        String tamperedToken = token.substring(0, token.length() - 1) + (token.endsWith("a") ? "b" : "a");
+        int tamperIndex = token.length() / 2;
+        char replacementChar = token.charAt(tamperIndex) == 'a' ? 'b' : 'a';
+        String tamperedToken = token.substring(0, tamperIndex) + replacementChar + token.substring(tamperIndex + 1);
 
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
