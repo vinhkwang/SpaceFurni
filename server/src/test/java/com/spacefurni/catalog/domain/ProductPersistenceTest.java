@@ -94,7 +94,7 @@ class ProductPersistenceTest {
         product.addImage("https://example.com/desk.jpg", 1);
         entityManager.persistAndFlush(product);
 
-        ProductImage image = product.getImages().get(0);
+        ProductImage image = product.getImages().iterator().next();
         product.removeImage(image);
         entityManager.persistAndFlush(product);
         entityManager.clear();

@@ -21,8 +21,8 @@ import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -90,15 +90,15 @@ public class Product extends AuditableEntity {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("displayOrder ASC")
-    private List<ProductImage> images = new ArrayList<>();
+    private Set<ProductImage> images = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("displayOrder ASC")
-    private List<ProductSpecification> specifications = new ArrayList<>();
+    private Set<ProductSpecification> specifications = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("displayOrder ASC")
-    private List<ProductColorSwatch> colorSwatches = new ArrayList<>();
+    private Set<ProductColorSwatch> colorSwatches = new LinkedHashSet<>();
 
     protected Product() {
     }
@@ -208,15 +208,15 @@ public class Product extends AuditableEntity {
         return version;
     }
 
-    public List<ProductImage> getImages() {
+    public Set<ProductImage> getImages() {
         return images;
     }
 
-    public List<ProductSpecification> getSpecifications() {
+    public Set<ProductSpecification> getSpecifications() {
         return specifications;
     }
 
-    public List<ProductColorSwatch> getColorSwatches() {
+    public Set<ProductColorSwatch> getColorSwatches() {
         return colorSwatches;
     }
 
