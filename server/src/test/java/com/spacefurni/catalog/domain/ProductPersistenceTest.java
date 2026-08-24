@@ -62,4 +62,43 @@ class ProductPersistenceTest {
         assertThat(reloaded.hasActiveDiscount()).isTrue();
         assertThat(reloaded.discountPercentage()).isEqualTo(20);
     }
+
+    @Test
+    void cascadePersistsChildEntitiesOrderedByDisplayOrder() {
+        Category bed = categoryRepository.save(new Category(null, "Bed", "bed-" + UUID.randomUUID(), null, 1));
+        Product product = new Product("SKU-" + UUID.randomUUID(), "Nordic Bed", "nordic-bed-" + UUID.randomUUID(),
+                bed, Money.ofVnd(12_000_000L), null, ProductStatus.PUBLISHED, "short", "long", "160x200cm", "Oak",
+                "Natural", new BigDecimal("4.6"), 8, true, false);
+        product.addImage("https://example.com/b.jpg", 2);
+        product.addImage("https://example.com/a.jpg", 1);
+        product.addSpecification("Material", "Solid oak", 1);
+        product.addColorSwatch("#8B5E3C", 1);
+
+        UUID id = entityManager.persistAndFlush(product).getId();
+        entityManager.clear();
+
+        Product reloaded = entityManager.find(Product.class, id);
+
+        assertThat(reloaded.getImages()).extracting(ProductImage::getUrl)
+                .containsExactly("https://example.com/a.jpg", "https://example.com/b.jpg");
+        assertThat(reloaded.getSpecifications()).hasSize(1);
+        assertThat(reloaded.getColorSwatches()).extracting(ProductColorSwatch::getHexCode).containsExactly("#8B5E3C");
+    }
+
+    @Test
+    void orphanRemovalDeletesChildRowWhenRemovedFromCollection() {
+        Category desk = categoryRepository.save(new Category(null, "Desk", "desk-" + UUID.randomUUID(), null, 1));
+        Product product = new Product("SKU-" + UUID.randomUUID(), "Study Desk", "study-desk-" + UUID.randomUUID(),
+                desk, Money.ofVnd(3_000_000L), null, ProductStatus.PUBLISHED, "short", "long", "120x60x75cm", "Pine",
+                "White", new BigDecimal("4.2"), 5, false, false);
+        product.addImage("https://example.com/desk.jpg", 1);
+        entityManager.persistAndFlush(product);
+
+        ProductImage image = product.getImages().get(0);
+        product.removeImage(image);
+        entityManager.persistAndFlush(product);
+        entityManager.clear();
+
+        assertThat(entityManager.find(ProductImage.class, image.getId())).isNull();
+    }
 }

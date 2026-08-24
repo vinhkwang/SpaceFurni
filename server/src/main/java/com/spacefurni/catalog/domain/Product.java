@@ -4,6 +4,7 @@ import com.spacefurni.shared.domain.AuditableEntity;
 import com.spacefurni.shared.domain.Money;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -15,9 +16,13 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -82,6 +87,18 @@ public class Product extends AuditableEntity {
 
     @Version
     private Long version;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("displayOrder ASC")
+    private List<ProductImage> images = new ArrayList<>();
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("displayOrder ASC")
+    private List<ProductSpecification> specifications = new ArrayList<>();
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("displayOrder ASC")
+    private List<ProductColorSwatch> colorSwatches = new ArrayList<>();
 
     protected Product() {
     }
@@ -189,5 +206,41 @@ public class Product extends AuditableEntity {
 
     public Long getVersion() {
         return version;
+    }
+
+    public List<ProductImage> getImages() {
+        return images;
+    }
+
+    public List<ProductSpecification> getSpecifications() {
+        return specifications;
+    }
+
+    public List<ProductColorSwatch> getColorSwatches() {
+        return colorSwatches;
+    }
+
+    public void addImage(String url, Integer displayOrder) {
+        images.add(new ProductImage(this, url, displayOrder));
+    }
+
+    public void addSpecification(String specKey, String specValue, Integer displayOrder) {
+        specifications.add(new ProductSpecification(this, specKey, specValue, displayOrder));
+    }
+
+    public void addColorSwatch(String hexCode, Integer displayOrder) {
+        colorSwatches.add(new ProductColorSwatch(this, hexCode, displayOrder));
+    }
+
+    public void removeImage(ProductImage image) {
+        images.remove(image);
+    }
+
+    public void removeSpecification(ProductSpecification specification) {
+        specifications.remove(specification);
+    }
+
+    public void removeColorSwatch(ProductColorSwatch colorSwatch) {
+        colorSwatches.remove(colorSwatch);
     }
 }
