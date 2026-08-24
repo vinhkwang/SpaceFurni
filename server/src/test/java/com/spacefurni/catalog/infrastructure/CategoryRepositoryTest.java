@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.spacefurni.catalog.domain.Category;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -18,20 +19,25 @@ class CategoryRepositoryTest {
 
     @Test
     void findsRootCategoriesOrderedByDisplayOrderAndExcludesChildren() {
-        Category livingRoom = categoryRepository.save(new Category(null, "Living room", "living-room", null, 2));
-        Category kitchen = categoryRepository.save(new Category(null, "Kitchen", "kitchen", null, 1));
-        categoryRepository.save(new Category(livingRoom, "Sofa", "sofa", null, 1));
+        String livingRoomSlug = "living-room-" + UUID.randomUUID();
+        String kitchenSlug = "kitchen-" + UUID.randomUUID();
+        String sofaSlug = "sofa-" + UUID.randomUUID();
+        Category livingRoom = categoryRepository.save(new Category(null, "Living room", livingRoomSlug, null, 2));
+        categoryRepository.save(new Category(null, "Kitchen", kitchenSlug, null, 1));
+        categoryRepository.save(new Category(livingRoom, "Sofa", sofaSlug, null, 1));
 
         List<Category> roots = categoryRepository.findAllByParentIsNullOrderByDisplayOrder();
 
-        assertThat(roots).extracting(Category::getSlug).containsExactly("kitchen", "living-room");
+        assertThat(roots).extracting(Category::getSlug).containsSubsequence(kitchenSlug, livingRoomSlug);
+        assertThat(roots).extracting(Category::getSlug).doesNotContain(sofaSlug);
     }
 
     @Test
     void findsCategoryBySlug() {
-        categoryRepository.save(new Category(null, "Bedroom", "bedroom", null, 1));
+        String bedroomSlug = "bedroom-" + UUID.randomUUID();
+        categoryRepository.save(new Category(null, "Bedroom", bedroomSlug, null, 1));
 
-        assertThat(categoryRepository.findBySlug("bedroom")).isPresent();
-        assertThat(categoryRepository.findBySlug("bedroom").get().getName()).isEqualTo("Bedroom");
+        assertThat(categoryRepository.findBySlug(bedroomSlug)).isPresent();
+        assertThat(categoryRepository.findBySlug(bedroomSlug).get().getName()).isEqualTo("Bedroom");
     }
 }

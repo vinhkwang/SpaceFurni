@@ -43,7 +43,8 @@ class ProductRepositoryTest {
 
     @Test
     void findBySlugFetchesCategoryAndChildCollectionsInOneStatement() {
-        Category department = categoryRepository.save(new Category(null, "Living room", "living-room", null, 1));
+        Category department = categoryRepository
+                .save(new Category(null, "Living room", "living-room-" + UUID.randomUUID(), null, 1));
         Category subCategory = categoryRepository
                 .save(new Category(department, "Sofa", "sofa-" + UUID.randomUUID(), null, 1));
         Product product = new Product("SKU-" + UUID.randomUUID(), "Oslo Sofa", "oslo-sofa-" + UUID.randomUUID(),
@@ -70,7 +71,8 @@ class ProductRepositoryTest {
 
     @Test
     void composedSpecificationsFilterInOneStatementPerPage() {
-        Category department = categoryRepository.save(new Category(null, "Kitchen", "kitchen", null, 1));
+        Category department = categoryRepository
+                .save(new Category(null, "Kitchen", "kitchen-" + UUID.randomUUID(), null, 1));
         Category subCategory = categoryRepository
                 .save(new Category(department, "Table", "table-" + UUID.randomUUID(), null, 1));
         Product matching = new Product("SKU-" + UUID.randomUUID(), "Birch Table",
@@ -104,8 +106,10 @@ class ProductRepositoryTest {
 
     @Test
     void inDepartmentFiltersByCategoryParentSlug() {
-        Category livingRoom = categoryRepository.save(new Category(null, "Living room", "living-room", null, 1));
-        Category kitchen = categoryRepository.save(new Category(null, "Kitchen", "kitchen", null, 2));
+        String livingRoomSlug = "living-room-" + UUID.randomUUID();
+        Category livingRoom = categoryRepository.save(new Category(null, "Living room", livingRoomSlug, null, 1));
+        Category kitchen = categoryRepository
+                .save(new Category(null, "Kitchen", "kitchen-" + UUID.randomUUID(), null, 2));
         Category sofa = categoryRepository
                 .save(new Category(livingRoom, "Sofa", "sofa-" + UUID.randomUUID(), null, 1));
         Category table = categoryRepository
@@ -120,8 +124,8 @@ class ProductRepositoryTest {
         entityManager.persistAndFlush(tableProduct);
         entityManager.clear();
 
-        List<Product> livingRoomProducts = productRepository.findAll(
-                ProductSearchSpecifications.inDepartment("living-room"));
+        List<Product> livingRoomProducts = productRepository
+                .findAll(ProductSearchSpecifications.inDepartment(livingRoomSlug));
 
         assertThat(livingRoomProducts).extracting(Product::getName).containsExactly("Oslo Sofa");
     }
