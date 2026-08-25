@@ -27,11 +27,11 @@ class SecurityConfigurationTest {
 
     @Test
     void unauthenticatedRequestToProtectedRouteIsRejected() throws Exception {
-        mockMvc.perform(get("/api/v1/orders")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/v1/orders/test-protected-probe")).andExpect(status().isUnauthorized());
     }
 
     @Test
     void unauthenticatedRequestToPublicProductsRouteSucceeds() throws Exception {
-        mockMvc.perform(get("/api/v1/products")).andExpect(status().isOk());
+        mockMvc.perform(get("/api/v1/products/test-public-probe")).andExpect(status().isOk());
     }
 }
