@@ -79,7 +79,8 @@ public class CatalogQueryService {
     @Transactional(readOnly = true)
     public List<ProductSummaryResponse> suggestProducts(String term, int limit) {
         Specification<Product> specification = ProductSearchSpecifications.publishedOnly()
-                .and(ProductSearchSpecifications.nameOrCategoryContains(term));
+                .and(ProductSearchSpecifications.nameOrCategoryContains(term))
+                .and(ProductSearchSpecifications.withCategoryFetched());
         return productRepository.findAll(specification, PageRequest.of(0, limit)).stream()
                 .map(productResponseMapper::toSummary).toList();
     }
@@ -95,13 +96,15 @@ public class CatalogQueryService {
 
     private List<Product> fetchRelatedProductEntities(Product product, int limit) {
         Specification<Product> specification = ProductSearchSpecifications.publishedOnly()
-                .and(ProductSearchSpecifications.inSubCategory(product.getCategory().getSlug()));
+                .and(ProductSearchSpecifications.inSubCategory(product.getCategory().getSlug()))
+                .and(ProductSearchSpecifications.withCategoryFetched());
         return productRepository.findAll(specification, PageRequest.of(0, limit + 1)).stream()
                 .filter(candidate -> !candidate.getId().equals(product.getId())).limit(limit).toList();
     }
 
     private Specification<Product> buildSpecification(ProductFilter filter) {
-        Specification<Product> specification = ProductSearchSpecifications.publishedOnly();
+        Specification<Product> specification = ProductSearchSpecifications.publishedOnly()
+                .and(ProductSearchSpecifications.withCategoryFetched());
         if (filter.departmentSlug() != null) {
             specification = specification.and(ProductSearchSpecifications.inDepartment(filter.departmentSlug()));
         }

@@ -24,6 +24,7 @@ import java.math.BigDecimal;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
+import org.hibernate.annotations.BatchSize;
 
 @Entity
 @Table(name = "products")
@@ -90,6 +91,7 @@ public class Product extends AuditableEntity {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("displayOrder ASC")
+    @BatchSize(size = 48)
     private Set<ProductImage> images = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)

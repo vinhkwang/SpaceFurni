@@ -4,6 +4,7 @@ import com.spacefurni.catalog.domain.Category;
 import com.spacefurni.catalog.domain.Product;
 import com.spacefurni.catalog.domain.ProductStatus;
 import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Path;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -14,6 +15,15 @@ public final class ProductSearchSpecifications {
 
     public static Specification<Product> publishedOnly() {
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("status"), ProductStatus.PUBLISHED);
+    }
+
+    public static Specification<Product> withCategoryFetched() {
+        return (root, query, criteriaBuilder) -> {
+            if (Long.class != query.getResultType() && long.class != query.getResultType()) {
+                root.fetch("category", JoinType.LEFT);
+            }
+            return criteriaBuilder.conjunction();
+        };
     }
 
     public static Specification<Product> inDepartment(String departmentSlug) {
