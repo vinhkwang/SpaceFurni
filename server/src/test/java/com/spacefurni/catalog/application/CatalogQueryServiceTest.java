@@ -165,13 +165,15 @@ class CatalogQueryServiceTest {
                 .save(new Category(null, "Living room", "living-room-" + UUID.randomUUID(), null, 1));
         Category sofa = categoryRepository
                 .save(new Category(department, "Sofa", "sofa-" + UUID.randomUUID(), null, 1));
-        entityManager.persistAndFlush(publishedProduct("SKU-11", "Cloud Sofa", "cloud-" + UUID.randomUUID(), sofa,
+        String uniqueToken = UUID.randomUUID().toString().substring(0, 8);
+        String productName = "ZEPHYR-" + uniqueToken + " Sofa";
+        entityManager.persistAndFlush(publishedProduct("SKU-11", productName, "zephyr-" + UUID.randomUUID(), sofa,
                 24_900_000L));
         entityManager.clear();
 
-        List<ProductSummaryResponse> suggestions = service().suggestProducts("cloud", 5);
+        List<ProductSummaryResponse> suggestions = service().suggestProducts("zephyr-" + uniqueToken, 5);
 
-        assertThat(suggestions).extracting(ProductSummaryResponse::name).containsExactly("Cloud Sofa");
+        assertThat(suggestions).extracting(ProductSummaryResponse::name).containsExactly(productName);
     }
 
     private Product publishedProduct(String sku, String name, String slug, Category category, long priceAmount) {
