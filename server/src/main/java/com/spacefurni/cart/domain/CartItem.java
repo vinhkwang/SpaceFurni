@@ -42,6 +42,10 @@ public class CartItem {
         this.quantity += amount;
     }
 
+    void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
     public UUID getId() {
         return id;
     }

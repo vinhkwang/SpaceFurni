@@ -61,6 +61,18 @@ public class Cart extends AuditableEntity {
         return items.stream().filter(item -> item.getProductId().equals(productId)).findFirst();
     }
 
+    public void setLineQuantity(UUID productId, int quantity) {
+        findLineByProductId(productId).ifPresent(line -> line.setQuantity(quantity));
+    }
+
+    public void removeLine(UUID productId) {
+        items.removeIf(item -> item.getProductId().equals(productId));
+    }
+
+    public void clearLines() {
+        items.clear();
+    }
+
     public UUID getId() {
         return id;
     }
