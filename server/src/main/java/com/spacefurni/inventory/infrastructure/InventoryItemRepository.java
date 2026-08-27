@@ -31,5 +31,15 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, UU
             """)
     int incrementQuantityOnHand(@Param("productId") UUID productId, @Param("quantity") int quantity);
 
+    @Modifying(clearAutomatically = true)
+    @Query("""
+            UPDATE InventoryItem i
+               SET i.quantityOnHand = i.quantityOnHand + :delta,
+                   i.updatedAt = CURRENT_TIMESTAMP
+             WHERE i.productId = :productId
+               AND i.quantityOnHand + :delta >= 0
+            """)
+    int adjustQuantityOnHandIfSufficient(@Param("productId") UUID productId, @Param("delta") int delta);
+
     List<InventoryItem> findAllByProductIdInOrderByProductIdAsc(List<UUID> productIds);
 }
