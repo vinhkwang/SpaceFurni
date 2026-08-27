@@ -102,7 +102,7 @@ class CatalogControllerTest {
     void productDetailReturnsWrappedDetail() throws Exception {
         ProductDetailResponse detail = new ProductDetailResponse(UUID.randomUUID(), "SKU-1", "oslo-sofa",
                 "Oslo Sofa", "Sofa", 800_000L, null, "VND", new BigDecimal("4.5"), 12, "short", "long", "dims",
-                "material", "color", null, List.of(), List.of(), List.of(), List.of());
+                "material", "color", null, List.of(), List.of(), List.of(), 12, "In stock", List.of());
         when(catalogQueryService.findProductDetailBySlug("oslo-sofa")).thenReturn(detail);
 
         mockMvc.perform(get("/api/v1/products/oslo-sofa")).andExpect(status().isOk())

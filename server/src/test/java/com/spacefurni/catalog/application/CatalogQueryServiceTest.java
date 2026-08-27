@@ -13,6 +13,9 @@ import com.spacefurni.catalog.domain.Product;
 import com.spacefurni.catalog.domain.ProductStatus;
 import com.spacefurni.catalog.infrastructure.CategoryRepository;
 import com.spacefurni.catalog.infrastructure.ProductRepository;
+import com.spacefurni.inventory.application.InventoryService;
+import com.spacefurni.inventory.domain.InventoryItem;
+import com.spacefurni.inventory.infrastructure.InventoryItemRepository;
 import com.spacefurni.shared.config.JpaAuditingConfiguration;
 import com.spacefurni.shared.domain.Money;
 import com.spacefurni.shared.exception.ResourceNotFoundException;
@@ -40,11 +43,14 @@ class CatalogQueryServiceTest {
     private CategoryRepository categoryRepository;
 
     @Autowired
+    private InventoryItemRepository inventoryItemRepository;
+
+    @Autowired
     private TestEntityManager entityManager;
 
     private CatalogQueryService service() {
         return new CatalogQueryService(productRepository, categoryRepository, new ProductResponseMapper(),
-                new CategoryResponseMapper());
+                new CategoryResponseMapper(), new InventoryService(inventoryItemRepository));
     }
 
     @Test
@@ -103,6 +109,7 @@ class CatalogQueryServiceTest {
                 bedsideTable, 3_900_000L);
         entityManager.persistAndFlush(anchor);
         entityManager.persistAndFlush(sibling);
+        entityManager.persistAndFlush(new InventoryItem(anchor.getId(), 3, 0));
         entityManager.clear();
 
         ProductDetailResponse detail = service().findProductDetailBySlug(anchor.getSlug());
@@ -110,6 +117,25 @@ class CatalogQueryServiceTest {
         assertThat(detail.name()).isEqualTo("Spindle Bedside Table");
         assertThat(detail.relatedProducts()).extracting(ProductSummaryResponse::name)
                 .containsExactly("Oak Bedside Table");
+        assertThat(detail.availableQuantity()).isEqualTo(3);
+        assertThat(detail.stockLabel()).isEqualTo("Only 3 left");
+    }
+
+    @Test
+    void findProductDetailBySlugReturnsOutOfStockWhenNoInventoryItemExists() {
+        Category department = categoryRepository
+                .save(new Category(null, "Bedroom", "bedroom-" + UUID.randomUUID(), null, 1));
+        Category bedsideTable = categoryRepository
+                .save(new Category(department, "Bedside table", "bedside-table-" + UUID.randomUUID(), null, 1));
+        Product anchor = publishedProduct("SKU-12", "Spindle Bedside Table", "spindle-" + UUID.randomUUID(),
+                bedsideTable, 4_300_000L);
+        entityManager.persistAndFlush(anchor);
+        entityManager.clear();
+
+        ProductDetailResponse detail = service().findProductDetailBySlug(anchor.getSlug());
+
+        assertThat(detail.availableQuantity()).isEqualTo(0);
+        assertThat(detail.stockLabel()).isEqualTo("Out of stock");
     }
 
     @Test
