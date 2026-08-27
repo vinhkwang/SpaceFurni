@@ -48,8 +48,8 @@ class CatalogResponseSerializationTest {
                 "Oslo Sofa", "Sofa", 800_000L, 1_000_000L, "VND", new BigDecimal("4.5"), 12, "short", "long",
                 "200x90x80cm", "Fabric", "Beige", new ProductBadgeResponse("-20%", "SALE"),
                 List.of("https://example.com/a.jpg"),
-                List.of(new ProductDetailResponse.SpecificationEntry("Material", "Fabric")), List.of("#8B5E3C"),
-                List.of(related));
+                List.of(new ProductDetailResponse.SpecificationEntry("Material", "Fabric")), List.of("#8B5E3C"), 3,
+                "Only 3 left", List.of(related));
 
         JsonNode json = objectMapper.valueToTree(detail);
 
@@ -58,6 +58,8 @@ class CatalogResponseSerializationTest {
         assertThat(json.get("specifications").get(0).get("value").asString()).isEqualTo("Fabric");
         assertThat(json.get("colorSwatchHexCodes").get(0).asString()).isEqualTo("#8B5E3C");
         assertThat(json.get("relatedProducts").get(0).get("slug").asString()).isEqualTo("claire-sofa");
+        assertThat(json.get("availableQuantity").asInt()).isEqualTo(3);
+        assertThat(json.get("stockLabel").asString()).isEqualTo("Only 3 left");
     }
 
     @Test

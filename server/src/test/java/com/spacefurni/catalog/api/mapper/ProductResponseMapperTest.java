@@ -88,7 +88,7 @@ class ProductResponseMapperTest {
                 Money.ofVnd(4_300_000L), null, ProductStatus.PUBLISHED, "short", "long", "52x40x55cm", "Oak",
                 "Natural", new BigDecimal("4.8"), 62, true, true);
 
-        ProductDetailResponse detail = mapper.toDetail(product, List.of(related));
+        ProductDetailResponse detail = mapper.toDetail(product, List.of(related), 8);
 
         assertThat(detail.imageUrls()).containsExactly("https://example.com/bed.jpg");
         assertThat(detail.specifications()).containsExactly(
@@ -96,5 +96,33 @@ class ProductResponseMapperTest {
         assertThat(detail.colorSwatchHexCodes()).containsExactly("#8B5E3C");
         assertThat(detail.relatedProducts()).hasSize(1);
         assertThat(detail.relatedProducts().get(0).slug()).isEqualTo("spindle-bedside-table");
+        assertThat(detail.availableQuantity()).isEqualTo(8);
+        assertThat(detail.stockLabel()).isEqualTo("In stock");
+    }
+
+    @Test
+    void toDetailLabelsLowStockWithRemainingCount() {
+        Category category = new Category(null, "Bed", "bed", null, 1);
+        Product product = new Product("SKU-7", "Nordic Bed", "nordic-bed-2", category, Money.ofVnd(12_000_000L),
+                null, ProductStatus.PUBLISHED, "short", "long", "160x200cm", "Oak", "Natural", new BigDecimal("4.6"),
+                8, false, false);
+
+        ProductDetailResponse detail = mapper.toDetail(product, List.of(), 3);
+
+        assertThat(detail.availableQuantity()).isEqualTo(3);
+        assertThat(detail.stockLabel()).isEqualTo("Only 3 left");
+    }
+
+    @Test
+    void toDetailLabelsOutOfStockWhenAvailableQuantityIsZero() {
+        Category category = new Category(null, "Bed", "bed", null, 1);
+        Product product = new Product("SKU-8", "Nordic Bed", "nordic-bed-3", category, Money.ofVnd(12_000_000L),
+                null, ProductStatus.PUBLISHED, "short", "long", "160x200cm", "Oak", "Natural", new BigDecimal("4.6"),
+                8, false, false);
+
+        ProductDetailResponse detail = mapper.toDetail(product, List.of(), 0);
+
+        assertThat(detail.availableQuantity()).isEqualTo(0);
+        assertThat(detail.stockLabel()).isEqualTo("Out of stock");
     }
 }
