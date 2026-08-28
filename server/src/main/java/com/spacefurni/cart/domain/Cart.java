@@ -73,6 +73,10 @@ public class Cart extends AuditableEntity {
         items.clear();
     }
 
+    public void markConverted() {
+        this.status = CartStatus.CONVERTED;
+    }
+
     public UUID getId() {
         return id;
     }
