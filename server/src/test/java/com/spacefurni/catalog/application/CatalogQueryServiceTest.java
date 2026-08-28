@@ -21,6 +21,7 @@ import com.spacefurni.shared.domain.Money;
 import com.spacefurni.shared.exception.ResourceNotFoundException;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -200,6 +201,29 @@ class CatalogQueryServiceTest {
         List<ProductSummaryResponse> suggestions = service().suggestProducts("zephyr-" + uniqueToken, 5);
 
         assertThat(suggestions).extracting(ProductSummaryResponse::name).containsExactly(productName);
+    }
+
+    @Test
+    void findProductSummariesByIdsReturnsSummariesKeyedByProductIdIncludingUnpublished() {
+        Category department = categoryRepository
+                .save(new Category(null, "Living room", "living-room-" + UUID.randomUUID(), null, 1));
+        Category sofa = categoryRepository
+                .save(new Category(department, "Sofa", "sofa-" + UUID.randomUUID(), null, 1));
+        Product published = publishedProduct("SKU-13", "Cloud Sofa", "cloud-" + UUID.randomUUID(), sofa,
+                24_900_000L);
+        Product archived = new Product("SKU-14", "Retired Sofa", "retired-" + UUID.randomUUID(), sofa,
+                Money.ofVnd(9_900_000L), null, ProductStatus.ARCHIVED, "short", "long", "dims", "material", "color",
+                new BigDecimal("4.0"), 0, false, false);
+        entityManager.persistAndFlush(published);
+        entityManager.persistAndFlush(archived);
+        entityManager.clear();
+
+        Map<UUID, ProductSummaryResponse> summaries = service()
+                .findProductSummariesByIds(List.of(published.getId(), archived.getId()));
+
+        assertThat(summaries).hasSize(2);
+        assertThat(summaries.get(published.getId()).name()).isEqualTo("Cloud Sofa");
+        assertThat(summaries.get(archived.getId()).name()).isEqualTo("Retired Sofa");
     }
 
     private Product publishedProduct(String sku, String name, String slug, Category category, long priceAmount) {
