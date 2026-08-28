@@ -19,6 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.spacefurni.cart.api.dto.CartResponse;
 import com.spacefurni.cart.api.mapper.CartResponseMapper;
+import com.spacefurni.cart.application.CartMergeService;
 import com.spacefurni.cart.application.CartService;
 import com.spacefurni.cart.domain.Cart;
 import com.spacefurni.catalog.application.CatalogQueryService;
@@ -62,6 +63,9 @@ class CartControllerTest {
 
     @MockitoBean
     private CartService cartService;
+
+    @MockitoBean
+    private CartMergeService cartMergeService;
 
     @MockitoBean
     private CatalogQueryService catalogQueryService;
@@ -226,5 +230,32 @@ class CartControllerTest {
                 .andExpect(status().isOk());
 
         verify(cartService).removeLine(cart, productId);
+    }
+
+    @Test
+    void mergeGuestCartIsRejectedWithoutAuthentication() throws Exception {
+        mockMvc.perform(post("/api/v1/cart/merge").with(csrf())
+                        .header("X-Guest-Token", UUID.randomUUID().toString()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(username = "user@spacefurni.com")
+    void mergeGuestCartDelegatesToMergeServiceThenReturnsUserCart() throws Exception {
+        UUID userId = UUID.randomUUID();
+        UUID guestToken = UUID.randomUUID();
+        User user = mock(User.class);
+        when(user.getId()).thenReturn(userId);
+        when(currentUserQueryService.getByEmail("user@spacefurni.com")).thenReturn(user);
+        Cart cart = mockCart();
+        when(cartService.resolveOrCreateActiveCart(userId, null)).thenReturn(cart);
+        when(catalogQueryService.findProductSummariesByIds(List.of())).thenReturn(Map.of());
+        when(cartResponseMapper.toResponse(cart, Map.of()))
+                .thenReturn(new CartResponse(UUID.randomUUID(), null, List.of(), 0L, "VND"));
+
+        mockMvc.perform(post("/api/v1/cart/merge").with(csrf()).header("X-Guest-Token", guestToken.toString()))
+                .andExpect(status().isOk());
+
+        verify(cartMergeService).mergeGuestCartIntoUserCart(guestToken, userId);
     }
 }

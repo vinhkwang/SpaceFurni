@@ -4,6 +4,7 @@ import com.spacefurni.cart.api.dto.AddCartLineRequest;
 import com.spacefurni.cart.api.dto.CartResponse;
 import com.spacefurni.cart.api.dto.UpdateCartLineRequest;
 import com.spacefurni.cart.api.mapper.CartResponseMapper;
+import com.spacefurni.cart.application.CartMergeService;
 import com.spacefurni.cart.application.CartService;
 import com.spacefurni.cart.domain.Cart;
 import com.spacefurni.cart.domain.CartItem;
@@ -34,13 +35,16 @@ public class CartController {
     private static final String GUEST_TOKEN_HEADER = "X-Guest-Token";
 
     private final CartService cartService;
+    private final CartMergeService cartMergeService;
     private final CatalogQueryService catalogQueryService;
     private final CartResponseMapper cartResponseMapper;
     private final CurrentUserQueryService currentUserQueryService;
 
-    public CartController(CartService cartService, CatalogQueryService catalogQueryService,
-            CartResponseMapper cartResponseMapper, CurrentUserQueryService currentUserQueryService) {
+    public CartController(CartService cartService, CartMergeService cartMergeService,
+            CatalogQueryService catalogQueryService, CartResponseMapper cartResponseMapper,
+            CurrentUserQueryService currentUserQueryService) {
         this.cartService = cartService;
+        this.cartMergeService = cartMergeService;
         this.catalogQueryService = catalogQueryService;
         this.cartResponseMapper = cartResponseMapper;
         this.currentUserQueryService = currentUserQueryService;
@@ -82,6 +86,16 @@ public class CartController {
             @PathVariable UUID productId) {
         Cart cart = resolveCartForWrite(principal, guestTokenHeader);
         cart = cartService.removeLine(cart, productId);
+        return ApiResponse.success(toResponse(cart));
+    }
+
+    @PostMapping("/merge")
+    public ApiResponse<CartResponse> mergeGuestCart(@AuthenticationPrincipal UserDetails principal,
+            @RequestHeader(name = GUEST_TOKEN_HEADER, required = false) String guestTokenHeader) {
+        UUID userId = resolveUserId(principal);
+        UUID guestToken = guestTokenHeader != null ? UUID.fromString(guestTokenHeader) : null;
+        cartMergeService.mergeGuestCartIntoUserCart(guestToken, userId);
+        Cart cart = cartService.resolveOrCreateActiveCart(userId, null);
         return ApiResponse.success(toResponse(cart));
     }
 
