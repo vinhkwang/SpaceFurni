@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -80,6 +81,12 @@ public class CatalogQueryService {
         }
         return departments.stream().map(department -> categoryResponseMapper.toTree(department,
                 productCountsBySubCategoryId)).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Map<UUID, ProductSummaryResponse> findProductSummariesByIds(List<UUID> productIds) {
+        return productRepository.findAllByIdIn(productIds).stream()
+                .collect(Collectors.toMap(Product::getId, productResponseMapper::toSummary));
     }
 
     @Transactional(readOnly = true)

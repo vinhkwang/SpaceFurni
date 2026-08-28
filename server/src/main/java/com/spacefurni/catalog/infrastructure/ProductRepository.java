@@ -1,6 +1,7 @@
 package com.spacefurni.catalog.infrastructure;
 
 import com.spacefurni.catalog.domain.Product;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -11,4 +12,7 @@ public interface ProductRepository extends JpaRepository<Product, UUID>, JpaSpec
 
     @EntityGraph(attributePaths = { "category", "images", "specifications", "colorSwatches" })
     Optional<Product> findBySlug(String slug);
+
+    @EntityGraph(attributePaths = { "category", "images" })
+    List<Product> findAllByIdIn(List<UUID> ids);
 }
