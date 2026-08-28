@@ -65,6 +65,18 @@ public class CartService {
         return cartRepository.save(cart);
     }
 
+    @Transactional
+    public Cart applyPromotion(Cart cart, String promotionCode) {
+        cart.applyPromotion(promotionCode.toUpperCase());
+        return cartRepository.save(cart);
+    }
+
+    @Transactional
+    public Cart clearPromotion(Cart cart) {
+        cart.clearPromotion();
+        return cartRepository.save(cart);
+    }
+
     private void requireQuantityAtLeastOne(int quantity) {
         if (quantity < 1) {
             throw new BusinessRuleViolationException("Quantity must be at least 1");

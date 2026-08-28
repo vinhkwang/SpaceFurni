@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.spacefurni.cart.api.dto.CartResponse;
 import com.spacefurni.cart.domain.Cart;
 import com.spacefurni.catalog.api.dto.ProductSummaryResponse;
+import com.spacefurni.pricing.domain.PriceBreakdown;
+import com.spacefurni.shared.domain.Money;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -18,8 +20,13 @@ class CartResponseMapperTest {
                 priceAmount, null, "VND", null, 0, "https://example.com/" + productId + ".jpg", null);
     }
 
+    private PriceBreakdown priceBreakdownOf(long subtotalAmount) {
+        return new PriceBreakdown(Money.ofVnd(subtotalAmount), Money.ofVnd(300_000L), Money.zeroVnd(),
+                Money.ofVnd(subtotalAmount + 300_000L), null, Money.ofVnd(10_000_001L - subtotalAmount));
+    }
+
     @Test
-    void toResponseComputesLineTotalsAndSubtotalFromLivePrices() {
+    void toResponseMapsLinesFromLivePricesAndFlattensThePriceBreakdown() {
         UUID guestToken = UUID.randomUUID();
         Cart cart = new Cart(null, guestToken);
         UUID firstProductId = UUID.randomUUID();
@@ -29,10 +36,9 @@ class CartResponseMapperTest {
         Map<UUID, ProductSummaryResponse> products = Map.of(firstProductId, summaryOf(firstProductId, 100_000L),
                 secondProductId, summaryOf(secondProductId, 50_000L));
 
-        CartResponse response = mapper.toResponse(cart, products);
+        CartResponse response = mapper.toResponse(cart, products, priceBreakdownOf(350_000L));
 
         assertThat(response.guestToken()).isEqualTo(guestToken);
-        assertThat(response.currencyCode()).isEqualTo("VND");
         assertThat(response.lines()).hasSize(2);
         assertThat(response.lines()).filteredOn(line -> line.productId().equals(firstProductId)).first()
                 .satisfies(line -> {
@@ -40,17 +46,33 @@ class CartResponseMapperTest {
                     assertThat(line.quantity()).isEqualTo(2);
                     assertThat(line.lineTotalAmount()).isEqualTo(200_000L);
                 });
-        assertThat(response.subtotalAmount()).isEqualTo(350_000L);
+        assertThat(response.priceBreakdown().subtotalAmount()).isEqualTo(350_000L);
+        assertThat(response.priceBreakdown().currencyCode()).isEqualTo("VND");
     }
 
     @Test
-    void toResponseReturnsEmptyLinesAndZeroSubtotalForEmptyCart() {
+    void toResponseReturnsEmptyLinesForEmptyCart() {
         Cart cart = new Cart(null, UUID.randomUUID());
 
-        CartResponse response = mapper.toResponse(cart, Map.of());
+        CartResponse response = mapper.toResponse(cart, Map.of(), priceBreakdownOf(0L));
 
         assertThat(response.lines()).isEmpty();
-        assertThat(response.subtotalAmount()).isZero();
+        assertThat(response.priceBreakdown().subtotalAmount()).isZero();
+    }
+
+    @Test
+    void toPriceBreakdownResponseFlattensEveryField() {
+        PriceBreakdown priceBreakdown = new PriceBreakdown(Money.ofVnd(2_000_000L), Money.ofVnd(300_000L),
+                Money.ofVnd(200_000L), Money.ofVnd(2_100_000L), "SPACE10", Money.ofVnd(8_000_001L));
+
+        var response = mapper.toPriceBreakdownResponse(priceBreakdown);
+
+        assertThat(response.subtotalAmount()).isEqualTo(2_000_000L);
+        assertThat(response.shippingAmount()).isEqualTo(300_000L);
+        assertThat(response.discountAmount()).isEqualTo(200_000L);
+        assertThat(response.totalAmount()).isEqualTo(2_100_000L);
         assertThat(response.currencyCode()).isEqualTo("VND");
+        assertThat(response.appliedPromotionCode()).isEqualTo("SPACE10");
+        assertThat(response.amountToFreeShippingAmount()).isEqualTo(8_000_001L);
     }
 }

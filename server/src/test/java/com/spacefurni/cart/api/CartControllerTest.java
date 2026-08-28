@@ -18,16 +18,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.spacefurni.cart.api.dto.CartResponse;
+import com.spacefurni.cart.api.dto.PriceBreakdownResponse;
 import com.spacefurni.cart.api.mapper.CartResponseMapper;
 import com.spacefurni.cart.application.CartMergeService;
 import com.spacefurni.cart.application.CartService;
 import com.spacefurni.cart.domain.Cart;
 import com.spacefurni.catalog.application.CatalogQueryService;
+import com.spacefurni.checkout.domain.DeliveryWindow;
 import com.spacefurni.identity.application.CurrentUserQueryService;
 import com.spacefurni.identity.domain.User;
 import com.spacefurni.identity.security.JwtTokenProvider;
 import com.spacefurni.identity.security.SecurityConfiguration;
 import com.spacefurni.identity.security.SpaceFurniUserDetailsService;
+import com.spacefurni.pricing.application.PricingService;
+import com.spacefurni.pricing.domain.PriceBreakdown;
+import com.spacefurni.shared.domain.Money;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -77,6 +82,9 @@ class CartControllerTest {
     private CurrentUserQueryService currentUserQueryService;
 
     @MockitoBean
+    private PricingService pricingService;
+
+    @MockitoBean
     private JwtTokenProvider jwtTokenProvider;
 
     @MockitoBean
@@ -88,11 +96,31 @@ class CartControllerTest {
         return cart;
     }
 
+    private PriceBreakdown dummyPriceBreakdown() {
+        return new PriceBreakdown(Money.zeroVnd(), Money.zeroVnd(), Money.zeroVnd(), Money.zeroVnd(), null,
+                Money.zeroVnd());
+    }
+
+    private CartResponse dummyCartResponse(UUID id, UUID guestToken) {
+        return new CartResponse(id, guestToken, List.of(), new PriceBreakdownResponse(0L, 0L, 0L, 0L, "VND", null, 0L));
+    }
+
+    private void stubEmptyCartPricingAndMapping(Cart cart, UUID guestToken) {
+        when(catalogQueryService.findProductSummariesByIds(List.of())).thenReturn(Map.of());
+        when(pricingService.calculate(List.of(), null, DeliveryWindow.STANDARD)).thenReturn(dummyPriceBreakdown());
+        when(cartResponseMapper.toResponse(cart, Map.of(), dummyPriceBreakdown()))
+                .thenReturn(dummyCartResponse(UUID.randomUUID(), guestToken));
+    }
+
     @Test
     void currentCartAsAnonymousWithoutGuestTokenReturnsEmptyCartWithoutTouchingCartService() throws Exception {
+        when(pricingService.calculate(List.of(), null, DeliveryWindow.STANDARD)).thenReturn(dummyPriceBreakdown());
+        when(cartResponseMapper.toPriceBreakdownResponse(dummyPriceBreakdown()))
+                .thenReturn(new PriceBreakdownResponse(0L, 0L, 0L, 0L, "VND", null, 0L));
+
         mockMvc.perform(get("/api/v1/cart")).andExpect(status().isOk()).andExpect(jsonPath("$.data.id").isEmpty())
                 .andExpect(jsonPath("$.data.lines").isEmpty())
-                .andExpect(jsonPath("$.data.subtotalAmount").value(0));
+                .andExpect(jsonPath("$.data.priceBreakdown.subtotalAmount").value(0));
 
         verifyNoInteractions(cartService);
     }
@@ -102,9 +130,7 @@ class CartControllerTest {
         UUID guestToken = UUID.randomUUID();
         Cart cart = mockCart();
         when(cartService.resolveOrCreateActiveCart(null, guestToken)).thenReturn(cart);
-        when(catalogQueryService.findProductSummariesByIds(List.of())).thenReturn(Map.of());
-        when(cartResponseMapper.toResponse(cart, Map.of()))
-                .thenReturn(new CartResponse(UUID.randomUUID(), guestToken, List.of(), 0L, "VND"));
+        stubEmptyCartPricingAndMapping(cart, guestToken);
 
         mockMvc.perform(get("/api/v1/cart").header("X-Guest-Token", guestToken.toString()))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.data.guestToken").value(guestToken.toString()));
@@ -121,9 +147,7 @@ class CartControllerTest {
         when(currentUserQueryService.getByEmail("user@spacefurni.com")).thenReturn(user);
         Cart cart = mockCart();
         when(cartService.resolveOrCreateActiveCart(userId, null)).thenReturn(cart);
-        when(catalogQueryService.findProductSummariesByIds(List.of())).thenReturn(Map.of());
-        when(cartResponseMapper.toResponse(cart, Map.of()))
-                .thenReturn(new CartResponse(UUID.randomUUID(), null, List.of(), 0L, "VND"));
+        stubEmptyCartPricingAndMapping(cart, null);
 
         mockMvc.perform(get("/api/v1/cart")).andExpect(status().isOk());
 
@@ -135,9 +159,7 @@ class CartControllerTest {
         Cart cart = mockCart();
         when(cartService.resolveOrCreateActiveCart(isNull(), any())).thenReturn(cart);
         when(cartService.addLine(eq(cart), any(), eq(2))).thenReturn(cart);
-        when(catalogQueryService.findProductSummariesByIds(List.of())).thenReturn(Map.of());
-        when(cartResponseMapper.toResponse(cart, Map.of()))
-                .thenReturn(new CartResponse(UUID.randomUUID(), UUID.randomUUID(), List.of(), 0L, "VND"));
+        stubEmptyCartPricingAndMapping(cart, UUID.randomUUID());
         UUID productId = UUID.randomUUID();
 
         mockMvc.perform(post("/api/v1/cart/items").with(csrf()).contentType(MediaType.APPLICATION_JSON)
@@ -157,9 +179,7 @@ class CartControllerTest {
         Cart cart = mockCart();
         when(cartService.resolveOrCreateActiveCart(null, guestToken)).thenReturn(cart);
         when(cartService.addLine(cart, productId, 1)).thenReturn(cart);
-        when(catalogQueryService.findProductSummariesByIds(List.of())).thenReturn(Map.of());
-        when(cartResponseMapper.toResponse(cart, Map.of()))
-                .thenReturn(new CartResponse(UUID.randomUUID(), guestToken, List.of(), 0L, "VND"));
+        stubEmptyCartPricingAndMapping(cart, guestToken);
 
         mockMvc.perform(post("/api/v1/cart/items").with(csrf()).header("X-Guest-Token", guestToken.toString())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -193,9 +213,7 @@ class CartControllerTest {
         Cart cart = mockCart();
         when(cartService.resolveOrCreateActiveCart(null, guestToken)).thenReturn(cart);
         when(cartService.updateLineQuantity(cart, productId, 5)).thenReturn(cart);
-        when(catalogQueryService.findProductSummariesByIds(List.of())).thenReturn(Map.of());
-        when(cartResponseMapper.toResponse(cart, Map.of()))
-                .thenReturn(new CartResponse(UUID.randomUUID(), guestToken, List.of(), 0L, "VND"));
+        stubEmptyCartPricingAndMapping(cart, guestToken);
 
         mockMvc.perform(patch("/api/v1/cart/items/" + productId).with(csrf())
                         .header("X-Guest-Token", guestToken.toString()).contentType(MediaType.APPLICATION_JSON)
@@ -221,9 +239,7 @@ class CartControllerTest {
         Cart cart = mockCart();
         when(cartService.resolveOrCreateActiveCart(null, guestToken)).thenReturn(cart);
         when(cartService.removeLine(cart, productId)).thenReturn(cart);
-        when(catalogQueryService.findProductSummariesByIds(List.of())).thenReturn(Map.of());
-        when(cartResponseMapper.toResponse(cart, Map.of()))
-                .thenReturn(new CartResponse(UUID.randomUUID(), guestToken, List.of(), 0L, "VND"));
+        stubEmptyCartPricingAndMapping(cart, guestToken);
 
         mockMvc.perform(delete("/api/v1/cart/items/" + productId).with(csrf())
                         .header("X-Guest-Token", guestToken.toString()))
@@ -249,13 +265,41 @@ class CartControllerTest {
         when(currentUserQueryService.getByEmail("user@spacefurni.com")).thenReturn(user);
         Cart cart = mockCart();
         when(cartService.resolveOrCreateActiveCart(userId, null)).thenReturn(cart);
-        when(catalogQueryService.findProductSummariesByIds(List.of())).thenReturn(Map.of());
-        when(cartResponseMapper.toResponse(cart, Map.of()))
-                .thenReturn(new CartResponse(UUID.randomUUID(), null, List.of(), 0L, "VND"));
+        stubEmptyCartPricingAndMapping(cart, null);
 
         mockMvc.perform(post("/api/v1/cart/merge").with(csrf()).header("X-Guest-Token", guestToken.toString()))
                 .andExpect(status().isOk());
 
         verify(cartMergeService).mergeGuestCartIntoUserCart(guestToken, userId);
+    }
+
+    @Test
+    void applyPromotionDelegatesToService() throws Exception {
+        UUID guestToken = UUID.randomUUID();
+        Cart cart = mockCart();
+        when(cartService.resolveOrCreateActiveCart(null, guestToken)).thenReturn(cart);
+        when(cartService.applyPromotion(cart, "SPACE10")).thenReturn(cart);
+        stubEmptyCartPricingAndMapping(cart, guestToken);
+
+        mockMvc.perform(post("/api/v1/cart/promotion").with(csrf()).header("X-Guest-Token", guestToken.toString())
+                        .contentType(MediaType.APPLICATION_JSON).content("{ \"code\": \"SPACE10\" }"))
+                .andExpect(status().isOk());
+
+        verify(cartService).applyPromotion(cart, "SPACE10");
+    }
+
+    @Test
+    void clearPromotionDelegatesToServiceWhenCodeIsBlank() throws Exception {
+        UUID guestToken = UUID.randomUUID();
+        Cart cart = mockCart();
+        when(cartService.resolveOrCreateActiveCart(null, guestToken)).thenReturn(cart);
+        when(cartService.clearPromotion(cart)).thenReturn(cart);
+        stubEmptyCartPricingAndMapping(cart, guestToken);
+
+        mockMvc.perform(post("/api/v1/cart/promotion").with(csrf()).header("X-Guest-Token", guestToken.toString())
+                        .contentType(MediaType.APPLICATION_JSON).content("{ \"code\": \"\" }"))
+                .andExpect(status().isOk());
+
+        verify(cartService).clearPromotion(cart);
     }
 }
