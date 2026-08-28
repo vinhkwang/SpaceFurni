@@ -1,6 +1,7 @@
 package com.spacefurni.cart.api;
 
 import com.spacefurni.cart.api.dto.AddCartLineRequest;
+import com.spacefurni.cart.api.dto.ApplyPromotionRequest;
 import com.spacefurni.cart.api.dto.CartResponse;
 import com.spacefurni.cart.api.dto.UpdateCartLineRequest;
 import com.spacefurni.cart.api.mapper.CartResponseMapper;
@@ -10,8 +11,13 @@ import com.spacefurni.cart.domain.Cart;
 import com.spacefurni.cart.domain.CartItem;
 import com.spacefurni.catalog.api.dto.ProductSummaryResponse;
 import com.spacefurni.catalog.application.CatalogQueryService;
+import com.spacefurni.checkout.domain.DeliveryWindow;
 import com.spacefurni.identity.application.CurrentUserQueryService;
+import com.spacefurni.pricing.application.PricingLine;
+import com.spacefurni.pricing.application.PricingService;
+import com.spacefurni.pricing.domain.PriceBreakdown;
 import com.spacefurni.shared.api.ApiResponse;
+import com.spacefurni.shared.domain.Money;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -39,15 +45,17 @@ public class CartController {
     private final CatalogQueryService catalogQueryService;
     private final CartResponseMapper cartResponseMapper;
     private final CurrentUserQueryService currentUserQueryService;
+    private final PricingService pricingService;
 
     public CartController(CartService cartService, CartMergeService cartMergeService,
             CatalogQueryService catalogQueryService, CartResponseMapper cartResponseMapper,
-            CurrentUserQueryService currentUserQueryService) {
+            CurrentUserQueryService currentUserQueryService, PricingService pricingService) {
         this.cartService = cartService;
         this.cartMergeService = cartMergeService;
         this.catalogQueryService = catalogQueryService;
         this.cartResponseMapper = cartResponseMapper;
         this.currentUserQueryService = currentUserQueryService;
+        this.pricingService = pricingService;
     }
 
     @GetMapping
@@ -55,7 +63,9 @@ public class CartController {
             @RequestHeader(name = GUEST_TOKEN_HEADER, required = false) String guestTokenHeader) {
         UUID userId = resolveUserId(principal);
         if (userId == null && guestTokenHeader == null) {
-            return ApiResponse.success(new CartResponse(null, null, List.of(), 0L, "VND"));
+            PriceBreakdown emptyBreakdown = pricingService.calculate(List.of(), null, DeliveryWindow.STANDARD);
+            return ApiResponse.success(
+                    new CartResponse(null, null, List.of(), cartResponseMapper.toPriceBreakdownResponse(emptyBreakdown)));
         }
         UUID guestToken = userId == null ? UUID.fromString(guestTokenHeader) : null;
         Cart cart = cartService.resolveOrCreateActiveCart(userId, guestToken);
@@ -99,6 +109,16 @@ public class CartController {
         return ApiResponse.success(toResponse(cart));
     }
 
+    @PostMapping("/promotion")
+    public ApiResponse<CartResponse> applyOrClearPromotion(@AuthenticationPrincipal UserDetails principal,
+            @RequestHeader(name = GUEST_TOKEN_HEADER, required = false) String guestTokenHeader,
+            @RequestBody ApplyPromotionRequest request) {
+        Cart cart = resolveCartForWrite(principal, guestTokenHeader);
+        cart = request.code() == null || request.code().isBlank() ? cartService.clearPromotion(cart)
+                : cartService.applyPromotion(cart, request.code());
+        return ApiResponse.success(toResponse(cart));
+    }
+
     private Cart resolveCartForWrite(UserDetails principal, String guestTokenHeader) {
         UUID userId = resolveUserId(principal);
         if (userId != null) {
@@ -116,9 +136,16 @@ public class CartController {
     }
 
     private CartResponse toResponse(Cart cart) {
-        List<UUID> productIds = cart.getItems().stream().map(CartItem::getProductId).toList();
-        Map<UUID, ProductSummaryResponse> productSummariesByProductId = catalogQueryService
-                .findProductSummariesByIds(productIds);
-        return cartResponseMapper.toResponse(cart, productSummariesByProductId);
+        Map<UUID, ProductSummaryResponse> productSummariesByProductId = catalogQueryService.findProductSummariesByIds(
+                cart.getItems().stream().map(CartItem::getProductId).toList());
+        List<PricingLine> pricingLines = cart.getItems().stream()
+                .map(item -> toPricingLine(item, productSummariesByProductId.get(item.getProductId()))).toList();
+        PriceBreakdown priceBreakdown = pricingService.calculate(pricingLines, cart.getPromotionCode(),
+                DeliveryWindow.STANDARD);
+        return cartResponseMapper.toResponse(cart, productSummariesByProductId, priceBreakdown);
+    }
+
+    private PricingLine toPricingLine(CartItem item, ProductSummaryResponse product) {
+        return new PricingLine(new Money(product.priceAmount(), product.currencyCode()), item.getQuantity());
     }
 }

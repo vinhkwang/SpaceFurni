@@ -179,4 +179,23 @@ class CartServiceTest {
 
         assertThat(cleared.getItems()).isEmpty();
     }
+
+    @Test
+    void applyPromotionUppercasesAndPersistsTheCode() {
+        Cart cart = service().resolveOrCreateActiveCart(null, UUID.randomUUID());
+
+        Cart updated = service().applyPromotion(cart, "space10");
+
+        assertThat(updated.getPromotionCode()).isEqualTo("SPACE10");
+    }
+
+    @Test
+    void clearPromotionRemovesThePersistedCode() {
+        Cart cart = service().resolveOrCreateActiveCart(null, UUID.randomUUID());
+        service().applyPromotion(cart, "SPACE10");
+
+        Cart cleared = service().clearPromotion(cart);
+
+        assertThat(cleared.getPromotionCode()).isNull();
+    }
 }

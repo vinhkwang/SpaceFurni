@@ -30,6 +30,9 @@ public class Cart extends AuditableEntity {
     @Column(name = "guest_token")
     private UUID guestToken;
 
+    @Column(name = "promotion_code")
+    private String promotionCode;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CartStatus status;
@@ -77,6 +80,14 @@ public class Cart extends AuditableEntity {
         this.status = CartStatus.CONVERTED;
     }
 
+    public void applyPromotion(String promotionCode) {
+        this.promotionCode = promotionCode;
+    }
+
+    public void clearPromotion() {
+        this.promotionCode = null;
+    }
+
     public UUID getId() {
         return id;
     }
@@ -87,6 +98,10 @@ public class Cart extends AuditableEntity {
 
     public UUID getGuestToken() {
         return guestToken;
+    }
+
+    public String getPromotionCode() {
+        return promotionCode;
     }
 
     public CartStatus getStatus() {
