@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class CardPaymentStrategy implements PaymentStrategy {
 
-    public static final String DECLINED_TEST_PHONE_NUMBER = "0000000000";
+    public static final String DECLINED_TEST_PHONE_NUMBER = "0900000000";
 
     @Override
     public PaymentResult execute(Order order) {
