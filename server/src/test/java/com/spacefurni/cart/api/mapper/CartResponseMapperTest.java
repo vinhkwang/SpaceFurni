@@ -16,8 +16,9 @@ class CartResponseMapperTest {
     private final CartResponseMapper mapper = new CartResponseMapper();
 
     private ProductSummaryResponse summaryOf(UUID productId, long priceAmount) {
-        return new ProductSummaryResponse(productId, "slug-" + productId, "Product " + productId, "Category",
-                priceAmount, null, "VND", null, 0, "https://example.com/" + productId + ".jpg", null);
+        return new ProductSummaryResponse(productId, "SKU-" + productId, "slug-" + productId,
+                "Product " + productId, "Category", priceAmount, null, "VND", null, 0,
+                "https://example.com/" + productId + ".jpg", null);
     }
 
     private PriceBreakdown priceBreakdownOf(long subtotalAmount) {
