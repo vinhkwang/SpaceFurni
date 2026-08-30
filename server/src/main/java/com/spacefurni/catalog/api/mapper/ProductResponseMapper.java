@@ -18,7 +18,7 @@ public class ProductResponseMapper {
     public ProductSummaryResponse toSummary(Product product) {
         Money price = product.getPrice();
         Money compareAtPrice = product.getCompareAtPrice();
-        return new ProductSummaryResponse(product.getId(), product.getSlug(), product.getName(),
+        return new ProductSummaryResponse(product.getId(), product.getSku(), product.getSlug(), product.getName(),
                 product.getCategory().getName(), price.amount(),
                 compareAtPrice == null ? null : compareAtPrice.amount(), price.currencyCode(),
                 product.getRatingAverage(), product.getReviewCount(), primaryImageUrl(product), toBadge(product));

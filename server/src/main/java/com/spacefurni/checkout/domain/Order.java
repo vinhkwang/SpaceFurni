@@ -130,6 +130,10 @@ public class Order {
         this.status = target;
     }
 
+    public void recordPaymentStatus(PaymentStatus paymentStatus) {
+        this.paymentStatus = paymentStatus;
+    }
+
     public UUID getId() {
         return id;
     }

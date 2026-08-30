@@ -16,8 +16,9 @@ class CatalogResponseSerializationTest {
     @Test
     void productSummaryResponseSerializesAllFieldsIncludingBadge() {
         ProductBadgeResponse badge = new ProductBadgeResponse("-20%", "SALE");
-        ProductSummaryResponse summary = new ProductSummaryResponse(UUID.randomUUID(), "oslo-sofa", "Oslo Sofa",
-                "Sofa", 800_000L, 1_000_000L, "VND", new BigDecimal("4.5"), 12, "https://example.com/a.jpg", badge);
+        ProductSummaryResponse summary = new ProductSummaryResponse(UUID.randomUUID(), "SKU-1", "oslo-sofa",
+                "Oslo Sofa", "Sofa", 800_000L, 1_000_000L, "VND", new BigDecimal("4.5"), 12,
+                "https://example.com/a.jpg", badge);
 
         JsonNode json = objectMapper.valueToTree(summary);
 
@@ -31,8 +32,9 @@ class CatalogResponseSerializationTest {
 
     @Test
     void productSummaryResponseSerializesNullBadgeAndCompareAtPrice() {
-        ProductSummaryResponse summary = new ProductSummaryResponse(UUID.randomUUID(), "oslo-sofa", "Oslo Sofa",
-                "Sofa", 800_000L, null, "VND", new BigDecimal("4.5"), 12, "https://example.com/a.jpg", null);
+        ProductSummaryResponse summary = new ProductSummaryResponse(UUID.randomUUID(), "SKU-1", "oslo-sofa",
+                "Oslo Sofa", "Sofa", 800_000L, null, "VND", new BigDecimal("4.5"), 12, "https://example.com/a.jpg",
+                null);
 
         JsonNode json = objectMapper.valueToTree(summary);
 
@@ -42,8 +44,9 @@ class CatalogResponseSerializationTest {
 
     @Test
     void productDetailResponseSerializesChildCollectionsAndRelatedProducts() {
-        ProductSummaryResponse related = new ProductSummaryResponse(UUID.randomUUID(), "claire-sofa", "Claire Sofa",
-                "Sofa", 1_950_000L, null, "VND", new BigDecimal("4.6"), 74, "https://example.com/b.jpg", null);
+        ProductSummaryResponse related = new ProductSummaryResponse(UUID.randomUUID(), "SKU-2", "claire-sofa",
+                "Claire Sofa", "Sofa", 1_950_000L, null, "VND", new BigDecimal("4.6"), 74,
+                "https://example.com/b.jpg", null);
         ProductDetailResponse detail = new ProductDetailResponse(UUID.randomUUID(), "SKU-1", "oslo-sofa",
                 "Oslo Sofa", "Sofa", 800_000L, 1_000_000L, "VND", new BigDecimal("4.5"), 12, "short", "long",
                 "200x90x80cm", "Fabric", "Beige", new ProductBadgeResponse("-20%", "SALE"),

@@ -77,6 +77,12 @@ public class CartService {
         return cartRepository.save(cart);
     }
 
+    @Transactional
+    public Cart markConverted(Cart cart) {
+        cart.markConverted();
+        return cartRepository.save(cart);
+    }
+
     private void requireQuantityAtLeastOne(int quantity) {
         if (quantity < 1) {
             throw new BusinessRuleViolationException("Quantity must be at least 1");
