@@ -11,6 +11,7 @@ import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -30,6 +31,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Void>> handleValidationFailure(MethodArgumentNotValidException exception) {
         Map<String, String> details = fieldErrorsToDetails(exception);
+        ApiError error = new ApiError(ErrorCode.VALIDATION_FAILED.name(), "Validation failed", details);
+        return ResponseEntity.status(ErrorCode.VALIDATION_FAILED.httpStatus()).body(ApiResponse.failure(error));
+    }
+
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMissingRequestHeader(MissingRequestHeaderException exception) {
+        Map<String, String> details = Map.of(exception.getHeaderName(), "is required");
         ApiError error = new ApiError(ErrorCode.VALIDATION_FAILED.name(), "Validation failed", details);
         return ResponseEntity.status(ErrorCode.VALIDATION_FAILED.httpStatus()).body(ApiResponse.failure(error));
     }
