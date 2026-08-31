@@ -2,6 +2,7 @@ package com.spacefurni.checkout.infrastructure;
 
 import com.spacefurni.checkout.domain.Order;
 import com.spacefurni.checkout.domain.OrderStatus;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,6 +23,8 @@ public interface OrderRepository extends JpaRepository<Order, UUID>, JpaSpecific
 
     @Query("select o.status as status, count(o) as total from Order o group by o.status")
     List<OrderStatusCount> countGroupedByStatus();
+
+    long countByPlacedAtGreaterThanEqual(Instant placedAtInclusiveStart);
 
     interface OrderStatusCount {
         OrderStatus getStatus();

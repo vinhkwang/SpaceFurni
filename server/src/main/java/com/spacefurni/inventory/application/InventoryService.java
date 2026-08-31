@@ -16,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class InventoryService {
 
+    private static final int LOW_STOCK_THRESHOLD = 6;
+
     private final InventoryItemRepository inventoryItemRepository;
 
     public InventoryService(InventoryItemRepository inventoryItemRepository) {
@@ -61,6 +63,11 @@ public class InventoryService {
     public Map<UUID, Integer> findAvailableQuantities(List<UUID> productIds) {
         return inventoryItemRepository.findAllByProductIdInOrderByProductIdAsc(productIds).stream()
                 .collect(Collectors.toMap(InventoryItem::getProductId, InventoryItem::availableQuantity));
+    }
+
+    @Transactional(readOnly = true)
+    public long countLowStockItems() {
+        return inventoryItemRepository.countByQuantityOnHandLessThan(LOW_STOCK_THRESHOLD);
     }
 
     private int availableQuantityOf(UUID productId) {

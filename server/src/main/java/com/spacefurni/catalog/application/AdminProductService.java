@@ -96,6 +96,11 @@ public class AdminProductService {
     }
 
     @Transactional(readOnly = true)
+    public long countPublishedProducts() {
+        return productRepository.count(ProductSearchSpecifications.publishedOnly());
+    }
+
+    @Transactional(readOnly = true)
     public Page<AdminProductRowResponse> listProducts(String searchTerm, Pageable pageable) {
         Specification<Product> specification = ProductSearchSpecifications.withCategoryFetched();
         if (searchTerm != null && !searchTerm.isBlank()) {

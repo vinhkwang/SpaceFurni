@@ -13,6 +13,8 @@ import com.spacefurni.checkout.infrastructure.OrderRepository.OrderStatusCount;
 import com.spacefurni.checkout.infrastructure.OrderSearchSpecifications;
 import com.spacefurni.identity.application.CurrentUserQueryService;
 import com.spacefurni.shared.exception.ResourceNotFoundException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -58,6 +60,11 @@ public class AdminOrderQueryService {
     public Map<OrderStatus, Long> countOrdersByStatus() {
         return orderRepository.countGroupedByStatus().stream()
                 .collect(Collectors.toMap(OrderStatusCount::getStatus, OrderStatusCount::getTotal));
+    }
+
+    @Transactional(readOnly = true)
+    public long countOrdersPlacedToday() {
+        return orderRepository.countByPlacedAtGreaterThanEqual(Instant.now().truncatedTo(ChronoUnit.DAYS));
     }
 
     @Transactional(readOnly = true)
