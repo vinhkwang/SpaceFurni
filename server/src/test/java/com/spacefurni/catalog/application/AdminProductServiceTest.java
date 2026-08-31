@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.spacefurni.catalog.api.dto.AdminProductRequest;
+import com.spacefurni.catalog.api.dto.AdminProductRowResponse;
 import com.spacefurni.catalog.api.dto.StockAdjustmentRequest;
 import com.spacefurni.catalog.domain.Category;
 import com.spacefurni.catalog.domain.Product;
@@ -19,6 +20,8 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 class AdminProductServiceTest extends AbstractIntegrationTest {
 
@@ -179,5 +182,79 @@ class AdminProductServiceTest extends AbstractIntegrationTest {
 
         assertThatThrownBy(() -> adminProductService.adjustStock(unknownProductId, new StockAdjustmentRequest(5)))
                 .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void listsProductsWithStockFromInventoryAndCategoryLabel() {
+        UUID productId = adminProductService.createProduct(validRequest("Zzq Listing Stock Test Sofa"));
+
+        Page<AdminProductRowResponse> page =
+                adminProductService.listProducts("Zzq Listing Stock Test Sofa", PageRequest.of(0, 10));
+
+        assertThat(page.getTotalElements()).isEqualTo(1);
+        AdminProductRowResponse row = page.getContent().get(0);
+        assertThat(row.id()).isEqualTo(productId);
+        assertThat(row.title()).isEqualTo("Zzq Listing Stock Test Sofa");
+        assertThat(row.stockOnHand()).isEqualTo(12);
+        assertThat(row.categoryLabel()).isEqualTo("Living room · Sofa");
+        assertThat(row.status()).isEqualTo(ProductStatus.PUBLISHED);
+    }
+
+    @Test
+    void searchMatchesBySku() {
+        UUID productId = adminProductService.createProduct(validRequest("Zzq Sku Search Match Sofa"));
+        String sku = productRepository.findById(productId).orElseThrow().getSku();
+
+        Page<AdminProductRowResponse> page = adminProductService.listProducts(sku, PageRequest.of(0, 10));
+
+        assertThat(page.getContent()).extracting(AdminProductRowResponse::id).containsExactly(productId);
+    }
+
+    @Test
+    void searchMatchesByDepartmentOrSubCategoryName() {
+        AdminProductRequest deskRequest = new AdminProductRequest("Zzq Department Search Match Item", "work-study",
+                "desk", 3_000_000L, 2, null, null, null, null, null, null, ProductStatus.PUBLISHED, null);
+        UUID productId = adminProductService.createProduct(deskRequest);
+
+        Page<AdminProductRowResponse> byDepartment =
+                adminProductService.listProducts("work & study", PageRequest.of(0, 200));
+        assertThat(byDepartment.getContent()).extracting(AdminProductRowResponse::id).contains(productId);
+
+        Page<AdminProductRowResponse> bySubCategory = adminProductService.listProducts("desk", PageRequest.of(0, 200));
+        assertThat(bySubCategory.getContent()).extracting(AdminProductRowResponse::id).contains(productId);
+    }
+
+    @Test
+    void includesDraftAndArchivedProductsUnlikeThePublicList() {
+        AdminProductRequest draftRequest = new AdminProductRequest("Zzq Draft Listing Test Sofa", "living-room",
+                "sofa", 4_000_000L, 3, null, null, null, null, null, null, ProductStatus.DRAFT, null);
+        adminProductService.createProduct(draftRequest);
+
+        UUID archivedProductId = adminProductService.createProduct(validRequest("Zzq Archived Listing Test Sofa"));
+        adminProductService.archiveProduct(archivedProductId);
+
+        Page<AdminProductRowResponse> draftPage =
+                adminProductService.listProducts("Zzq Draft Listing Test Sofa", PageRequest.of(0, 10));
+        assertThat(draftPage.getContent()).extracting(AdminProductRowResponse::status)
+                .containsExactly(ProductStatus.DRAFT);
+
+        Page<AdminProductRowResponse> archivedPage =
+                adminProductService.listProducts("Zzq Archived Listing Test Sofa", PageRequest.of(0, 10));
+        assertThat(archivedPage.getContent()).extracting(AdminProductRowResponse::status)
+                .containsExactly(ProductStatus.ARCHIVED);
+    }
+
+    @Test
+    void pagesResultsAccordingToPageable() {
+        adminProductService.createProduct(validRequest("Zzq Paging Test Sofa Alpha"));
+        adminProductService.createProduct(validRequest("Zzq Paging Test Sofa Beta"));
+        adminProductService.createProduct(validRequest("Zzq Paging Test Sofa Gamma"));
+
+        Page<AdminProductRowResponse> firstPage =
+                adminProductService.listProducts("Zzq Paging Test Sofa", PageRequest.of(0, 2));
+
+        assertThat(firstPage.getTotalElements()).isEqualTo(3);
+        assertThat(firstPage.getContent()).hasSize(2);
+        assertThat(firstPage.getTotalPages()).isEqualTo(2);
     }
 }

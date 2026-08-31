@@ -1,20 +1,28 @@
 package com.spacefurni.catalog.application;
 
 import com.spacefurni.catalog.api.dto.AdminProductRequest;
+import com.spacefurni.catalog.api.dto.AdminProductRowResponse;
 import com.spacefurni.catalog.api.dto.StockAdjustmentRequest;
 import com.spacefurni.catalog.domain.Category;
 import com.spacefurni.catalog.domain.Product;
+import com.spacefurni.catalog.domain.ProductImage;
 import com.spacefurni.catalog.domain.ProductStatus;
 import com.spacefurni.catalog.infrastructure.CategoryRepository;
 import com.spacefurni.catalog.infrastructure.ProductRepository;
+import com.spacefurni.catalog.infrastructure.ProductSearchSpecifications;
 import com.spacefurni.inventory.application.InventoryService;
 import com.spacefurni.shared.domain.Money;
 import com.spacefurni.shared.exception.ResourceNotFoundException;
 import com.spacefurni.shared.util.SlugGenerator;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -85,6 +93,32 @@ public class AdminProductService {
     public void adjustStock(UUID productId, StockAdjustmentRequest request) {
         findProductByIdOrThrow(productId);
         inventoryService.adjustQuantityOnHand(productId, request.delta());
+    }
+
+    @Transactional(readOnly = true)
+    public Page<AdminProductRowResponse> listProducts(String searchTerm, Pageable pageable) {
+        Specification<Product> specification = ProductSearchSpecifications.withCategoryFetched();
+        if (searchTerm != null && !searchTerm.isBlank()) {
+            specification = specification.and(ProductSearchSpecifications.nameOrSkuOrCategoryContains(searchTerm));
+        }
+        Page<Product> products = productRepository.findAll(specification, pageable);
+        List<UUID> productIds = products.getContent().stream().map(Product::getId).toList();
+        Map<UUID, Integer> stockByProductId = inventoryService.findAvailableQuantities(productIds);
+        return products.map(product -> toRow(product, stockByProductId.getOrDefault(product.getId(), 0)));
+    }
+
+    private AdminProductRowResponse toRow(Product product, int stockOnHand) {
+        Category category = product.getCategory();
+        String categoryLabel = category.getParent().getName() + " · " + category.getName();
+        Money price = product.getPrice();
+        return new AdminProductRowResponse(product.getId(), primaryImageUrl(product), product.getName(),
+                product.getSku(), categoryLabel, price.amount(), price.currencyCode(), stockOnHand,
+                product.getStatus());
+    }
+
+    private String primaryImageUrl(Product product) {
+        return product.getImages().stream().min(Comparator.comparing(ProductImage::getDisplayOrder))
+                .map(ProductImage::getUrl).orElse(null);
     }
 
     private Product findProductByIdOrThrow(UUID productId) {
