@@ -15,4 +15,6 @@ public interface ProductRepository extends JpaRepository<Product, UUID>, JpaSpec
 
     @EntityGraph(attributePaths = { "category", "images" })
     List<Product> findAllByIdIn(List<UUID> ids);
+
+    Optional<Product> findTopBySkuStartingWithOrderBySkuDesc(String skuPrefix);
 }

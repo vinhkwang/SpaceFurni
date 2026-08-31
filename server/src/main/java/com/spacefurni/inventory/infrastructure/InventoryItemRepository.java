@@ -42,4 +42,6 @@ public interface InventoryItemRepository extends JpaRepository<InventoryItem, UU
     int adjustQuantityOnHandIfSufficient(@Param("productId") UUID productId, @Param("delta") int delta);
 
     List<InventoryItem> findAllByProductIdInOrderByProductIdAsc(List<UUID> productIds);
+
+    long countByQuantityOnHandLessThan(int threshold);
 }

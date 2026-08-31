@@ -127,6 +127,29 @@ public class Product extends AuditableEntity {
         this.isBestseller = isBestseller;
     }
 
+    public void updateDetails(String name, Category category, Money price, ProductStatus status,
+            String shortDescription, String longDescription, String dimensions, String material,
+            String primaryColorName) {
+        this.name = name;
+        this.category = category;
+        this.price = price;
+        this.status = status;
+        this.shortDescription = shortDescription;
+        this.longDescription = longDescription;
+        this.dimensions = dimensions;
+        this.material = material;
+        this.primaryColorName = primaryColorName;
+    }
+
+    public void replacePrimaryImage(String url) {
+        images.clear();
+        addImage(url, 1);
+    }
+
+    public void archive() {
+        this.status = ProductStatus.ARCHIVED;
+    }
+
     public boolean hasActiveDiscount() {
         return compareAtPriceAmount != null && compareAtPriceAmount > price.amount();
     }

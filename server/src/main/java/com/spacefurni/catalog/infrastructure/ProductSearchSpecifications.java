@@ -65,4 +65,16 @@ public final class ProductSearchSpecifications {
                     criteriaBuilder.like(criteriaBuilder.lower(category.get("name")), pattern));
         };
     }
+
+    public static Specification<Product> nameOrSkuOrCategoryContains(String term) {
+        return (root, query, criteriaBuilder) -> {
+            String pattern = "%" + term.toLowerCase() + "%";
+            Join<Product, Category> category = root.join("category");
+            Join<Category, Category> department = category.join("parent");
+            return criteriaBuilder.or(criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), pattern),
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("sku")), pattern),
+                    criteriaBuilder.like(criteriaBuilder.lower(category.get("name")), pattern),
+                    criteriaBuilder.like(criteriaBuilder.lower(department.get("name")), pattern));
+        };
+    }
 }
