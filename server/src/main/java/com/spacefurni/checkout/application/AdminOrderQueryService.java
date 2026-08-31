@@ -1,6 +1,8 @@
 package com.spacefurni.checkout.application;
 
+import com.spacefurni.checkout.api.dto.AdminOrderDetailResponse;
 import com.spacefurni.checkout.api.dto.AdminOrderRowResponse;
+import com.spacefurni.checkout.domain.DeliveryDetails;
 import com.spacefurni.checkout.domain.Order;
 import com.spacefurni.checkout.domain.OrderItem;
 import com.spacefurni.checkout.domain.OrderStatus;
@@ -9,6 +11,8 @@ import com.spacefurni.checkout.infrastructure.OrderItemRepository;
 import com.spacefurni.checkout.infrastructure.OrderRepository;
 import com.spacefurni.checkout.infrastructure.OrderRepository.OrderStatusCount;
 import com.spacefurni.checkout.infrastructure.OrderSearchSpecifications;
+import com.spacefurni.identity.application.CurrentUserQueryService;
+import com.spacefurni.shared.exception.ResourceNotFoundException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -24,10 +28,15 @@ public class AdminOrderQueryService {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final CurrentUserQueryService currentUserQueryService;
+    private final OrderTimelineBuilder orderTimelineBuilder;
 
-    public AdminOrderQueryService(OrderRepository orderRepository, OrderItemRepository orderItemRepository) {
+    public AdminOrderQueryService(OrderRepository orderRepository, OrderItemRepository orderItemRepository,
+            CurrentUserQueryService currentUserQueryService, OrderTimelineBuilder orderTimelineBuilder) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
+        this.currentUserQueryService = currentUserQueryService;
+        this.orderTimelineBuilder = orderTimelineBuilder;
     }
 
     @Transactional(readOnly = true)
@@ -49,6 +58,14 @@ public class AdminOrderQueryService {
     public Map<OrderStatus, Long> countOrdersByStatus() {
         return orderRepository.countGroupedByStatus().stream()
                 .collect(Collectors.toMap(OrderStatusCount::getStatus, OrderStatusCount::getTotal));
+    }
+
+    @Transactional(readOnly = true)
+    public AdminOrderDetailResponse findOrderDetail(String orderNumber) {
+        Order order = orderRepository.findByOrderNumber(orderNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found: " + orderNumber));
+        String customerEmail = currentUserQueryService.getEmailById(order.getUserId());
+        return toDetail(order, customerEmail);
     }
 
     private Map<UUID, List<OrderItem>> findItemsGroupedByOrderId(List<Order> orders) {
@@ -79,5 +96,24 @@ public class AdminOrderQueryService {
             case CASH_ON_DELIVERY -> "Cash on delivery";
             case BANK_TRANSFER -> "Bank transfer";
         };
+    }
+
+    private AdminOrderDetailResponse toDetail(Order order, String customerEmail) {
+        DeliveryDetails deliveryDetails = order.getDeliveryDetails();
+        return new AdminOrderDetailResponse(order.getOrderNumber(), order.getStatus(),
+                new AdminOrderDetailResponse.CustomerResponse(deliveryDetails.getFullName(), customerEmail,
+                        deliveryDetails.getPhone()),
+                new AdminOrderDetailResponse.DeliveryAddressResponse(deliveryDetails.getStreet(),
+                        deliveryDetails.getDistrict(), deliveryDetails.getCity(), deliveryDetails.getNote()),
+                order.getDeliveryWindow(), order.getPaymentMethod(), order.getPaymentStatus(),
+                order.getSubtotal().amount(), order.getShipping().amount(), order.getDiscount().amount(),
+                order.getTotal().amount(), order.getTotal().currencyCode(), order.getPlacedAt(),
+                order.getItems().stream().map(this::toLine).toList(),
+                orderTimelineBuilder.build(order.getStatus(), order.getPlacedAt()));
+    }
+
+    private AdminOrderDetailResponse.OrderLineResponse toLine(OrderItem item) {
+        return new AdminOrderDetailResponse.OrderLineResponse(item.getProductNameSnapshot(),
+                item.getUnitPriceAmount(), item.getQuantity(), item.getLineTotalAmount());
     }
 }

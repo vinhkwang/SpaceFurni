@@ -1,12 +1,14 @@
 package com.spacefurni.checkout.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 import com.spacefurni.catalog.domain.Category;
 import com.spacefurni.catalog.domain.Product;
 import com.spacefurni.catalog.domain.ProductStatus;
 import com.spacefurni.catalog.infrastructure.CategoryRepository;
 import com.spacefurni.catalog.infrastructure.ProductRepository;
+import com.spacefurni.checkout.api.dto.AdminOrderDetailResponse;
 import com.spacefurni.checkout.api.dto.AdminOrderRowResponse;
 import com.spacefurni.checkout.domain.DeliveryDetails;
 import com.spacefurni.checkout.domain.DeliveryWindow;
@@ -16,10 +18,13 @@ import com.spacefurni.checkout.domain.OrderStatus;
 import com.spacefurni.checkout.domain.PaymentMethod;
 import com.spacefurni.checkout.infrastructure.OrderItemRepository;
 import com.spacefurni.checkout.infrastructure.OrderRepository;
+import com.spacefurni.identity.application.CurrentUserQueryService;
 import com.spacefurni.identity.domain.User;
 import com.spacefurni.identity.domain.UserRole;
+import com.spacefurni.identity.infrastructure.UserRepository;
 import com.spacefurni.shared.config.JpaAuditingConfiguration;
 import com.spacefurni.shared.domain.Money;
+import com.spacefurni.shared.exception.ResourceNotFoundException;
 import jakarta.persistence.EntityManagerFactory;
 import java.math.BigDecimal;
 import java.util.Map;
@@ -48,6 +53,9 @@ class AdminOrderQueryServiceTest {
     private OrderItemRepository orderItemRepository;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private CategoryRepository categoryRepository;
 
     @Autowired
@@ -63,12 +71,13 @@ class AdminOrderQueryServiceTest {
 
     @BeforeEach
     void setUp() {
-        adminOrderQueryService = new AdminOrderQueryService(orderRepository, orderItemRepository);
+        adminOrderQueryService = new AdminOrderQueryService(orderRepository, orderItemRepository,
+                new CurrentUserQueryService(userRepository), new OrderTimelineBuilder());
     }
 
-    private UUID persistUser() {
+    private User persistUser() {
         User user = new User("user-" + UUID.randomUUID() + "@example.com", "hash", "Test User", UserRole.CUSTOMER);
-        return entityManager.persistAndFlush(user).getId();
+        return entityManager.persistAndFlush(user);
     }
 
     private UUID persistProduct() {
@@ -108,7 +117,7 @@ class AdminOrderQueryServiceTest {
 
     @Test
     void listOrdersIssuesAConstantNumberOfStatementsRegardlessOfPageSize() {
-        UUID userId = persistUser();
+        UUID userId = persistUser().getId();
         UUID productId = persistProduct();
         for (int orderIndex = 0; orderIndex < 6; orderIndex++) {
             persistOrderWithItems("SF-40" + orderIndex, userId, productId, "Customer " + orderIndex, 2);
@@ -132,7 +141,7 @@ class AdminOrderQueryServiceTest {
 
     @Test
     void listOrdersMapsRowFieldsFromTheOrderAndItsItems() {
-        UUID userId = persistUser();
+        UUID userId = persistUser().getId();
         UUID productId = persistProduct();
         persistOrderWithItems("SF-4101", userId, productId, "Pham Thu Ha", 2);
         entityManager.clear();
@@ -153,7 +162,7 @@ class AdminOrderQueryServiceTest {
 
     @Test
     void listOrdersFiltersByStatus() {
-        UUID userId = persistUser();
+        UUID userId = persistUser().getId();
         UUID productId = persistProduct();
         persistOrderWithItems("SF-4201", userId, productId, "Alice", 1);
         Order packingOrder = persistOrderWithItems("SF-4202", userId, productId, "Bob", 1);
@@ -168,7 +177,7 @@ class AdminOrderQueryServiceTest {
 
     @Test
     void listOrdersSearchesByOrderNumberOrCustomerName() {
-        UUID userId = persistUser();
+        UUID userId = persistUser().getId();
         UUID productId = persistProduct();
         persistOrderWithItems("SF-4301", userId, productId, "Nguyen Minh Anh", 1);
         persistOrderWithItems("SF-4302", userId, productId, "Le Quang Duc", 1);
@@ -187,7 +196,7 @@ class AdminOrderQueryServiceTest {
 
     @Test
     void countOrdersByStatusGroupsAllStatusesInOneStatement() {
-        UUID userId = persistUser();
+        UUID userId = persistUser().getId();
         UUID productId = persistProduct();
         persistOrderWithItems("SF-4401", userId, productId, "Alice", 1);
         persistOrderWithItems("SF-4402", userId, productId, "Bob", 1);
@@ -202,5 +211,39 @@ class AdminOrderQueryServiceTest {
         assertThat(counts.get(OrderStatus.PENDING)).isEqualTo(2L);
         assertThat(counts.get(OrderStatus.PACKING)).isEqualTo(1L);
         assertThat(statistics.getPrepareStatementCount()).isEqualTo(1);
+    }
+
+    @Test
+    void findOrderDetailReturnsCustomerAddressLinesAndTimeline() {
+        User user = persistUser();
+        UUID productId = persistProduct();
+        Order order = persistOrderWithItems("SF-4501", user.getId(), productId, "Tran Bao Ngoc", 2);
+        transitionOrderTo(order, OrderStatus.PAID);
+        entityManager.clear();
+
+        AdminOrderDetailResponse detail = adminOrderQueryService.findOrderDetail("SF-4501");
+
+        assertThat(detail.orderNumber()).isEqualTo("SF-4501");
+        assertThat(detail.status()).isEqualTo(OrderStatus.PAID);
+        assertThat(detail.customer().fullName()).isEqualTo("Tran Bao Ngoc");
+        assertThat(detail.customer().email()).isEqualTo(user.getEmail());
+        assertThat(detail.customer().phone()).isEqualTo("0901234567");
+        assertThat(detail.deliveryAddress().street()).isEqualTo("1 Le Loi");
+        assertThat(detail.deliveryAddress().district()).isEqualTo("District 1");
+        assertThat(detail.deliveryAddress().city()).isEqualTo("Ho Chi Minh City");
+        assertThat(detail.subtotalAmount()).isEqualTo(1_000_000L);
+        assertThat(detail.shippingAmount()).isEqualTo(300_000L);
+        assertThat(detail.discountAmount()).isEqualTo(0L);
+        assertThat(detail.totalAmount()).isEqualTo(1_300_000L);
+        assertThat(detail.lines()).hasSize(2);
+        assertThat(detail.lines().get(0).productName()).isEqualTo("Test Sofa 0");
+        assertThat(detail.timeline()).extracting(step -> step.complete()).containsExactly(true, true, false, false,
+                false);
+    }
+
+    @Test
+    void findOrderDetailThrowsForUnknownOrderNumber() {
+        assertThat(catchThrowable(() -> adminOrderQueryService.findOrderDetail("SF-DOES-NOT-EXIST")))
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 }

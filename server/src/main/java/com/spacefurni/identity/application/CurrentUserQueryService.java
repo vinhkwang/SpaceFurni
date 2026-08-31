@@ -3,6 +3,7 @@ package com.spacefurni.identity.application;
 import com.spacefurni.identity.domain.User;
 import com.spacefurni.identity.infrastructure.UserRepository;
 import com.spacefurni.shared.exception.ResourceNotFoundException;
+import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,5 +21,11 @@ public class CurrentUserQueryService {
         return userRepository
                 .findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found for email: " + email));
+    }
+
+    @Transactional(readOnly = true)
+    public String getEmailById(UUID userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId)).getEmail();
     }
 }
