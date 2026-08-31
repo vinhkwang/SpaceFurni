@@ -235,8 +235,8 @@ class AdminOrderQueryServiceTest {
         assertThat(detail.shippingAmount()).isEqualTo(300_000L);
         assertThat(detail.discountAmount()).isEqualTo(0L);
         assertThat(detail.totalAmount()).isEqualTo(1_300_000L);
-        assertThat(detail.lines()).hasSize(2);
-        assertThat(detail.lines().get(0).productName()).isEqualTo("Test Sofa 0");
+        assertThat(detail.lines()).extracting(AdminOrderDetailResponse.OrderLineResponse::productName)
+                .containsExactlyInAnyOrder("Test Sofa 0", "Test Sofa 1");
         assertThat(detail.timeline()).extracting(step -> step.complete()).containsExactly(true, true, false, false,
                 false);
     }
