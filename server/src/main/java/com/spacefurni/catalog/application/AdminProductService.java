@@ -6,7 +6,6 @@ import com.spacefurni.catalog.domain.Product;
 import com.spacefurni.catalog.domain.ProductStatus;
 import com.spacefurni.catalog.infrastructure.CategoryRepository;
 import com.spacefurni.catalog.infrastructure.ProductRepository;
-import com.spacefurni.catalog.infrastructure.ProductSearchSpecifications;
 import com.spacefurni.inventory.application.InventoryService;
 import com.spacefurni.shared.domain.Money;
 import com.spacefurni.shared.exception.ResourceNotFoundException;
@@ -14,6 +13,7 @@ import com.spacefurni.shared.util.SlugGenerator;
 import java.util.Comparator;
 import java.util.Locale;
 import java.util.UUID;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,6 +53,31 @@ public class AdminProductService {
         return savedProduct.getId();
     }
 
+    @Transactional
+    public void updateProduct(UUID productId, AdminProductRequest request) {
+        Product product = findProductByIdOrThrow(productId);
+        if (!product.getVersion().equals(request.version())) {
+            throw new OptimisticLockingFailureException("Product was modified by another request: " + productId);
+        }
+        Category department = findDepartmentBySlugOrThrow(request.departmentSlug());
+        Category category = resolveSubCategory(department, request.subCategorySlug());
+        ProductStatus status = request.status() == null ? product.getStatus() : request.status();
+
+        product.updateDetails(request.title(), category, Money.ofVnd(request.price()), status,
+                request.shortDescription(), request.longDescription(), request.dimensions(), request.material(),
+                request.primaryColorName());
+        if (request.imageUrl() != null) {
+            product.replacePrimaryImage(request.imageUrl());
+        }
+
+        productRepository.save(product);
+    }
+
+    private Product findProductByIdOrThrow(UUID productId) {
+        return productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + productId));
+    }
+
     private Category findDepartmentBySlugOrThrow(String departmentSlug) {
         Category department = categoryRepository.findBySlug(departmentSlug)
                 .orElseThrow(() -> new ResourceNotFoundException("Department not found: " + departmentSlug));
@@ -75,8 +100,12 @@ public class AdminProductService {
     private String generateSkuForDepartment(Category department) {
         String departmentPrefix = department.getSlug().replace("-", "").toUpperCase(Locale.ROOT);
         departmentPrefix = departmentPrefix.substring(0, Math.min(3, departmentPrefix.length()));
-        long existingProductCount =
-                productRepository.count(ProductSearchSpecifications.inDepartment(department.getSlug()));
-        return "%s-%04d".formatted(departmentPrefix, existingProductCount + 1);
+        int nextSequence = productRepository.findTopBySkuStartingWithOrderBySkuDesc(departmentPrefix + "-")
+                .map(topProduct -> parseSkuSequence(topProduct.getSku()) + 1).orElse(1);
+        return "%s-%04d".formatted(departmentPrefix, nextSequence);
+    }
+
+    private int parseSkuSequence(String sku) {
+        return Integer.parseInt(sku.substring(sku.lastIndexOf('-') + 1));
     }
 }

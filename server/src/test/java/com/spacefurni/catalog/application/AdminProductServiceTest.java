@@ -16,6 +16,7 @@ import com.spacefurni.support.AbstractIntegrationTest;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.OptimisticLockingFailureException;
 
 class AdminProductServiceTest extends AbstractIntegrationTest {
 
@@ -92,5 +93,42 @@ class AdminProductServiceTest extends AbstractIntegrationTest {
 
         assertThatThrownBy(() -> adminProductService.createProduct(unknownSubCategory))
                 .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void updatesEditableFieldsAndLeavesStockAlone() {
+        UUID productId = adminProductService.createProduct(validRequest("Zzq Update Test Sofa"));
+        Product createdProduct = productRepository.findById(productId).orElseThrow();
+
+        AdminProductRequest updateRequest = new AdminProductRequest("Zzq Updated Sofa Name", "kitchen", "cupboard",
+                8_500_000L, 999, "New short description", "New long description", "90x80x75cm", "Walnut", "Charcoal",
+                "https://example.com/updated.jpg", ProductStatus.DRAFT, createdProduct.getVersion());
+
+        adminProductService.updateProduct(productId, updateRequest);
+
+        Product updatedProduct = productRepository.findById(productId).orElseThrow();
+        assertThat(updatedProduct.getName()).isEqualTo("Zzq Updated Sofa Name");
+        assertThat(updatedProduct.getStatus()).isEqualTo(ProductStatus.DRAFT);
+        assertThat(updatedProduct.getPrice().amount()).isEqualTo(8_500_000L);
+        assertThat(updatedProduct.getSlug()).isEqualTo("zzq-update-test-sofa");
+        assertThat(updatedProduct.getSku()).isEqualTo(createdProduct.getSku());
+        Category cupboardCategory = categoryRepository.findBySlug("cupboard").orElseThrow();
+        assertThat(updatedProduct.getCategory().getId()).isEqualTo(cupboardCategory.getId());
+
+        InventoryItem inventoryItem = inventoryItemRepository.findById(productId).orElseThrow();
+        assertThat(inventoryItem.getQuantityOnHand()).isEqualTo(12);
+    }
+
+    @Test
+    void rejectsAStaleVersionOnUpdate() {
+        UUID productId = adminProductService.createProduct(validRequest("Zzq Stale Version Test Sofa"));
+        Product createdProduct = productRepository.findById(productId).orElseThrow();
+        long staleVersion = createdProduct.getVersion() + 1;
+
+        AdminProductRequest staleUpdateRequest = new AdminProductRequest("Zzq Stale Version Test Sofa", "living-room",
+                "sofa", 7_200_000L, 12, null, null, null, null, null, null, ProductStatus.PUBLISHED, staleVersion);
+
+        assertThatThrownBy(() -> adminProductService.updateProduct(productId, staleUpdateRequest))
+                .isInstanceOf(OptimisticLockingFailureException.class);
     }
 }
