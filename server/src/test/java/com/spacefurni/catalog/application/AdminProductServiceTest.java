@@ -131,4 +131,22 @@ class AdminProductServiceTest extends AbstractIntegrationTest {
         assertThatThrownBy(() -> adminProductService.updateProduct(productId, staleUpdateRequest))
                 .isInstanceOf(OptimisticLockingFailureException.class);
     }
+
+    @Test
+    void archivingSoftDeletesAProductWithoutRemovingItsRow() {
+        UUID productId = adminProductService.createProduct(validRequest("Zzq Archive Test Sofa"));
+
+        adminProductService.archiveProduct(productId);
+
+        Product archivedProduct = productRepository.findById(productId).orElseThrow();
+        assertThat(archivedProduct.getStatus()).isEqualTo(ProductStatus.ARCHIVED);
+    }
+
+    @Test
+    void archivingAnUnknownProductThrows() {
+        UUID unknownProductId = UUID.randomUUID();
+
+        assertThatThrownBy(() -> adminProductService.archiveProduct(unknownProductId))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
 }

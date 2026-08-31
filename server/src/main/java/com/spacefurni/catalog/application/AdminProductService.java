@@ -73,6 +73,13 @@ public class AdminProductService {
         productRepository.save(product);
     }
 
+    @Transactional
+    public void archiveProduct(UUID productId) {
+        Product product = findProductByIdOrThrow(productId);
+        product.archive();
+        productRepository.save(product);
+    }
+
     private Product findProductByIdOrThrow(UUID productId) {
         return productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + productId));

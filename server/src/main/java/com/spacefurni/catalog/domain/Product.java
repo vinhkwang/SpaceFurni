@@ -146,6 +146,10 @@ public class Product extends AuditableEntity {
         addImage(url, 1);
     }
 
+    public void archive() {
+        this.status = ProductStatus.ARCHIVED;
+    }
+
     public boolean hasActiveDiscount() {
         return compareAtPriceAmount != null && compareAtPriceAmount > price.amount();
     }
