@@ -42,6 +42,11 @@ public class InventoryService {
     }
 
     @Transactional
+    public void provisionInitialStock(UUID productId, int quantityOnHand) {
+        inventoryItemRepository.save(new InventoryItem(productId, quantityOnHand, 0));
+    }
+
+    @Transactional
     public void adjustQuantityOnHand(UUID productId, int delta) {
         int rowsAffected = inventoryItemRepository.adjustQuantityOnHandIfSufficient(productId, delta);
         if (rowsAffected == 0) {
