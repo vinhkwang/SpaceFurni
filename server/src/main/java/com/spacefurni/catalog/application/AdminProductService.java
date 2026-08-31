@@ -1,6 +1,7 @@
 package com.spacefurni.catalog.application;
 
 import com.spacefurni.catalog.api.dto.AdminProductRequest;
+import com.spacefurni.catalog.api.dto.StockAdjustmentRequest;
 import com.spacefurni.catalog.domain.Category;
 import com.spacefurni.catalog.domain.Product;
 import com.spacefurni.catalog.domain.ProductStatus;
@@ -78,6 +79,12 @@ public class AdminProductService {
         Product product = findProductByIdOrThrow(productId);
         product.archive();
         productRepository.save(product);
+    }
+
+    @Transactional
+    public void adjustStock(UUID productId, StockAdjustmentRequest request) {
+        findProductByIdOrThrow(productId);
+        inventoryService.adjustQuantityOnHand(productId, request.delta());
     }
 
     private Product findProductByIdOrThrow(UUID productId) {

@@ -4,11 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.spacefurni.catalog.api.dto.AdminProductRequest;
+import com.spacefurni.catalog.api.dto.StockAdjustmentRequest;
 import com.spacefurni.catalog.domain.Category;
 import com.spacefurni.catalog.domain.Product;
 import com.spacefurni.catalog.domain.ProductStatus;
 import com.spacefurni.catalog.infrastructure.CategoryRepository;
 import com.spacefurni.catalog.infrastructure.ProductRepository;
+import com.spacefurni.inventory.domain.InsufficientStockException;
 import com.spacefurni.inventory.domain.InventoryItem;
 import com.spacefurni.inventory.infrastructure.InventoryItemRepository;
 import com.spacefurni.shared.exception.ResourceNotFoundException;
@@ -147,6 +149,35 @@ class AdminProductServiceTest extends AbstractIntegrationTest {
         UUID unknownProductId = UUID.randomUUID();
 
         assertThatThrownBy(() -> adminProductService.archiveProduct(unknownProductId))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void adjustsStockUpAndDown() {
+        UUID productId = adminProductService.createProduct(validRequest("Zzq Stock Adjustment Test Sofa"));
+
+        adminProductService.adjustStock(productId, new StockAdjustmentRequest(5));
+        assertThat(inventoryItemRepository.findById(productId).orElseThrow().getQuantityOnHand()).isEqualTo(17);
+
+        adminProductService.adjustStock(productId, new StockAdjustmentRequest(-10));
+        assertThat(inventoryItemRepository.findById(productId).orElseThrow().getQuantityOnHand()).isEqualTo(7);
+    }
+
+    @Test
+    void rejectsAStockAdjustmentThatWouldGoBelowZero() {
+        UUID productId = adminProductService.createProduct(validRequest("Zzq Over Decrement Test Sofa"));
+
+        assertThatThrownBy(() -> adminProductService.adjustStock(productId, new StockAdjustmentRequest(-100)))
+                .isInstanceOf(InsufficientStockException.class);
+
+        assertThat(inventoryItemRepository.findById(productId).orElseThrow().getQuantityOnHand()).isEqualTo(12);
+    }
+
+    @Test
+    void adjustingStockForAnUnknownProductThrows() {
+        UUID unknownProductId = UUID.randomUUID();
+
+        assertThatThrownBy(() -> adminProductService.adjustStock(unknownProductId, new StockAdjustmentRequest(5)))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 }
