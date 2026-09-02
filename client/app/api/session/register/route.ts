@@ -4,7 +4,8 @@ import { ApiError } from "@/lib/api/ApiError";
 import type { AuthenticationResponse, CartResponse } from "@/lib/api/types";
 import { setSessionCookies } from "@/lib/auth/session";
 
-type LoginRequestBody = {
+type RegisterRequestBody = {
+  fullName: string;
   email: string;
   password: string;
 };
@@ -19,12 +20,12 @@ async function mergeGuestCartIntoSignedInCart(): Promise<void> {
 }
 
 export async function POST(request: Request): Promise<Response> {
-  const body = (await request.json()) as LoginRequestBody;
+  const body = (await request.json()) as RegisterRequestBody;
 
   try {
-    const authentication = await apiFetch<AuthenticationResponse>("/auth/login", {
+    const authentication = await apiFetch<AuthenticationResponse>("/auth/register", {
       method: "POST",
-      body: { email: body.email, password: body.password },
+      body: { fullName: body.fullName, email: body.email, password: body.password },
       cache: "no-store",
     });
     await setSessionCookies(authentication.accessToken, authentication.refreshToken);

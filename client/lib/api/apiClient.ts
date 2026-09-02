@@ -3,7 +3,7 @@ import { internalApiBaseUrl } from "@/lib/config/environment";
 import { ApiError, type ApiErrorDetails } from "@/lib/api/ApiError";
 import { getSessionToken } from "@/lib/auth/session";
 
-const GUEST_CART_TOKEN_COOKIE_NAME = "spacefurni_guest_cart_token";
+export const GUEST_CART_TOKEN_COOKIE_NAME = "spacefurni_guest_cart_token";
 const GUEST_TOKEN_REQUEST_HEADER = "X-Guest-Token";
 
 type ApiSuccessEnvelope<T> = {
