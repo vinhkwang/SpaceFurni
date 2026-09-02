@@ -1,8 +1,8 @@
 import { cookies } from "next/headers";
 import { internalApiBaseUrl } from "@/lib/config/environment";
 import { ApiError, type ApiErrorDetails } from "@/lib/api/ApiError";
+import { getSessionToken } from "@/lib/auth/session";
 
-const SESSION_COOKIE_NAME = "spacefurni_session";
 const GUEST_CART_TOKEN_COOKIE_NAME = "spacefurni_guest_cart_token";
 const GUEST_TOKEN_REQUEST_HEADER = "X-Guest-Token";
 
@@ -38,17 +38,17 @@ function isCartRequestPath(path: string): boolean {
 }
 
 async function resolveRequestHeaders(path: string): Promise<Record<string, string>> {
-  const cookieStore = await cookies();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
 
-  const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  const sessionToken = await getSessionToken();
   if (sessionToken) {
     headers.Authorization = `Bearer ${sessionToken}`;
   }
 
   if (isCartRequestPath(path)) {
+    const cookieStore = await cookies();
     const guestCartToken = cookieStore.get(GUEST_CART_TOKEN_COOKIE_NAME)?.value;
     if (guestCartToken) {
       headers[GUEST_TOKEN_REQUEST_HEADER] = guestCartToken;
