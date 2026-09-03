@@ -3,21 +3,20 @@ import { notFound } from "next/navigation";
 import { apiFetch } from "@/lib/api/apiClient";
 import type { CategoryTreeResponse, PageResponse, ProductSummaryResponse } from "@/lib/api/types";
 import { ProductCard } from "@/components/product/ProductCard";
+import { PriceRangeFilter } from "@/components/catalog/PriceRangeFilter";
+import { SortSelect } from "@/components/catalog/SortSelect";
+import { SubCategoryFilter } from "@/components/catalog/SubCategoryFilter";
 import { Container } from "@/components/ui/Container";
+import {
+  buildProductListingHref,
+  type ProductListingFilters,
+} from "@/lib/catalog/productListingUrl";
 
 const PRODUCTS_PER_PAGE = 12;
 
 const SORT_KEYS = ["newest", "priceAsc", "priceDesc", "rating"] as const;
 
 type SortKey = (typeof SORT_KEYS)[number];
-
-type ProductListingSearchParams = {
-  sub?: string;
-  sort?: string;
-  minPrice?: string;
-  maxPrice?: string;
-  page?: string;
-};
 
 function firstSearchParamValue(rawValue: string | string[] | undefined): string | undefined {
   return Array.isArray(rawValue) ? rawValue[0] : rawValue;
@@ -36,6 +35,9 @@ function toPageIndex(rawPage: string | undefined): number {
 }
 
 function toPriceBound(rawPrice: string | undefined): number | undefined {
+  if (rawPrice === undefined || rawPrice.trim() === "") {
+    return undefined;
+  }
   const parsedPrice = Number(rawPrice);
   if (!Number.isFinite(parsedPrice) || parsedPrice < 0) {
     return undefined;
@@ -114,31 +116,6 @@ function emptyStateBody(hasNarrowingFilter: boolean): string {
     : "We are still photographing this department. Browse another room in the meantime.";
 }
 
-function buildPageHref(
-  departmentSlug: string,
-  searchParams: ProductListingSearchParams,
-  pageNumber: number,
-): string {
-  const query = new URLSearchParams();
-  if (searchParams.sub) {
-    query.set("sub", searchParams.sub);
-  }
-  if (searchParams.sort) {
-    query.set("sort", searchParams.sort);
-  }
-  if (searchParams.minPrice) {
-    query.set("minPrice", searchParams.minPrice);
-  }
-  if (searchParams.maxPrice) {
-    query.set("maxPrice", searchParams.maxPrice);
-  }
-  if (pageNumber > 1) {
-    query.set("page", String(pageNumber));
-  }
-  const queryString = query.toString();
-  return queryString ? `/category/${departmentSlug}?${queryString}` : `/category/${departmentSlug}`;
-}
-
 function pageNumbers(totalPages: number): number[] {
   return Array.from({ length: totalPages }, (_, pageOffset) => pageOffset + 1);
 }
@@ -167,7 +144,7 @@ export default async function DepartmentListingPage({
   const { departmentSlug } = await params;
   const resolvedSearchParams = await searchParams;
 
-  const listingSearchParams: ProductListingSearchParams = {
+  const listingSearchParams: ProductListingFilters = {
     sub: firstSearchParamValue(resolvedSearchParams.sub),
     sort: firstSearchParamValue(resolvedSearchParams.sort),
     minPrice: firstSearchParamValue(resolvedSearchParams.minPrice),
@@ -230,6 +207,26 @@ export default async function DepartmentListingPage({
         </div>
       </Container>
 
+      <Container className="mt-7.5">
+        <SubCategoryFilter
+          departmentSlug={departmentSlug}
+          subCategories={department.subCategories}
+          activeSubCategorySlug={subCategory?.slug}
+          filters={listingSearchParams}
+        />
+      </Container>
+
+      <Container className="mt-5.5">
+        <div className="flex flex-col gap-5 rounded-[14px] border border-hairline-soft bg-surface px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
+          <PriceRangeFilter departmentSlug={departmentSlug} filters={listingSearchParams} />
+          <SortSelect
+            departmentSlug={departmentSlug}
+            activeSortKey={sort}
+            filters={listingSearchParams}
+          />
+        </div>
+      </Container>
+
       <Container className="mt-6.5">
         {productPage.content.length === 0 ? (
           <div className="py-20 text-center">
@@ -260,7 +257,7 @@ export default async function DepartmentListingPage({
           <nav aria-label="Pagination" className="flex items-center justify-center gap-2">
             {currentPageNumber > 1 ? (
               <Link
-                href={buildPageHref(departmentSlug, listingSearchParams, currentPageNumber - 1)}
+                href={buildProductListingHref(departmentSlug, { ...listingSearchParams, page: String(currentPageNumber - 1) })}
                 aria-label="Previous page"
                 className={paginationArrowClassName}
               >
@@ -287,7 +284,7 @@ export default async function DepartmentListingPage({
               ) : (
                 <Link
                   key={pageNumber}
-                  href={buildPageHref(departmentSlug, listingSearchParams, pageNumber)}
+                  href={buildProductListingHref(departmentSlug, { ...listingSearchParams, page: String(pageNumber) })}
                   aria-label={`Page ${pageNumber}`}
                   className="flex h-10 w-10 items-center justify-center rounded-full border border-hairline-soft text-[12.5px] transition duration-250 hover:bg-surface"
                 >
@@ -298,7 +295,7 @@ export default async function DepartmentListingPage({
 
             {currentPageNumber < productPage.totalPages ? (
               <Link
-                href={buildPageHref(departmentSlug, listingSearchParams, currentPageNumber + 1)}
+                href={buildProductListingHref(departmentSlug, { ...listingSearchParams, page: String(currentPageNumber + 1) })}
                 aria-label="Next page"
                 className={paginationArrowClassName}
               >
