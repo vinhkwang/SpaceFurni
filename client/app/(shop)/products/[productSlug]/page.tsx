@@ -4,6 +4,7 @@ import { apiFetch } from "@/lib/api/apiClient";
 import { ApiError } from "@/lib/api/ApiError";
 import type { ProductDetailResponse } from "@/lib/api/types";
 import { ProductGallery } from "@/components/product/ProductGallery";
+import { ProductPurchasePanel } from "@/components/product/ProductPurchasePanel";
 import { Container } from "@/components/ui/Container";
 
 const chevronIcon = (
@@ -50,8 +51,9 @@ export default async function ProductDetailPage({ params }: PageProps<"/products
         </nav>
       </Container>
 
-      <Container>
+      <Container className="grid grid-cols-1 items-start gap-14 lg:grid-cols-[1fr_470px]">
         <ProductGallery images={product.imageUrls} productName={product.name} badge={product.badge} />
+        <ProductPurchasePanel product={product} />
       </Container>
     </main>
   );
