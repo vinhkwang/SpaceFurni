@@ -1,7 +1,6 @@
 "use client";
 
 import { useOptimistic, useState, useTransition } from "react";
-import { ApiError } from "@/lib/api/ApiError";
 import type { CartResponse } from "@/lib/api/types";
 import { addCartLineAction, removeCartLineAction, updateCartLineQuantityAction } from "@/lib/cart/cartActions";
 
@@ -21,13 +20,6 @@ function applyOptimisticCartUpdate(cart: CartResponse, update: CartOptimisticUpd
   };
 }
 
-function mutationFailureMessage(error: unknown): string {
-  if (error instanceof ApiError) {
-    return error.message;
-  }
-  return "We could not update your cart. Try again.";
-}
-
 export function useCart(cart: CartResponse) {
   const [optimisticCart, applyOptimisticUpdate] = useOptimistic(cart, applyOptimisticCartUpdate);
   const [isMutating, startMutation] = useTransition();
@@ -36,10 +28,9 @@ export function useCart(cart: CartResponse) {
   function addLine(productId: string, quantity: number): void {
     setMutationError(null);
     startMutation(async () => {
-      try {
-        await addCartLineAction(productId, quantity);
-      } catch (error) {
-        setMutationError(mutationFailureMessage(error));
+      const result = await addCartLineAction(productId, quantity);
+      if (!result.success) {
+        setMutationError(result.errorMessage);
       }
     });
   }
@@ -48,10 +39,9 @@ export function useCart(cart: CartResponse) {
     setMutationError(null);
     startMutation(async () => {
       applyOptimisticUpdate({ type: "updateQuantity", productId, quantity });
-      try {
-        await updateCartLineQuantityAction(productId, quantity);
-      } catch (error) {
-        setMutationError(mutationFailureMessage(error));
+      const result = await updateCartLineQuantityAction(productId, quantity);
+      if (!result.success) {
+        setMutationError(result.errorMessage);
       }
     });
   }
@@ -60,10 +50,9 @@ export function useCart(cart: CartResponse) {
     setMutationError(null);
     startMutation(async () => {
       applyOptimisticUpdate({ type: "removeLine", productId });
-      try {
-        await removeCartLineAction(productId);
-      } catch (error) {
-        setMutationError(mutationFailureMessage(error));
+      const result = await removeCartLineAction(productId);
+      if (!result.success) {
+        setMutationError(result.errorMessage);
       }
     });
   }
