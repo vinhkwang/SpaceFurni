@@ -9,6 +9,7 @@ import { formatMoney } from "@/lib/formatting/formatMoney";
 
 type CartLinesProps = {
   cart: CartResponse;
+  highlightProductId?: string;
 };
 
 const backArrowIcon = (
@@ -31,7 +32,7 @@ function freeShippingNote(amountToFreeShippingAmount: number): string {
     : "You have unlocked free delivery";
 }
 
-export function CartLines({ cart }: CartLinesProps) {
+export function CartLines({ cart, highlightProductId }: CartLinesProps) {
   const { cart: optimisticCart, isMutating, updateQuantity, removeLine } = useCart(cart);
 
   if (optimisticCart.lines.length === 0) {
@@ -45,6 +46,7 @@ export function CartLines({ cart }: CartLinesProps) {
           key={line.productId}
           line={line}
           isDisabled={isMutating}
+          isHighlighted={line.productId === highlightProductId}
           onQuantityChange={(quantity) => updateQuantity(line.productId, quantity)}
           onRemove={() => removeLine(line.productId)}
         />

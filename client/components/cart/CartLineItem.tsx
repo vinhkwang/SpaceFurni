@@ -11,6 +11,7 @@ type CartLineItemProps = {
   onQuantityChange: (quantity: number) => void;
   onRemove: () => void;
   isDisabled: boolean;
+  isHighlighted?: boolean;
 };
 
 const removeIcon = (
@@ -29,9 +30,19 @@ const removeIcon = (
   </svg>
 );
 
-export function CartLineItem({ line, onQuantityChange, onRemove, isDisabled }: CartLineItemProps) {
+export function CartLineItem({
+  line,
+  onQuantityChange,
+  onRemove,
+  isDisabled,
+  isHighlighted = false,
+}: CartLineItemProps) {
   return (
-    <div className="flex items-center gap-5.5 rounded-[15px] border border-hairline bg-white px-5.5 py-4.5">
+    <div
+      className={`flex items-center gap-5.5 rounded-[15px] border bg-white px-5.5 py-4.5 ${
+        isHighlighted ? "border-terracotta bg-terracotta/5" : "border-hairline"
+      }`}
+    >
       <Link
         href={`/products/${line.productSlug}`}
         className="relative h-[104px] w-[120px] flex-none rounded-[11px] bg-surface-warm"

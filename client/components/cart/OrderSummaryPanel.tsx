@@ -1,5 +1,6 @@
 import type { CartResponse } from "@/lib/api/types";
 import { formatMoney } from "@/lib/formatting/formatMoney";
+import { PromotionCodeInput } from "@/components/cart/PromotionCodeInput";
 
 type OrderSummaryPanelProps = {
   cart: CartResponse;
@@ -53,11 +54,15 @@ export function OrderSummaryPanel({ cart }: OrderSummaryPanelProps) {
         </div>
       </div>
 
-      <div className="flex items-baseline justify-between py-5">
+      <div className="flex items-baseline justify-between pt-5 pb-4">
         <span className="text-[12px] font-semibold uppercase tracking-[0.14em]">Total</span>
         <span className="text-[23px] font-semibold tracking-[-0.02em]">
           {formatMoney(priceBreakdown.totalAmount)}
         </span>
+      </div>
+
+      <div className="mb-4">
+        <PromotionCodeInput cart={cart} />
       </div>
 
       <div className="text-[12px] text-ink-muted">

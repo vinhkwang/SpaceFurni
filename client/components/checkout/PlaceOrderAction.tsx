@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CheckoutErrorBanner } from "@/components/checkout/CheckoutErrorBanner";
 import { OrderConfirmation } from "@/components/checkout/OrderConfirmation";
@@ -23,6 +24,7 @@ type CheckoutErrorState = {
 
 const DELIVERY_DETAILS_STORAGE_KEY = "spacefurni:checkout:deliveryDetails";
 const PAYMENT_METHOD_STORAGE_KEY = "spacefurni:checkout:paymentMethod";
+const PLACED_ORDER_STORAGE_KEY = "spacefurni:checkout:placedOrder";
 
 type StoredDeliveryDraft = PlaceOrderDeliveryDetails & { deliveryWindow: DeliveryWindow };
 
@@ -67,6 +69,28 @@ function readStoredPaymentMethod(): PaymentMethod {
   return "CARD";
 }
 
+function readStoredPlacedOrder(): OrderResponse | null {
+  try {
+    const storedJson = sessionStorage.getItem(PLACED_ORDER_STORAGE_KEY);
+    if (storedJson === null) {
+      return null;
+    }
+    const parsedOrder = JSON.parse(storedJson) as Partial<OrderResponse>;
+    if (typeof parsedOrder.id !== "string" || typeof parsedOrder.orderNumber !== "string") {
+      return null;
+    }
+    return parsedOrder as OrderResponse;
+  } catch {
+    return null;
+  }
+}
+
+function persistPlacedOrder(order: OrderResponse): void {
+  try {
+    sessionStorage.setItem(PLACED_ORDER_STORAGE_KEY, JSON.stringify(order));
+  } catch {}
+}
+
 function clearCheckoutDrafts(): void {
   try {
     sessionStorage.removeItem(DELIVERY_DETAILS_STORAGE_KEY);
@@ -75,10 +99,11 @@ function clearCheckoutDrafts(): void {
 }
 
 export function PlaceOrderAction({ cart }: PlaceOrderActionProps) {
+  const router = useRouter();
   const [idempotencyKey] = useState<string>(() => crypto.randomUUID());
   const [isSubmitting, startSubmission] = useTransition();
   const [checkoutError, setCheckoutError] = useState<CheckoutErrorState | null>(null);
-  const [placedOrder, setPlacedOrder] = useState<OrderResponse | null>(null);
+  const [placedOrder, setPlacedOrder] = useState<OrderResponse | null>(() => readStoredPlacedOrder());
 
   if (placedOrder !== null) {
     return <OrderConfirmation order={placedOrder} />;
@@ -117,8 +142,10 @@ export function PlaceOrderAction({ cart }: PlaceOrderActionProps) {
         return;
       }
       clearCheckoutDrafts();
+      persistPlacedOrder(result.order);
       setCheckoutError(null);
       setPlacedOrder(result.order);
+      router.push("/checkout?step=confirmation");
     });
   }
 
