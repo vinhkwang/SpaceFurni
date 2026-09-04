@@ -158,7 +158,7 @@ class CartControllerTest {
     void addLineAsAnonymousWithoutGuestTokenMintsNewToken() throws Exception {
         Cart cart = mockCart();
         when(cartService.resolveOrCreateActiveCart(isNull(), any())).thenReturn(cart);
-        when(cartService.addLine(eq(cart), any(), eq(2))).thenReturn(cart);
+        when(cartService.addLine(eq(cart), any(), eq(2), isNull())).thenReturn(cart);
         stubEmptyCartPricingAndMapping(cart, UUID.randomUUID());
         UUID productId = UUID.randomUUID();
 
@@ -169,7 +169,7 @@ class CartControllerTest {
         ArgumentCaptor<UUID> mintedTokenCaptor = ArgumentCaptor.forClass(UUID.class);
         verify(cartService).resolveOrCreateActiveCart(isNull(), mintedTokenCaptor.capture());
         assertThat(mintedTokenCaptor.getValue()).isNotNull();
-        verify(cartService).addLine(cart, productId, 2);
+        verify(cartService).addLine(cart, productId, 2, null);
     }
 
     @Test
@@ -178,7 +178,7 @@ class CartControllerTest {
         UUID productId = UUID.randomUUID();
         Cart cart = mockCart();
         when(cartService.resolveOrCreateActiveCart(null, guestToken)).thenReturn(cart);
-        when(cartService.addLine(cart, productId, 1)).thenReturn(cart);
+        when(cartService.addLine(cart, productId, 1, null)).thenReturn(cart);
         stubEmptyCartPricingAndMapping(cart, guestToken);
 
         mockMvc.perform(post("/api/v1/cart/items").with(csrf()).header("X-Guest-Token", guestToken.toString())
@@ -187,7 +187,7 @@ class CartControllerTest {
                 .andExpect(status().isOk());
 
         verify(cartService).resolveOrCreateActiveCart(null, guestToken);
-        verify(cartService).addLine(cart, productId, 1);
+        verify(cartService).addLine(cart, productId, 1, null);
     }
 
     @Test

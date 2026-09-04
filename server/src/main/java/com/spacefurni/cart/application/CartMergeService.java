@@ -52,7 +52,7 @@ public class CartMergeService {
             if (userCart.findLineByProductId(productId).isPresent()) {
                 userCart.setLineQuantity(productId, cappedQuantity);
             } else {
-                userCart.addOrIncrementLine(productId, cappedQuantity);
+                userCart.addOrIncrementLine(productId, cappedQuantity, guestLine.getColorHexCode());
             }
         }
     }

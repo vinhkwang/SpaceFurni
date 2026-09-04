@@ -34,11 +34,11 @@ public class CartService {
     }
 
     @Transactional
-    public Cart addLine(Cart cart, UUID productId, int quantity) {
+    public Cart addLine(Cart cart, UUID productId, int quantity, String colorHexCode) {
         requireQuantityAtLeastOne(quantity);
         int existingQuantity = cart.findLineByProductId(productId).map(CartItem::getQuantity).orElse(0);
         rejectIfExceedsAvailableStock(productId, existingQuantity + quantity);
-        cart.addOrIncrementLine(productId, quantity);
+        cart.addOrIncrementLine(productId, quantity, colorHexCode);
         return cartRepository.save(cart);
     }
 

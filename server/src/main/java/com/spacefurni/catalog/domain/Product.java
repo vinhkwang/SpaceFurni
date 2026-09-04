@@ -100,6 +100,7 @@ public class Product extends AuditableEntity {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("displayOrder ASC")
+    @BatchSize(size = 48)
     private Set<ProductColorSwatch> colorSwatches = new LinkedHashSet<>();
 
     protected Product() {

@@ -87,7 +87,7 @@ class CheckoutServiceTest extends AbstractIntegrationTest {
 
     private Cart cartWithLine(UUID userId, UUID productId, int quantity) {
         Cart cart = cartService.resolveOrCreateActiveCart(userId, null);
-        return cartService.addLine(cart, productId, quantity);
+        return cartService.addLine(cart, productId, quantity, null);
     }
 
     private PlaceOrderRequest placeOrderRequest(DeliveryWindow deliveryWindow, PaymentMethod paymentMethod,

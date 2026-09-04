@@ -33,6 +33,15 @@ public class CartResponseMapper {
     private CartLineResponse toLine(CartItem item, ProductSummaryResponse product) {
         Money lineTotal = new Money(product.priceAmount(), product.currencyCode()).multipliedBy(item.getQuantity());
         return new CartLineResponse(product.id(), product.slug(), product.name(), product.primaryImageUrl(),
-                product.priceAmount(), product.currencyCode(), item.getQuantity(), lineTotal.amount());
+                product.priceAmount(), product.currencyCode(), item.getQuantity(), lineTotal.amount(),
+                item.getColorHexCode(), resolveColorName(item, product));
+    }
+
+    private String resolveColorName(CartItem item, ProductSummaryResponse product) {
+        if (item.getColorHexCode() == null || product.primaryColorHexCode() == null) {
+            return null;
+        }
+        return item.getColorHexCode().equalsIgnoreCase(product.primaryColorHexCode()) ? product.primaryColorName()
+                : null;
     }
 }

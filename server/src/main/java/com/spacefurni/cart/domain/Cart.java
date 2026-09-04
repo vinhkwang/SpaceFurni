@@ -49,13 +49,13 @@ public class Cart extends AuditableEntity {
         this.status = CartStatus.ACTIVE;
     }
 
-    public CartItem addOrIncrementLine(UUID productId, int quantity) {
+    public CartItem addOrIncrementLine(UUID productId, int quantity, String colorHexCode) {
         Optional<CartItem> existingLine = findLineByProductId(productId);
         if (existingLine.isPresent()) {
             existingLine.get().incrementQuantity(quantity);
             return existingLine.get();
         }
-        CartItem newLine = new CartItem(this, productId, quantity);
+        CartItem newLine = new CartItem(this, productId, quantity, colorHexCode);
         items.add(newLine);
         return newLine;
     }

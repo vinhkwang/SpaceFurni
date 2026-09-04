@@ -21,7 +21,8 @@ public class ProductResponseMapper {
         return new ProductSummaryResponse(product.getId(), product.getSku(), product.getSlug(), product.getName(),
                 product.getCategory().getName(), price.amount(),
                 compareAtPrice == null ? null : compareAtPrice.amount(), price.currencyCode(),
-                product.getRatingAverage(), product.getReviewCount(), primaryImageUrl(product), toBadge(product));
+                product.getRatingAverage(), product.getReviewCount(), primaryImageUrl(product), toBadge(product),
+                product.getPrimaryColorName(), primaryColorHexCode(product));
     }
 
     public ProductDetailResponse toDetail(Product product, List<Product> relatedProducts, int availableQuantity) {
@@ -54,6 +55,10 @@ public class ProductResponseMapper {
     private List<String> orderedColorSwatchHexCodes(Product product) {
         return product.getColorSwatches().stream().sorted(Comparator.comparing(ProductColorSwatch::getDisplayOrder))
                 .map(ProductColorSwatch::getHexCode).toList();
+    }
+
+    private String primaryColorHexCode(Product product) {
+        return orderedColorSwatchHexCodes(product).stream().findFirst().orElse(null);
     }
 
     private String toStockLabel(int availableQuantity) {

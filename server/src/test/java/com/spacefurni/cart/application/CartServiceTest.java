@@ -88,7 +88,7 @@ class CartServiceTest {
         UUID productId = seedProductWithStock(10);
         Cart cart = service().resolveOrCreateActiveCart(null, UUID.randomUUID());
 
-        Cart updated = service().addLine(cart, productId, 3);
+        Cart updated = service().addLine(cart, productId, 3, null);
 
         assertThat(updated.findLineByProductId(productId)).isPresent().get().extracting(line -> line.getQuantity())
                 .isEqualTo(3);
@@ -99,7 +99,7 @@ class CartServiceTest {
         UUID productId = seedProductWithStock(2);
         Cart cart = service().resolveOrCreateActiveCart(null, UUID.randomUUID());
 
-        assertThatThrownBy(() -> service().addLine(cart, productId, 5))
+        assertThatThrownBy(() -> service().addLine(cart, productId, 5, null))
                 .isInstanceOf(InsufficientStockException.class);
         assertThat(cart.findLineByProductId(productId)).isEmpty();
     }
@@ -108,9 +108,9 @@ class CartServiceTest {
     void addLineAccountsForQuantityAlreadyInCartWhenCheckingStock() {
         UUID productId = seedProductWithStock(5);
         Cart cart = service().resolveOrCreateActiveCart(null, UUID.randomUUID());
-        service().addLine(cart, productId, 4);
+        service().addLine(cart, productId, 4, null);
 
-        assertThatThrownBy(() -> service().addLine(cart, productId, 2))
+        assertThatThrownBy(() -> service().addLine(cart, productId, 2, null))
                 .isInstanceOf(InsufficientStockException.class);
     }
 
@@ -119,7 +119,7 @@ class CartServiceTest {
         UUID productId = seedProductWithStock(5);
         Cart cart = service().resolveOrCreateActiveCart(null, UUID.randomUUID());
 
-        assertThatThrownBy(() -> service().addLine(cart, productId, 0))
+        assertThatThrownBy(() -> service().addLine(cart, productId, 0, null))
                 .isInstanceOf(BusinessRuleViolationException.class);
     }
 
@@ -127,7 +127,7 @@ class CartServiceTest {
     void updateLineQuantitySetsAbsoluteQuantity() {
         UUID productId = seedProductWithStock(10);
         Cart cart = service().resolveOrCreateActiveCart(null, UUID.randomUUID());
-        service().addLine(cart, productId, 2);
+        service().addLine(cart, productId, 2, null);
 
         Cart updated = service().updateLineQuantity(cart, productId, 7);
 
@@ -139,7 +139,7 @@ class CartServiceTest {
     void updateLineQuantityToZeroRemovesTheLine() {
         UUID productId = seedProductWithStock(10);
         Cart cart = service().resolveOrCreateActiveCart(null, UUID.randomUUID());
-        service().addLine(cart, productId, 2);
+        service().addLine(cart, productId, 2, null);
 
         Cart updated = service().updateLineQuantity(cart, productId, 0);
 
@@ -150,7 +150,7 @@ class CartServiceTest {
     void updateLineQuantityRejectsAmountAboveAvailableStock() {
         UUID productId = seedProductWithStock(3);
         Cart cart = service().resolveOrCreateActiveCart(null, UUID.randomUUID());
-        service().addLine(cart, productId, 2);
+        service().addLine(cart, productId, 2, null);
 
         assertThatThrownBy(() -> service().updateLineQuantity(cart, productId, 10))
                 .isInstanceOf(InsufficientStockException.class);
@@ -160,7 +160,7 @@ class CartServiceTest {
     void removeLineDeletesTheLine() {
         UUID productId = seedProductWithStock(10);
         Cart cart = service().resolveOrCreateActiveCart(null, UUID.randomUUID());
-        service().addLine(cart, productId, 2);
+        service().addLine(cart, productId, 2, null);
 
         Cart updated = service().removeLine(cart, productId);
 
@@ -172,8 +172,8 @@ class CartServiceTest {
         UUID first = seedProductWithStock(10);
         UUID second = seedProductWithStock(10);
         Cart cart = service().resolveOrCreateActiveCart(null, UUID.randomUUID());
-        service().addLine(cart, first, 1);
-        service().addLine(cart, second, 1);
+        service().addLine(cart, first, 1, null);
+        service().addLine(cart, second, 1, null);
 
         Cart cleared = service().clear(cart);
 
