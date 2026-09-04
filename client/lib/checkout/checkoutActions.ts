@@ -23,10 +23,28 @@ export type PlaceOrderInput = {
 
 export type PlaceOrderActionResult =
   | { success: true; order: OrderResponse }
-  | { success: false; errorMessage: string };
+  | {
+      success: false;
+      errorCode: string;
+      errorMessage: string;
+      errorDetails: Record<string, string> | null;
+    };
 
-function placeOrderFailureMessage(error: unknown): string {
-  return error instanceof ApiError ? error.message : "Something went wrong. Try again.";
+function placeOrderFailure(error: unknown): Extract<PlaceOrderActionResult, { success: false }> {
+  if (error instanceof ApiError) {
+    return {
+      success: false,
+      errorCode: error.code,
+      errorMessage: error.message,
+      errorDetails: (error.details as Record<string, string> | null) ?? null,
+    };
+  }
+  return {
+    success: false,
+    errorCode: "INTERNAL_ERROR",
+    errorMessage: "Something went wrong. Try again.",
+    errorDetails: null,
+  };
 }
 
 export async function placeOrderAction(
@@ -42,6 +60,6 @@ export async function placeOrderAction(
     });
     return { success: true, order };
   } catch (error) {
-    return { success: false, errorMessage: placeOrderFailureMessage(error) };
+    return placeOrderFailure(error);
   }
 }

@@ -2,13 +2,24 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import { CheckoutErrorBanner } from "@/components/checkout/CheckoutErrorBanner";
 import { OrderConfirmation } from "@/components/checkout/OrderConfirmation";
 import {
   placeOrderAction,
   type PlaceOrderDeliveryDetails,
   type PlaceOrderInput,
 } from "@/lib/checkout/checkoutActions";
-import type { DeliveryWindow, OrderResponse, PaymentMethod } from "@/lib/api/types";
+import type { CartResponse, DeliveryWindow, OrderResponse, PaymentMethod } from "@/lib/api/types";
+
+type PlaceOrderActionProps = {
+  cart?: CartResponse;
+};
+
+type CheckoutErrorState = {
+  code: string;
+  message: string;
+  details: Record<string, string> | null;
+};
 
 const DELIVERY_DETAILS_STORAGE_KEY = "spacefurni:checkout:deliveryDetails";
 const PAYMENT_METHOD_STORAGE_KEY = "spacefurni:checkout:paymentMethod";
@@ -63,10 +74,10 @@ function clearCheckoutDrafts(): void {
   } catch {}
 }
 
-export function PlaceOrderAction() {
+export function PlaceOrderAction({ cart }: PlaceOrderActionProps) {
   const [idempotencyKey] = useState<string>(() => crypto.randomUUID());
   const [isSubmitting, startSubmission] = useTransition();
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [checkoutError, setCheckoutError] = useState<CheckoutErrorState | null>(null);
   const [placedOrder, setPlacedOrder] = useState<OrderResponse | null>(null);
 
   if (placedOrder !== null) {
@@ -77,7 +88,11 @@ export function PlaceOrderAction() {
 
   function submitOrder(): void {
     if (deliveryDraft === null) {
-      setErrorMessage("Add your delivery details before placing the order.");
+      setCheckoutError({
+        code: "MISSING_DELIVERY_DETAILS",
+        message: "Add your delivery details before placing the order.",
+        details: null,
+      });
       return;
     }
 
@@ -98,21 +113,24 @@ export function PlaceOrderAction() {
     startSubmission(async () => {
       const result = await placeOrderAction(idempotencyKey, input);
       if (!result.success) {
-        setErrorMessage(result.errorMessage);
+        setCheckoutError({ code: result.errorCode, message: result.errorMessage, details: result.errorDetails });
         return;
       }
       clearCheckoutDrafts();
-      setErrorMessage(null);
+      setCheckoutError(null);
       setPlacedOrder(result.order);
     });
   }
 
   return (
     <div className="flex flex-col gap-3">
-      {errorMessage === null ? null : (
-        <p role="alert" className="text-[12.5px] text-terracotta">
-          {errorMessage}
-        </p>
+      {checkoutError === null ? null : (
+        <CheckoutErrorBanner
+          code={checkoutError.code}
+          message={checkoutError.message}
+          details={checkoutError.details}
+          cart={cart}
+        />
       )}
       {deliveryDraft === null ? (
         <Link
