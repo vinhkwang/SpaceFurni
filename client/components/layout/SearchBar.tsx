@@ -1,11 +1,10 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import type { ProductSummaryResponse } from "@/lib/api/types";
 import { publicApiBaseUrl } from "@/lib/config/environment";
-import { formatMoney } from "@/lib/formatting/formatMoney";
+import { SearchSuggestions } from "@/components/layout/SearchSuggestions";
 
 const SUGGESTION_DEBOUNCE_MILLISECONDS = 250;
 
@@ -27,10 +26,12 @@ async function fetchSuggestions(
 }
 
 export function SearchBar() {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [searchedQuery, setSearchedQuery] = useState("");
   const [suggestions, setSuggestions] = useState<ProductSummaryResponse[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -45,6 +46,7 @@ export function SearchBar() {
         .then((matchedProducts) => {
           setSuggestions(matchedProducts);
           setSearchedQuery(trimmedQuery);
+          setActiveSuggestionIndex(-1);
         })
         .catch(() => undefined);
     }, SUGGESTION_DEBOUNCE_MILLISECONDS);
@@ -70,6 +72,29 @@ export function SearchBar() {
   const isShowingSuggestions =
     isOpen && trimmedQuery.length > 0 && searchedQuery === trimmedQuery;
 
+  function handleInputKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "Escape") {
+      setIsOpen(false);
+      return;
+    }
+
+    if (!isShowingSuggestions || suggestions.length === 0) {
+      return;
+    }
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setActiveSuggestionIndex((currentIndex) => Math.min(currentIndex + 1, suggestions.length - 1));
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setActiveSuggestionIndex((currentIndex) => Math.max(currentIndex - 1, -1));
+    } else if (event.key === "Enter" && activeSuggestionIndex >= 0) {
+      event.preventDefault();
+      router.push(`/products/${suggestions[activeSuggestionIndex].slug}`);
+      setIsOpen(false);
+    }
+  }
+
   return (
     <div ref={containerRef} className="relative w-full max-w-[420px] flex-1">
       <div className="flex h-[46px] items-center gap-2.5 rounded-pill border border-hairline-soft bg-surface px-[18px] transition-colors duration-200 hover:border-hairline">
@@ -88,8 +113,12 @@ export function SearchBar() {
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           onFocus={() => setIsOpen(true)}
+          onKeyDown={handleInputKeyDown}
           placeholder="Search sofas, tables, shelves…"
           aria-label="Search products"
+          role="combobox"
+          aria-expanded={isShowingSuggestions}
+          aria-controls="search-suggestions-listbox"
           className="min-w-0 flex-1 bg-transparent text-[13px] tracking-[0.01em] outline-none placeholder:text-ink-muted"
         />
         {query.length > 0 ? (
@@ -114,43 +143,11 @@ export function SearchBar() {
       </div>
 
       {isShowingSuggestions ? (
-        <div className="absolute inset-x-0 top-[54px] z-60 rounded-2xl border border-hairline-soft bg-white p-2 shadow-2xl">
-          {suggestions.length === 0 ? (
-            <p className="px-3 py-4 text-[12.5px] text-ink-muted">
-              No products match that search.
-            </p>
-          ) : (
-            suggestions.map((product) => (
-              <Link
-                key={product.id}
-                href={`/products/${product.slug}`}
-                onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 rounded-[10px] px-2.5 py-[9px] transition-colors duration-200 hover:bg-surface"
-              >
-                <span className="flex h-[38px] w-[46px] shrink-0 items-center justify-center rounded-[7px] bg-surface-warm p-1">
-                  {product.primaryImageUrl ? (
-                    <Image
-                      src={product.primaryImageUrl}
-                      alt=""
-                      width={46}
-                      height={38}
-                      className="max-h-full w-auto object-contain mix-blend-multiply"
-                    />
-                  ) : null}
-                </span>
-                <span className="flex-1">
-                  <span className="block text-[12.5px] font-medium">{product.name}</span>
-                  <span className="block text-[10.5px] tracking-[0.04em] text-ink-muted">
-                    {product.categoryName}
-                  </span>
-                </span>
-                <span className="text-[12px] font-medium text-ink-soft">
-                  {formatMoney(product.priceAmount)}
-                </span>
-              </Link>
-            ))
-          )}
-        </div>
+        <SearchSuggestions
+          suggestions={suggestions}
+          activeIndex={activeSuggestionIndex}
+          onSelect={() => setIsOpen(false)}
+        />
       ) : null}
     </div>
   );
