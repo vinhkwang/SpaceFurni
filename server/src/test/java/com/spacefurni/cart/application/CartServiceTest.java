@@ -15,6 +15,16 @@ import com.spacefurni.inventory.application.InventoryService;
 import com.spacefurni.inventory.domain.InsufficientStockException;
 import com.spacefurni.inventory.domain.InventoryItem;
 import com.spacefurni.inventory.infrastructure.InventoryItemRepository;
+import com.spacefurni.pricing.application.DiscountStrategyFactory;
+import com.spacefurni.pricing.application.PricingService;
+import com.spacefurni.pricing.application.PromotionNotApplicableException;
+import com.spacefurni.pricing.application.ShippingFeeStrategyResolver;
+import com.spacefurni.pricing.domain.FixedAmountDiscountStrategy;
+import com.spacefurni.pricing.domain.NextDayShippingFeeStrategy;
+import com.spacefurni.pricing.domain.NoDiscountStrategy;
+import com.spacefurni.pricing.domain.PercentageDiscountStrategy;
+import com.spacefurni.pricing.domain.StandardShippingFeeStrategy;
+import com.spacefurni.pricing.infrastructure.PromotionRepository;
 import com.spacefurni.shared.config.JpaAuditingConfiguration;
 import com.spacefurni.shared.domain.Money;
 import com.spacefurni.shared.exception.BusinessRuleViolationException;
@@ -45,10 +55,17 @@ class CartServiceTest {
     private CartRepository cartRepository;
 
     @Autowired
+    private PromotionRepository promotionRepository;
+
+    @Autowired
     private TestEntityManager entityManager;
 
     private CartService service() {
-        return new CartService(cartRepository, new InventoryService(inventoryItemRepository));
+        PricingService pricingService = new PricingService(promotionRepository,
+                new DiscountStrategyFactory(new PercentageDiscountStrategy(), new FixedAmountDiscountStrategy(),
+                        new NoDiscountStrategy()),
+                new ShippingFeeStrategyResolver(new StandardShippingFeeStrategy(), new NextDayShippingFeeStrategy()));
+        return new CartService(cartRepository, new InventoryService(inventoryItemRepository), pricingService);
     }
 
     private UUID seedProductWithStock(int quantityOnHand) {
@@ -187,6 +204,15 @@ class CartServiceTest {
         Cart updated = service().applyPromotion(cart, "space10");
 
         assertThat(updated.getPromotionCode()).isEqualTo("SPACE10");
+    }
+
+    @Test
+    void applyPromotionRejectsAnUnknownCodeWithoutPersistingIt() {
+        Cart cart = service().resolveOrCreateActiveCart(null, UUID.randomUUID());
+
+        assertThatThrownBy(() -> service().applyPromotion(cart, "NOT-A-REAL-CODE"))
+                .isInstanceOf(PromotionNotApplicableException.class);
+        assertThat(cart.getPromotionCode()).isNull();
     }
 
     @Test

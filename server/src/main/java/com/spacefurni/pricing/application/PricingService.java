@@ -27,6 +27,13 @@ public class PricingService {
     }
 
     @Transactional(readOnly = true)
+    public void requirePromotionCodeExists(String promotionCode) {
+        if (!promotionRepository.existsById(promotionCode.toUpperCase())) {
+            throw new PromotionNotApplicableException(promotionCode);
+        }
+    }
+
+    @Transactional(readOnly = true)
     public PriceBreakdown calculate(List<PricingLine> lines, String promotionCode, DeliveryWindow deliveryWindow) {
         Money subtotal = computeSubtotal(lines);
         Promotion promotion = resolveRedeemablePromotion(promotionCode, subtotal);
