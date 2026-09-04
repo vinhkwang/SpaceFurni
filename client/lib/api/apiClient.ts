@@ -31,6 +31,7 @@ export type ApiRequestOptions = {
   body?: unknown;
   cache?: RequestCache;
   next?: NextFetchRequestConfig;
+  headers?: Record<string, string>;
 };
 
 function isCartRequestPath(path: string): boolean {
@@ -59,7 +60,7 @@ async function resolveRequestHeaders(path: string): Promise<Record<string, strin
 }
 
 export async function apiFetch<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
-  const headers = await resolveRequestHeaders(path);
+  const headers = { ...(await resolveRequestHeaders(path)), ...options.headers };
 
   const response = await fetch(`${internalApiBaseUrl()}/api/v1${path}`, {
     method: options.method ?? "GET",
