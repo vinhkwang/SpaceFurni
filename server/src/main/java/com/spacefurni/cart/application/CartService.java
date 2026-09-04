@@ -6,6 +6,7 @@ import com.spacefurni.cart.domain.CartStatus;
 import com.spacefurni.cart.infrastructure.CartRepository;
 import com.spacefurni.inventory.application.InventoryService;
 import com.spacefurni.inventory.domain.InsufficientStockException;
+import com.spacefurni.pricing.application.PricingService;
 import com.spacefurni.shared.exception.BusinessRuleViolationException;
 import java.util.List;
 import java.util.UUID;
@@ -17,10 +18,13 @@ public class CartService {
 
     private final CartRepository cartRepository;
     private final InventoryService inventoryService;
+    private final PricingService pricingService;
 
-    public CartService(CartRepository cartRepository, InventoryService inventoryService) {
+    public CartService(CartRepository cartRepository, InventoryService inventoryService,
+            PricingService pricingService) {
         this.cartRepository = cartRepository;
         this.inventoryService = inventoryService;
+        this.pricingService = pricingService;
     }
 
     @Transactional
@@ -34,11 +38,11 @@ public class CartService {
     }
 
     @Transactional
-    public Cart addLine(Cart cart, UUID productId, int quantity) {
+    public Cart addLine(Cart cart, UUID productId, int quantity, String colorHexCode) {
         requireQuantityAtLeastOne(quantity);
         int existingQuantity = cart.findLineByProductId(productId).map(CartItem::getQuantity).orElse(0);
         rejectIfExceedsAvailableStock(productId, existingQuantity + quantity);
-        cart.addOrIncrementLine(productId, quantity);
+        cart.addOrIncrementLine(productId, quantity, colorHexCode);
         return cartRepository.save(cart);
     }
 
@@ -67,7 +71,9 @@ public class CartService {
 
     @Transactional
     public Cart applyPromotion(Cart cart, String promotionCode) {
-        cart.applyPromotion(promotionCode.toUpperCase());
+        String normalizedPromotionCode = promotionCode.trim().toUpperCase();
+        pricingService.requirePromotionCodeExists(normalizedPromotionCode);
+        cart.applyPromotion(normalizedPromotionCode);
         return cartRepository.save(cart);
     }
 

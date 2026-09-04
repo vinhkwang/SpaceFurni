@@ -24,7 +24,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleDomainException(DomainException exception) {
         log.warn("Domain exception: {}", exception.getMessage());
         ErrorCode errorCode = exception.getErrorCode();
-        ApiError error = new ApiError(errorCode.name(), exception.getMessage(), null);
+        ApiError error = new ApiError(errorCode.name(), exception.getMessage(), exception.getDetails());
         return ResponseEntity.status(errorCode.httpStatus()).body(ApiResponse.failure(error));
     }
 

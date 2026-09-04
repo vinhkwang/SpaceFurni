@@ -59,8 +59,8 @@ class CartRepositoryTest {
     void findByUserIdAndStatusFetchesItemsInOneStatement() {
         UUID userId = persistUser();
         Cart cart = new Cart(userId, null);
-        cart.addOrIncrementLine(persistProduct(), 1);
-        cart.addOrIncrementLine(persistProduct(), 2);
+        cart.addOrIncrementLine(persistProduct(), 1, null);
+        cart.addOrIncrementLine(persistProduct(), 2, null);
         entityManager.persistAndFlush(cart);
         entityManager.clear();
 
@@ -78,7 +78,7 @@ class CartRepositoryTest {
     void findByGuestTokenAndStatusFetchesItemsInOneStatement() {
         UUID guestToken = UUID.randomUUID();
         Cart cart = new Cart(null, guestToken);
-        cart.addOrIncrementLine(persistProduct(), 1);
+        cart.addOrIncrementLine(persistProduct(), 1, null);
         entityManager.persistAndFlush(cart);
         entityManager.clear();
 

@@ -29,13 +29,17 @@ public class CartItem {
     @Column(nullable = false)
     private Integer quantity;
 
+    @Column(name = "color_hex_code")
+    private String colorHexCode;
+
     protected CartItem() {
     }
 
-    CartItem(Cart cart, UUID productId, Integer quantity) {
+    CartItem(Cart cart, UUID productId, Integer quantity, String colorHexCode) {
         this.cart = cart;
         this.productId = productId;
         this.quantity = quantity;
+        this.colorHexCode = colorHexCode;
     }
 
     void incrementQuantity(int amount) {
@@ -60,5 +64,9 @@ public class CartItem {
 
     public Integer getQuantity() {
         return quantity;
+    }
+
+    public String getColorHexCode() {
+        return colorHexCode;
     }
 }

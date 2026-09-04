@@ -70,10 +70,10 @@ class CartMergeServiceTest {
         UUID productId = seedProductWithStock(10);
         UUID userId = persistUser();
         Cart guestCart = new Cart(null, UUID.randomUUID());
-        guestCart.addOrIncrementLine(productId, 2);
+        guestCart.addOrIncrementLine(productId, 2, null);
         entityManager.persistAndFlush(guestCart);
         Cart userCart = new Cart(userId, null);
-        userCart.addOrIncrementLine(productId, 1);
+        userCart.addOrIncrementLine(productId, 1, null);
         entityManager.persistAndFlush(userCart);
         entityManager.clear();
 
@@ -89,10 +89,10 @@ class CartMergeServiceTest {
         UUID productId = seedProductWithStock(2);
         UUID userId = persistUser();
         Cart guestCart = new Cart(null, UUID.randomUUID());
-        guestCart.addOrIncrementLine(productId, 2);
+        guestCart.addOrIncrementLine(productId, 2, null);
         entityManager.persistAndFlush(guestCart);
         Cart userCart = new Cart(userId, null);
-        userCart.addOrIncrementLine(productId, 1);
+        userCart.addOrIncrementLine(productId, 1, null);
         entityManager.persistAndFlush(userCart);
         entityManager.clear();
 
@@ -108,7 +108,7 @@ class CartMergeServiceTest {
         UUID productId = seedProductWithStock(10);
         UUID userId = persistUser();
         Cart guestCart = new Cart(null, UUID.randomUUID());
-        guestCart.addOrIncrementLine(productId, 4);
+        guestCart.addOrIncrementLine(productId, 4, null);
         entityManager.persistAndFlush(guestCart);
         Cart userCart = new Cart(userId, null);
         entityManager.persistAndFlush(userCart);
@@ -126,7 +126,7 @@ class CartMergeServiceTest {
         UUID productId = seedProductWithStock(10);
         UUID userId = persistUser();
         Cart guestCart = new Cart(null, UUID.randomUUID());
-        guestCart.addOrIncrementLine(productId, 1);
+        guestCart.addOrIncrementLine(productId, 1, null);
         UUID guestToken = guestCart.getGuestToken();
         UUID guestCartId = entityManager.persistAndFlush(guestCart).getId();
         entityManager.clear();
@@ -144,7 +144,7 @@ class CartMergeServiceTest {
         UUID productId = seedProductWithStock(10);
         UUID userId = persistUser();
         Cart guestCart = new Cart(null, UUID.randomUUID());
-        guestCart.addOrIncrementLine(productId, 3);
+        guestCart.addOrIncrementLine(productId, 3, null);
         UUID guestToken = guestCart.getGuestToken();
         entityManager.persistAndFlush(guestCart);
         entityManager.clear();

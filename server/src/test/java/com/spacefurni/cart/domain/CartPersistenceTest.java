@@ -54,7 +54,7 @@ class CartPersistenceTest {
     void addOrIncrementLineCreatesNewLineForUnseenProduct() {
         UUID productId = persistProduct();
         Cart cart = new Cart(null, UUID.randomUUID());
-        cart.addOrIncrementLine(productId, 2);
+        cart.addOrIncrementLine(productId, 2, null);
 
         UUID id = entityManager.persistAndFlush(cart).getId();
         entityManager.clear();
@@ -70,10 +70,10 @@ class CartPersistenceTest {
     void addOrIncrementLineUpsertsRatherThanDuplicatingExistingLine() {
         UUID productId = persistProduct();
         Cart cart = new Cart(null, UUID.randomUUID());
-        cart.addOrIncrementLine(productId, 2);
+        cart.addOrIncrementLine(productId, 2, null);
         entityManager.persistAndFlush(cart);
 
-        cart.addOrIncrementLine(productId, 3);
+        cart.addOrIncrementLine(productId, 3, null);
         UUID id = entityManager.persistAndFlush(cart).getId();
         entityManager.clear();
 

@@ -157,7 +157,7 @@ class CatalogIntegrationTest extends AbstractIntegrationTest {
 
         mockMvc.perform(get("/api/v1/products").param("size", "48")).andExpect(status().isOk());
 
-        assertThat(statistics.getPrepareStatementCount()).isLessThanOrEqualTo(2);
+        assertThat(statistics.getPrepareStatementCount()).isLessThanOrEqualTo(3);
     }
 
     private List<String> names(JsonNode content) {

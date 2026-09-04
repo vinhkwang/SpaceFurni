@@ -18,7 +18,7 @@ class CartResponseMapperTest {
     private ProductSummaryResponse summaryOf(UUID productId, long priceAmount) {
         return new ProductSummaryResponse(productId, "SKU-" + productId, "slug-" + productId,
                 "Product " + productId, "Category", priceAmount, null, "VND", null, 0,
-                "https://example.com/" + productId + ".jpg", null);
+                "https://example.com/" + productId + ".jpg", null, "Beige", "#8B5E3C");
     }
 
     private PriceBreakdown priceBreakdownOf(long subtotalAmount) {
@@ -32,8 +32,8 @@ class CartResponseMapperTest {
         Cart cart = new Cart(null, guestToken);
         UUID firstProductId = UUID.randomUUID();
         UUID secondProductId = UUID.randomUUID();
-        cart.addOrIncrementLine(firstProductId, 2);
-        cart.addOrIncrementLine(secondProductId, 3);
+        cart.addOrIncrementLine(firstProductId, 2, null);
+        cart.addOrIncrementLine(secondProductId, 3, null);
         Map<UUID, ProductSummaryResponse> products = Map.of(firstProductId, summaryOf(firstProductId, 100_000L),
                 secondProductId, summaryOf(secondProductId, 50_000L));
 
@@ -49,6 +49,30 @@ class CartResponseMapperTest {
                 });
         assertThat(response.priceBreakdown().subtotalAmount()).isEqualTo(350_000L);
         assertThat(response.priceBreakdown().currencyCode()).isEqualTo("VND");
+    }
+
+    @Test
+    void toResponseResolvesColorNameOnlyWhenStoredHexMatchesThePrimarySwatch() {
+        Cart cart = new Cart(null, UUID.randomUUID());
+        UUID matchingProductId = UUID.randomUUID();
+        UUID differingProductId = UUID.randomUUID();
+        cart.addOrIncrementLine(matchingProductId, 1, "#8B5E3C");
+        cart.addOrIncrementLine(differingProductId, 1, "#26241F");
+        Map<UUID, ProductSummaryResponse> products = Map.of(matchingProductId, summaryOf(matchingProductId, 100_000L),
+                differingProductId, summaryOf(differingProductId, 100_000L));
+
+        CartResponse response = mapper.toResponse(cart, products, priceBreakdownOf(200_000L));
+
+        assertThat(response.lines()).filteredOn(line -> line.productId().equals(matchingProductId)).first()
+                .satisfies(line -> {
+                    assertThat(line.colorHexCode()).isEqualTo("#8B5E3C");
+                    assertThat(line.colorName()).isEqualTo("Beige");
+                });
+        assertThat(response.lines()).filteredOn(line -> line.productId().equals(differingProductId)).first()
+                .satisfies(line -> {
+                    assertThat(line.colorHexCode()).isEqualTo("#26241F");
+                    assertThat(line.colorName()).isNull();
+                });
     }
 
     @Test

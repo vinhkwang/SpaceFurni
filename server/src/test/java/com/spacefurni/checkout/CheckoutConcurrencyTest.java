@@ -88,7 +88,7 @@ class CheckoutConcurrencyTest extends AbstractIntegrationTest {
 
     private void addToCart(UUID userId, UUID productId, int quantity) {
         Cart cart = cartService.resolveOrCreateActiveCart(userId, null);
-        cartService.addLine(cart, productId, quantity);
+        cartService.addLine(cart, productId, quantity, null);
     }
 
     private PlaceOrderRequest placeOrderRequest() {

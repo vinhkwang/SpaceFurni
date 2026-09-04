@@ -77,7 +77,7 @@ public class CartController {
             @RequestHeader(name = GUEST_TOKEN_HEADER, required = false) String guestTokenHeader,
             @Valid @RequestBody AddCartLineRequest request) {
         Cart cart = resolveCartForWrite(principal, guestTokenHeader);
-        cart = cartService.addLine(cart, request.productId(), request.quantity());
+        cart = cartService.addLine(cart, request.productId(), request.quantity(), request.colorHexCode());
         return ApiResponse.success(toResponse(cart));
     }
 
