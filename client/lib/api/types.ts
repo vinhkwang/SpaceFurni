@@ -96,6 +96,8 @@ export type CartLineResponse = {
   currencyCode: string;
   quantity: number;
   lineTotalAmount: number;
+  colorHexCode: string | null;
+  colorName: string | null;
 };
 
 export type PriceBreakdownResponse = {
