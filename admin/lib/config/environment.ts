@@ -15,6 +15,11 @@ export const publicApiBaseUrl = requireUrlEnv(
   process.env.NEXT_PUBLIC_API_BASE_URL,
 );
 
+export const publicStorefrontUrl = requireUrlEnv(
+  "NEXT_PUBLIC_STOREFRONT_URL",
+  process.env.NEXT_PUBLIC_STOREFRONT_URL,
+);
+
 export function internalApiBaseUrl(): string {
   return requireUrlEnv("API_INTERNAL_BASE_URL", process.env.API_INTERNAL_BASE_URL);
 }
