@@ -3,6 +3,7 @@ package com.spacefurni.catalog.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.spacefurni.catalog.api.dto.AdminProductDetailResponse;
 import com.spacefurni.catalog.api.dto.AdminProductRequest;
 import com.spacefurni.catalog.api.dto.AdminProductRowResponse;
 import com.spacefurni.catalog.api.dto.StockAdjustmentRequest;
@@ -135,6 +136,41 @@ class AdminProductServiceTest extends AbstractIntegrationTest {
 
         assertThatThrownBy(() -> adminProductService.updateProduct(productId, staleUpdateRequest))
                 .isInstanceOf(OptimisticLockingFailureException.class);
+    }
+
+    @Test
+    void getProductReturnsFullEditableDetailIncludingVersionAndStock() {
+        UUID productId = adminProductService.createProduct(validRequest("Zzq Detail Fetch Test Sofa"));
+        Product createdProduct = productRepository.findById(productId).orElseThrow();
+
+        AdminProductDetailResponse detail = adminProductService.getProduct(productId);
+
+        assertThat(detail.id()).isEqualTo(productId);
+        assertThat(detail.title()).isEqualTo("Zzq Detail Fetch Test Sofa");
+        assertThat(detail.departmentSlug()).isEqualTo("living-room");
+        assertThat(detail.subCategorySlug()).isEqualTo("sofa");
+        assertThat(detail.price()).isEqualTo(7_200_000L);
+        assertThat(detail.stock()).isEqualTo(12);
+        assertThat(detail.status()).isEqualTo(ProductStatus.PUBLISHED);
+        assertThat(detail.version()).isEqualTo(createdProduct.getVersion());
+    }
+
+    @Test
+    void getProductIncludesADraftOrArchivedProductUnlikeThePublicDetailEndpoint() {
+        UUID productId = adminProductService.createProduct(validRequest("Zzq Archived Detail Fetch Test Sofa"));
+        adminProductService.archiveProduct(productId);
+
+        AdminProductDetailResponse detail = adminProductService.getProduct(productId);
+
+        assertThat(detail.status()).isEqualTo(ProductStatus.ARCHIVED);
+    }
+
+    @Test
+    void gettingAnUnknownProductThrows() {
+        UUID unknownProductId = UUID.randomUUID();
+
+        assertThatThrownBy(() -> adminProductService.getProduct(unknownProductId))
+                .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test

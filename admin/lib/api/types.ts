@@ -37,6 +37,32 @@ export type AdminSummaryResponse = {
   lowStockProductCount: number;
 };
 
+export type CategoryTreeResponse = {
+  id: string;
+  name: string;
+  slug: string;
+  imageUrl: string | null;
+  productCount: number;
+  subCategories: CategoryTreeResponse[];
+};
+
+export type AdminProductDetailResponse = {
+  id: string;
+  title: string;
+  departmentSlug: string;
+  subCategorySlug: string;
+  price: number;
+  stock: number;
+  shortDescription: string | null;
+  longDescription: string | null;
+  dimensions: string | null;
+  material: string | null;
+  primaryColorName: string | null;
+  imageUrl: string | null;
+  status: ProductStatus;
+  version: number;
+};
+
 export type AdminProductRowResponse = {
   id: string;
   imageUrl: string;

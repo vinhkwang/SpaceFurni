@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.spacefurni.catalog.api.dto.AdminProductDetailResponse;
 import com.spacefurni.catalog.api.dto.AdminProductRowResponse;
 import com.spacefurni.catalog.application.AdminProductService;
 import com.spacefurni.catalog.domain.ProductStatus;
@@ -86,6 +87,31 @@ class AdminProductControllerTest {
                 .andExpect(jsonPath("$.data.content[0].sku").value("LIV-0001"));
 
         verify(adminProductService).listProducts(eq("chair"), any());
+    }
+
+    @Test
+    void getProductIsRejectedWithoutAuthentication() throws Exception {
+        mockMvc.perform(get("/api/v1/admin/products/{id}", UUID.randomUUID())).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(roles = "CUSTOMER")
+    void getProductIsForbiddenForACustomer() throws Exception {
+        mockMvc.perform(get("/api/v1/admin/products/{id}", UUID.randomUUID())).andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void getProductDelegatesToTheServiceForTheGivenId() throws Exception {
+        UUID productId = UUID.randomUUID();
+        AdminProductDetailResponse detail = new AdminProductDetailResponse(productId, "Halden Tub Chair",
+                "living-room", "sofa", 7_200_000L, 12, "Short", "Long", "80x75x70cm", "Oak, linen", "Terracotta",
+                "https://example.com/chair.jpg", ProductStatus.PUBLISHED, 0L);
+        when(adminProductService.getProduct(productId)).thenReturn(detail);
+
+        mockMvc.perform(get("/api/v1/admin/products/{id}", productId)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.title").value("Halden Tub Chair"))
+                .andExpect(jsonPath("$.data.departmentSlug").value("living-room"));
     }
 
     @Test
