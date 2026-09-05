@@ -1,3 +1,17 @@
+export type UserRole = "CUSTOMER" | "ADMIN";
+
+export type AuthenticationResponse = {
+  accessToken: string;
+  refreshToken: string;
+};
+
+export type CurrentUserResponse = {
+  id: string;
+  email: string;
+  fullName: string;
+  role: UserRole;
+};
+
 export type ProductStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
 
 export type OrderStatus = "PENDING" | "PAID" | "PACKING" | "DELIVERED" | "CANCELLED";

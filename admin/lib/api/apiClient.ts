@@ -1,8 +1,6 @@
-import { cookies } from "next/headers";
 import { internalApiBaseUrl } from "@/lib/config/environment";
 import { ApiError, type ApiErrorDetails } from "@/lib/api/ApiError";
-
-export const ADMIN_SESSION_COOKIE_NAME = "spacefurni_admin_session";
+import { getSessionToken } from "@/lib/auth/session";
 
 type ApiSuccessEnvelope<T> = {
   success: true;
@@ -37,8 +35,7 @@ async function resolveRequestHeaders(): Promise<Record<string, string>> {
     "Content-Type": "application/json",
   };
 
-  const cookieStore = await cookies();
-  const sessionToken = cookieStore.get(ADMIN_SESSION_COOKIE_NAME)?.value;
+  const sessionToken = await getSessionToken();
   if (sessionToken) {
     headers.Authorization = `Bearer ${sessionToken}`;
   }
