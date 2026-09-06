@@ -123,6 +123,7 @@ export type AdminOrderLineResponse = {
 export type AdminOrderDetailResponse = {
   orderNumber: string;
   status: OrderStatus;
+  version: number;
   customer: AdminOrderCustomerResponse;
   deliveryAddress: AdminOrderDeliveryAddressResponse;
   deliveryWindow: DeliveryWindow;

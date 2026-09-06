@@ -7,11 +7,11 @@ import com.spacefurni.checkout.domain.PaymentStatus;
 import java.time.Instant;
 import java.util.List;
 
-public record AdminOrderDetailResponse(String orderNumber, OrderStatus status, CustomerResponse customer,
-        DeliveryAddressResponse deliveryAddress, DeliveryWindow deliveryWindow, PaymentMethod paymentMethod,
-        PaymentStatus paymentStatus, long subtotalAmount, long shippingAmount, long discountAmount,
-        long totalAmount, String currencyCode, Instant placedAt, List<OrderLineResponse> lines,
-        List<OrderTimelineStepResponse> timeline) {
+public record AdminOrderDetailResponse(String orderNumber, OrderStatus status, long version,
+        CustomerResponse customer, DeliveryAddressResponse deliveryAddress, DeliveryWindow deliveryWindow,
+        PaymentMethod paymentMethod, PaymentStatus paymentStatus, long subtotalAmount, long shippingAmount,
+        long discountAmount, long totalAmount, String currencyCode, Instant placedAt,
+        List<OrderLineResponse> lines, List<OrderTimelineStepResponse> timeline) {
 
     public record CustomerResponse(String fullName, String email, String phone) {
     }

@@ -114,7 +114,7 @@ public class AdminOrderQueryService {
         DeliveryDetails deliveryDetails = order.getDeliveryDetails();
         Map<UUID, ProductSummaryResponse> productSummariesByProductId = catalogQueryService
                 .findProductSummariesByIds(order.getItems().stream().map(OrderItem::getProductId).toList());
-        return new AdminOrderDetailResponse(order.getOrderNumber(), order.getStatus(),
+        return new AdminOrderDetailResponse(order.getOrderNumber(), order.getStatus(), order.getVersion(),
                 new AdminOrderDetailResponse.CustomerResponse(deliveryDetails.getFullName(), customerEmail,
                         deliveryDetails.getPhone()),
                 new AdminOrderDetailResponse.DeliveryAddressResponse(deliveryDetails.getStreet(),

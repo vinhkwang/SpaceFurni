@@ -237,6 +237,7 @@ class AdminOrderQueryServiceTest {
 
         assertThat(detail.orderNumber()).isEqualTo("SF-4501");
         assertThat(detail.status()).isEqualTo(OrderStatus.PAID);
+        assertThat(detail.version()).isEqualTo(order.getVersion());
         assertThat(detail.customer().fullName()).isEqualTo("Tran Bao Ngoc");
         assertThat(detail.customer().email()).isEqualTo(user.getEmail());
         assertThat(detail.customer().phone()).isEqualTo("0901234567");
