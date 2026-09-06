@@ -1,5 +1,7 @@
 package com.spacefurni.checkout.application;
 
+import com.spacefurni.catalog.api.dto.ProductSummaryResponse;
+import com.spacefurni.catalog.application.CatalogQueryService;
 import com.spacefurni.checkout.api.dto.AdminOrderDetailResponse;
 import com.spacefurni.checkout.api.dto.AdminOrderRowResponse;
 import com.spacefurni.checkout.domain.DeliveryDetails;
@@ -32,13 +34,16 @@ public class AdminOrderQueryService {
     private final OrderItemRepository orderItemRepository;
     private final CurrentUserQueryService currentUserQueryService;
     private final OrderTimelineBuilder orderTimelineBuilder;
+    private final CatalogQueryService catalogQueryService;
 
     public AdminOrderQueryService(OrderRepository orderRepository, OrderItemRepository orderItemRepository,
-            CurrentUserQueryService currentUserQueryService, OrderTimelineBuilder orderTimelineBuilder) {
+            CurrentUserQueryService currentUserQueryService, OrderTimelineBuilder orderTimelineBuilder,
+            CatalogQueryService catalogQueryService) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.currentUserQueryService = currentUserQueryService;
         this.orderTimelineBuilder = orderTimelineBuilder;
+        this.catalogQueryService = catalogQueryService;
     }
 
     @Transactional(readOnly = true)
@@ -107,7 +112,9 @@ public class AdminOrderQueryService {
 
     private AdminOrderDetailResponse toDetail(Order order, String customerEmail) {
         DeliveryDetails deliveryDetails = order.getDeliveryDetails();
-        return new AdminOrderDetailResponse(order.getOrderNumber(), order.getStatus(),
+        Map<UUID, ProductSummaryResponse> productSummariesByProductId = catalogQueryService
+                .findProductSummariesByIds(order.getItems().stream().map(OrderItem::getProductId).toList());
+        return new AdminOrderDetailResponse(order.getOrderNumber(), order.getStatus(), order.getVersion(),
                 new AdminOrderDetailResponse.CustomerResponse(deliveryDetails.getFullName(), customerEmail,
                         deliveryDetails.getPhone()),
                 new AdminOrderDetailResponse.DeliveryAddressResponse(deliveryDetails.getStreet(),
@@ -115,12 +122,14 @@ public class AdminOrderQueryService {
                 order.getDeliveryWindow(), order.getPaymentMethod(), order.getPaymentStatus(),
                 order.getSubtotal().amount(), order.getShipping().amount(), order.getDiscount().amount(),
                 order.getTotal().amount(), order.getTotal().currencyCode(), order.getPlacedAt(),
-                order.getItems().stream().map(this::toLine).toList(),
+                order.getItems().stream().map(item -> toLine(item, productSummariesByProductId.get(item.getProductId())))
+                        .toList(),
                 orderTimelineBuilder.build(order.getStatus(), order.getPlacedAt()));
     }
 
-    private AdminOrderDetailResponse.OrderLineResponse toLine(OrderItem item) {
-        return new AdminOrderDetailResponse.OrderLineResponse(item.getProductNameSnapshot(),
+    private AdminOrderDetailResponse.OrderLineResponse toLine(OrderItem item, ProductSummaryResponse product) {
+        String imageUrl = product == null ? null : product.primaryImageUrl();
+        return new AdminOrderDetailResponse.OrderLineResponse(item.getProductNameSnapshot(), imageUrl,
                 item.getUnitPriceAmount(), item.getQuantity(), item.getLineTotalAmount());
     }
 }

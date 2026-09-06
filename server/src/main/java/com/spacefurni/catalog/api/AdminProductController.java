@@ -1,5 +1,6 @@
 package com.spacefurni.catalog.api;
 
+import com.spacefurni.catalog.api.dto.AdminProductDetailResponse;
 import com.spacefurni.catalog.api.dto.AdminProductRequest;
 import com.spacefurni.catalog.api.dto.AdminProductRowResponse;
 import com.spacefurni.catalog.api.dto.StockAdjustmentRequest;
@@ -44,6 +45,11 @@ public class AdminProductController {
                 adminProductService.listProducts(q, PageRequest.of(resolvePage(page), resolvePageSize(size)));
         return ApiResponse.success(new PageResponse<>(result.getContent(), result.getNumber(), result.getSize(),
                 result.getTotalElements(), result.getTotalPages()));
+    }
+
+    @GetMapping("/{id}")
+    public ApiResponse<AdminProductDetailResponse> getProduct(@PathVariable UUID id) {
+        return ApiResponse.success(adminProductService.getProduct(id));
     }
 
     @PostMapping

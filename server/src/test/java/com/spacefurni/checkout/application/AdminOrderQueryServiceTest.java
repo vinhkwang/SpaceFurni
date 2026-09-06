@@ -2,7 +2,12 @@ package com.spacefurni.checkout.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import com.spacefurni.catalog.api.dto.ProductSummaryResponse;
+import com.spacefurni.catalog.application.CatalogQueryService;
 import com.spacefurni.catalog.domain.Category;
 import com.spacefurni.catalog.domain.Product;
 import com.spacefurni.catalog.domain.ProductStatus;
@@ -68,11 +73,14 @@ class AdminOrderQueryServiceTest {
     private EntityManagerFactory entityManagerFactory;
 
     private AdminOrderQueryService adminOrderQueryService;
+    private CatalogQueryService catalogQueryService;
 
     @BeforeEach
     void setUp() {
+        catalogQueryService = mock(CatalogQueryService.class);
+        when(catalogQueryService.findProductSummariesByIds(any())).thenReturn(Map.of());
         adminOrderQueryService = new AdminOrderQueryService(orderRepository, orderItemRepository,
-                new CurrentUserQueryService(userRepository), new OrderTimelineBuilder());
+                new CurrentUserQueryService(userRepository), new OrderTimelineBuilder(), catalogQueryService);
     }
 
     private User persistUser() {
@@ -220,11 +228,16 @@ class AdminOrderQueryServiceTest {
         Order order = persistOrderWithItems("SF-4501", user.getId(), productId, "Tran Bao Ngoc", 2);
         transitionOrderTo(order, OrderStatus.PAID);
         entityManager.clear();
+        ProductSummaryResponse productSummary = new ProductSummaryResponse(productId, "SKU-1", "test-sofa",
+                "Test Sofa", "Sofa", 1_000_000L, null, "VND", new BigDecimal("4.0"), 0, "/images/test-sofa.jpg",
+                null, "Grey", "#8C8F8B");
+        when(catalogQueryService.findProductSummariesByIds(any())).thenReturn(Map.of(productId, productSummary));
 
         AdminOrderDetailResponse detail = adminOrderQueryService.findOrderDetail("SF-4501");
 
         assertThat(detail.orderNumber()).isEqualTo("SF-4501");
         assertThat(detail.status()).isEqualTo(OrderStatus.PAID);
+        assertThat(detail.version()).isEqualTo(order.getVersion());
         assertThat(detail.customer().fullName()).isEqualTo("Tran Bao Ngoc");
         assertThat(detail.customer().email()).isEqualTo(user.getEmail());
         assertThat(detail.customer().phone()).isEqualTo("0901234567");
@@ -237,6 +250,8 @@ class AdminOrderQueryServiceTest {
         assertThat(detail.totalAmount()).isEqualTo(1_300_000L);
         assertThat(detail.lines()).extracting(AdminOrderDetailResponse.OrderLineResponse::productName)
                 .containsExactlyInAnyOrder("Test Sofa 0", "Test Sofa 1");
+        assertThat(detail.lines()).extracting(AdminOrderDetailResponse.OrderLineResponse::imageUrl)
+                .containsOnly("/images/test-sofa.jpg");
         assertThat(detail.timeline()).extracting(step -> step.complete()).containsExactly(true, true, false, false,
                 false);
     }

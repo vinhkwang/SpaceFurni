@@ -1,5 +1,6 @@
 package com.spacefurni.catalog.application;
 
+import com.spacefurni.catalog.api.dto.AdminProductDetailResponse;
 import com.spacefurni.catalog.api.dto.AdminProductRequest;
 import com.spacefurni.catalog.api.dto.AdminProductRowResponse;
 import com.spacefurni.catalog.api.dto.StockAdjustmentRequest;
@@ -96,6 +97,13 @@ public class AdminProductService {
     }
 
     @Transactional(readOnly = true)
+    public AdminProductDetailResponse getProduct(UUID productId) {
+        Product product = findProductByIdOrThrow(productId);
+        int stockOnHand = inventoryService.findAvailableQuantities(List.of(productId)).getOrDefault(productId, 0);
+        return toDetail(product, stockOnHand);
+    }
+
+    @Transactional(readOnly = true)
     public long countPublishedProducts() {
         return productRepository.count(ProductSearchSpecifications.publishedOnly());
     }
@@ -119,6 +127,14 @@ public class AdminProductService {
         return new AdminProductRowResponse(product.getId(), primaryImageUrl(product), product.getName(),
                 product.getSku(), categoryLabel, price.amount(), price.currencyCode(), stockOnHand,
                 product.getStatus());
+    }
+
+    private AdminProductDetailResponse toDetail(Product product, int stockOnHand) {
+        Category category = product.getCategory();
+        return new AdminProductDetailResponse(product.getId(), product.getName(), category.getParent().getSlug(),
+                category.getSlug(), product.getPrice().amount(), stockOnHand, product.getShortDescription(),
+                product.getLongDescription(), product.getDimensions(), product.getMaterial(),
+                product.getPrimaryColorName(), primaryImageUrl(product), product.getStatus(), product.getVersion());
     }
 
     private String primaryImageUrl(Product product) {

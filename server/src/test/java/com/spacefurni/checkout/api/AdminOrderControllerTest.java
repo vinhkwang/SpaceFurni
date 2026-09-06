@@ -97,7 +97,7 @@ class AdminOrderControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void getOrderDetailDelegatesToTheServiceForTheGivenOrderNumber() throws Exception {
-        AdminOrderDetailResponse detail = new AdminOrderDetailResponse("SF-3001", OrderStatus.PACKING,
+        AdminOrderDetailResponse detail = new AdminOrderDetailResponse("SF-3001", OrderStatus.PACKING, 0L,
                 new AdminOrderDetailResponse.CustomerResponse("Nguyen Van A", "a@example.com", "0901234567"),
                 new AdminOrderDetailResponse.DeliveryAddressResponse("1 Le Loi", "District 1", "Ho Chi Minh City",
                         null),
