@@ -20,6 +20,8 @@ export type ProductActionResult =
   | { success: true; productId: string }
   | { success: false; isConflict: boolean; errorMessage: string };
 
+export type ProductQuickActionResult = { success: true } | { success: false; errorMessage: string };
+
 function toAdminProductRequestBody(values: ProductFormValues, version: number | null) {
   return {
     title: values.title,
@@ -72,5 +74,32 @@ export async function updateProductAction(
       isConflict: error instanceof ApiError && error.status === 409,
       errorMessage: productActionFailureMessage(error),
     };
+  }
+}
+
+export async function adjustProductStockAction(productId: string, delta: number): Promise<ProductQuickActionResult> {
+  try {
+    await apiFetch<void>(`/admin/products/${productId}/stock`, {
+      method: "PATCH",
+      body: { delta },
+      cache: "no-store",
+    });
+    revalidatePath("/products");
+    return { success: true };
+  } catch (error) {
+    return { success: false, errorMessage: productActionFailureMessage(error) };
+  }
+}
+
+export async function archiveProductAction(productId: string): Promise<ProductQuickActionResult> {
+  try {
+    await apiFetch<void>(`/admin/products/${productId}`, {
+      method: "DELETE",
+      cache: "no-store",
+    });
+    revalidatePath("/products");
+    return { success: true };
+  } catch (error) {
+    return { success: false, errorMessage: productActionFailureMessage(error) };
   }
 }

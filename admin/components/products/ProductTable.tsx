@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { AdminProductRowResponse, ProductStatus } from "@/lib/api/types";
 import { formatMoney } from "@/lib/formatting/formatMoney";
+import { ProductRowActions } from "@/components/products/ProductRowActions";
 
 const LOW_STOCK_THRESHOLD = 6;
 
@@ -13,7 +14,7 @@ type ProductTableProps = {
   query: string;
 };
 
-const tableRowGridClassName = "grid grid-cols-[44px_84px_1.6fr_1fr_130px_90px_120px] items-center gap-3.5";
+const tableRowGridClassName = "grid grid-cols-[44px_84px_1.4fr_1fr_120px_80px_110px_120px] items-center gap-3.5";
 
 function capitalizeStatus(status: ProductStatus): string {
   return status.charAt(0) + status.slice(1).toLowerCase();
@@ -72,6 +73,7 @@ export function ProductTable({ products, startIndex, currentPage, totalPages, qu
         <span className="text-right">Price</span>
         <span className="text-right">Stock</span>
         <span className="text-center">Status</span>
+        <span className="text-right">Actions</span>
       </div>
 
       {products.map((product, index) => (
@@ -101,6 +103,7 @@ export function ProductTable({ products, startIndex, currentPage, totalPages, qu
               {capitalizeStatus(product.status)}
             </span>
           </span>
+          <ProductRowActions productId={product.id} status={product.status} stockOnHand={product.stockOnHand} />
         </div>
       ))}
 

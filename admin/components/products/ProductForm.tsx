@@ -7,6 +7,7 @@ import { useState, type FormEvent } from "react";
 import type { AdminProductDetailResponse, CategoryTreeResponse, ProductStatus } from "@/lib/api/types";
 import { createProductAction, updateProductAction, type ProductFormValues } from "@/lib/products/productActions";
 import { StorefrontPreviewCard } from "@/components/products/StorefrontPreviewCard";
+import { useToast } from "@/components/ui/Toast";
 
 type ProductFormProps = {
   departments: CategoryTreeResponse[];
@@ -27,6 +28,7 @@ const PICKABLE_IMAGE_URLS = [
 const STATUS_OPTIONS: { value: ProductStatus; label: string }[] = [
   { value: "PUBLISHED", label: "Published" },
   { value: "DRAFT", label: "Draft" },
+  { value: "ARCHIVED", label: "Archived" },
 ];
 
 const fieldClassName =
@@ -38,6 +40,7 @@ function firstSubCategorySlug(department: CategoryTreeResponse | undefined): str
 
 export function ProductForm({ departments, product }: ProductFormProps) {
   const router = useRouter();
+  const { showToast } = useToast();
   const isEditMode = product !== undefined;
 
   const initialDepartment =
@@ -52,7 +55,7 @@ export function ProductForm({ departments, product }: ProductFormProps) {
   const [stock, setStock] = useState(product ? String(product.stock) : "");
   const [description, setDescription] = useState(product?.longDescription ?? "");
   const [imageUrl, setImageUrl] = useState(product?.imageUrl ?? PICKABLE_IMAGE_URLS[0]);
-  const [status, setStatus] = useState<ProductStatus>(product?.status === "PUBLISHED" ? "PUBLISHED" : "DRAFT");
+  const [status, setStatus] = useState<ProductStatus>(product?.status ?? "DRAFT");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isConflict, setIsConflict] = useState(false);
@@ -90,6 +93,7 @@ export function ProductForm({ departments, product }: ProductFormProps) {
         : await createProductAction(values);
 
     if (result.success) {
+      showToast(status === "ARCHIVED" ? "Product archived." : isEditMode ? "Product saved." : "Product created.");
       router.push("/products");
       router.refresh();
       return;

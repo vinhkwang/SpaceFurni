@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { OrderStatus } from "@/lib/api/types";
 import { transitionOrderStatusAction } from "@/lib/orders/orderActions";
+import { useToast } from "@/components/ui/Toast";
 
 type OrderStatusActionsProps = {
   orderNumber: string;
@@ -21,34 +22,23 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
   CANCELLED: "Cancelled",
 };
 
-const SUCCESS_MESSAGE_DURATION_MS = 3000;
-
 export function OrderStatusActions({ orderNumber, currentStatus, version }: OrderStatusActionsProps) {
   const router = useRouter();
+  const { showToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isConflict, setIsConflict] = useState(false);
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-
-  useEffect(() => {
-    if (!showSuccessMessage) {
-      return;
-    }
-    const timeoutId = setTimeout(() => setShowSuccessMessage(false), SUCCESS_MESSAGE_DURATION_MS);
-    return () => clearTimeout(timeoutId);
-  }, [showSuccessMessage]);
 
   async function handleTransition(targetStatus: OrderStatus) {
     setIsSubmitting(true);
     setErrorMessage("");
     setIsConflict(false);
-    setShowSuccessMessage(false);
 
     const result = await transitionOrderStatusAction(orderNumber, targetStatus, version);
 
     setIsSubmitting(false);
     if (result.success) {
-      setShowSuccessMessage(true);
+      showToast("Status updated.");
       router.refresh();
       return;
     }
@@ -74,10 +64,6 @@ export function OrderStatusActions({ orderNumber, currentStatus, version }: Orde
       ) : errorMessage ? (
         <p role="alert" className="mb-4.5 rounded-xl bg-terracotta/10 px-4 py-3 text-[12px] text-terracotta">
           {errorMessage}
-        </p>
-      ) : showSuccessMessage ? (
-        <p role="status" className="mb-4.5 rounded-xl bg-success/10 px-4 py-3 text-[12px] text-success">
-          Status updated.
         </p>
       ) : null}
 
