@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { AdminOrderRowResponse, OrderStatus } from "@/lib/api/types";
 import { formatMoney } from "@/lib/formatting/formatMoney";
 import { formatOrderPlacedAt } from "@/lib/formatting/formatOrderPlacedAt";
+import { ORDER_STATUS_PRESENTATION } from "@/lib/orders/orderStatusPresentation";
 
 type OrderTableProps = {
   orders: AdminOrderRowResponse[];
@@ -11,10 +12,6 @@ type OrderTableProps = {
 };
 
 const tableRowGridClassName = "grid grid-cols-[112px_1.3fr_1.5fr_120px_130px_120px] items-center gap-4";
-
-function capitalizeStatus(status: OrderStatus): string {
-  return status.charAt(0) + status.slice(1).toLowerCase();
-}
 
 export function buildOrdersHref(status: OrderStatus | undefined, page: number): string {
   const params = new URLSearchParams();
@@ -64,6 +61,7 @@ export function OrderTable({ orders, currentPage, totalPages, status }: OrderTab
 
       {orders.map((order) => {
         const placedAt = formatOrderPlacedAt(order.placedAt);
+        const statusPresentation = ORDER_STATUS_PRESENTATION[order.status];
         return (
           <div
             key={order.orderNumber}
@@ -86,8 +84,11 @@ export function OrderTable({ orders, currentPage, totalPages, status }: OrderTab
             </div>
             <span className="text-right text-[13px] font-semibold text-ink">{formatMoney(order.totalAmount)}</span>
             <span className="justify-self-center">
-              <span className="rounded-pill bg-hairline-soft px-3 py-1.5 text-[10.5px] font-semibold text-ink-muted">
-                {capitalizeStatus(order.status)}
+              <span
+                className="rounded-pill px-3 py-1.5 text-[10.5px] font-semibold"
+                style={{ backgroundColor: statusPresentation.backgroundColor, color: statusPresentation.textColor }}
+              >
+                {statusPresentation.label}
               </span>
             </span>
           </div>
