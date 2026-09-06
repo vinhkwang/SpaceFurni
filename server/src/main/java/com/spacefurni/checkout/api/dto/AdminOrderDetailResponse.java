@@ -19,6 +19,7 @@ public record AdminOrderDetailResponse(String orderNumber, OrderStatus status, C
     public record DeliveryAddressResponse(String street, String district, String city, String note) {
     }
 
-    public record OrderLineResponse(String productName, long unitPriceAmount, int quantity, long lineTotalAmount) {
+    public record OrderLineResponse(String productName, String imageUrl, long unitPriceAmount, int quantity,
+            long lineTotalAmount) {
     }
 }

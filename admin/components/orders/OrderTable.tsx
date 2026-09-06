@@ -63,9 +63,10 @@ export function OrderTable({ orders, currentPage, totalPages, status }: OrderTab
         const placedAt = formatOrderPlacedAt(order.placedAt);
         const statusPresentation = ORDER_STATUS_PRESENTATION[order.status];
         return (
-          <div
+          <Link
             key={order.orderNumber}
-            className={`${tableRowGridClassName} border-b border-hairline-soft/70 px-2.5 py-3.5`}
+            href={`/orders/${order.orderNumber}`}
+            className={`${tableRowGridClassName} border-b border-hairline-soft/70 px-2.5 py-3.5 transition-colors duration-200 hover:bg-canvas`}
           >
             <span className="text-[12.5px] font-semibold text-ink">{order.orderNumber}</span>
             <div>
@@ -91,7 +92,7 @@ export function OrderTable({ orders, currentPage, totalPages, status }: OrderTab
                 {statusPresentation.label}
               </span>
             </span>
-          </div>
+          </Link>
         );
       })}
 

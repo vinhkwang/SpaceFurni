@@ -114,6 +114,7 @@ export type AdminOrderDeliveryAddressResponse = {
 
 export type AdminOrderLineResponse = {
   productName: string;
+  imageUrl: string | null;
   unitPriceAmount: number;
   quantity: number;
   lineTotalAmount: number;
