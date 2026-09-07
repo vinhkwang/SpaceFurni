@@ -174,7 +174,7 @@ export default async function DepartmentListingPage({
 
   return (
     <main className="pb-22">
-      <Container className="pt-7.5">
+      <Container alignToNavLabel className="pt-7.5">
         <nav
           aria-label="Breadcrumb"
           className="mb-6.5 flex items-center gap-2.5 text-[11px] uppercase tracking-[0.1em] text-ink-muted"
@@ -207,7 +207,7 @@ export default async function DepartmentListingPage({
         </div>
       </Container>
 
-      <Container className="mt-7.5">
+      <Container alignToNavLabel className="mt-7.5">
         <SubCategoryFilter
           departmentSlug={departmentSlug}
           subCategories={department.subCategories}
@@ -216,7 +216,7 @@ export default async function DepartmentListingPage({
         />
       </Container>
 
-      <Container className="mt-5.5">
+      <Container alignToNavLabel className="mt-5.5">
         <div className="flex flex-col gap-5 rounded-[14px] border border-hairline-soft bg-surface px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
           <PriceRangeFilter departmentSlug={departmentSlug} filters={listingSearchParams} />
           <SortSelect
@@ -227,7 +227,7 @@ export default async function DepartmentListingPage({
         </div>
       </Container>
 
-      <Container className="mt-6.5">
+      <Container alignToNavLabel className="mt-6.5">
         {productPage.content.length === 0 ? (
           <div className="py-20 text-center">
             <p className="mb-2.5 text-[17px] font-medium">{emptyStateHeading(hasNarrowingFilter)}</p>
@@ -253,7 +253,7 @@ export default async function DepartmentListingPage({
       </Container>
 
       {productPage.totalPages > 1 ? (
-        <Container className="mt-11">
+        <Container alignToNavLabel className="mt-11">
           <nav aria-label="Pagination" className="flex items-center justify-center gap-2">
             {currentPageNumber > 1 ? (
               <Link
