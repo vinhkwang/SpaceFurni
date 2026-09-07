@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api/apiClient";
 import type { CartResponse, CategoryTreeResponse } from "@/lib/api/types";
@@ -6,6 +5,7 @@ import { CartIndicator } from "@/components/layout/CartIndicator";
 import { MegaNavigation } from "@/components/layout/MegaNavigation";
 import { SearchBar } from "@/components/layout/SearchBar";
 import { Container } from "@/components/ui/Container";
+import { LogoLockup } from "@/components/ui/LogoLockup";
 
 const headerPillClassName =
   "flex h-[46px] items-center gap-[9px] rounded-pill bg-surface transition-colors duration-200 hover:bg-deep hover:text-white";
@@ -23,26 +23,8 @@ export async function ShopHeader() {
   return (
     <header className="relative z-40 bg-canvas">
       <Container className="flex h-28 items-center justify-between gap-10">
-        <Link href="/" className="flex items-center gap-3.5">
-          <span className="flex h-[34px] w-[88px] items-start overflow-hidden">
-            <Image
-              src="/images/logo.png"
-              alt="SpaceFurni"
-              width={88}
-              height={55}
-              priority
-              className="w-[88px]"
-            />
-          </span>
-          <span className="flex flex-col gap-[3px] border-l border-hairline pl-3.5">
-            <span className="flex gap-[0.34em] text-[19px] leading-none tracking-[0.14em]">
-              <span className="font-bold">SPACE</span>
-              <span className="font-light text-ink-soft">FURNI</span>
-            </span>
-            <span className="text-[9.5px] uppercase tracking-[0.14em] text-ink-muted">
-              Furniture for real homes
-            </span>
-          </span>
+        <Link href="/">
+          <LogoLockup />
         </Link>
 
         <SearchBar />

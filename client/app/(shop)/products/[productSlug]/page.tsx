@@ -38,7 +38,7 @@ export default async function ProductDetailPage({ params }: PageProps<"/products
 
   return (
     <main className="pb-22">
-      <Container className="pt-7.5">
+      <Container alignToNavLabel className="pt-7.5">
         <nav
           aria-label="Breadcrumb"
           className="mb-6.5 flex items-center gap-2.5 text-[11px] uppercase tracking-[0.1em] text-ink-muted"
@@ -53,16 +53,16 @@ export default async function ProductDetailPage({ params }: PageProps<"/products
         </nav>
       </Container>
 
-      <Container className="grid grid-cols-1 items-start gap-14 lg:grid-cols-[1fr_470px]">
+      <Container alignToNavLabel className="grid grid-cols-1 items-start gap-14 lg:grid-cols-[1fr_470px]">
         <ProductGallery images={product.imageUrls} productName={product.name} badge={product.badge} />
         <ProductPurchasePanel product={product} />
       </Container>
 
-      <Container className="mt-16">
+      <Container alignToNavLabel className="mt-16">
         <ProductInformationTabs product={product} />
       </Container>
 
-      <Container className="mt-20">
+      <Container alignToNavLabel className="mt-20">
         <RelatedProducts relatedProducts={product.relatedProducts} />
       </Container>
     </main>
