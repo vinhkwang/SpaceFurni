@@ -36,9 +36,6 @@ A furniture e-commerce platform: a public storefront, an admin console, and the 
    ```
 
 ## Seed data
-
-Seed data runs automatically the first time the server starts against an empty database — no separate command needed. To re-seed, reset the database (step 2 above) and start the server again.
-
 Seeded accounts:
 
 | Role | Email | Password |
