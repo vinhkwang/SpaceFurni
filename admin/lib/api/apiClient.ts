@@ -30,10 +30,15 @@ export type ApiRequestOptions = {
   headers?: Record<string, string>;
 };
 
-async function resolveRequestHeaders(): Promise<Record<string, string>> {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
+function isFormDataBody(body: unknown): body is FormData {
+  return body instanceof FormData;
+}
+
+async function resolveRequestHeaders(body: unknown): Promise<Record<string, string>> {
+  const headers: Record<string, string> = {};
+  if (!isFormDataBody(body)) {
+    headers["Content-Type"] = "application/json";
+  }
 
   const sessionToken = await getSessionToken();
   if (sessionToken) {
@@ -44,12 +49,16 @@ async function resolveRequestHeaders(): Promise<Record<string, string>> {
 }
 
 export async function apiFetch<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
-  const headers = { ...(await resolveRequestHeaders()), ...options.headers };
+  const headers = { ...(await resolveRequestHeaders(options.body)), ...options.headers };
 
   const response = await fetch(`${internalApiBaseUrl()}/api/v1${path}`, {
     method: options.method ?? "GET",
     headers,
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    body: options.body === undefined
+      ? undefined
+      : isFormDataBody(options.body)
+        ? options.body
+        : JSON.stringify(options.body),
     cache: options.cache,
     next: options.next,
   });

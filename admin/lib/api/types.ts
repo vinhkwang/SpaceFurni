@@ -63,6 +63,10 @@ export type AdminProductDetailResponse = {
   version: number;
 };
 
+export type ProductImageUploadResponse = {
+  imageUrl: string;
+};
+
 export type AdminProductRowResponse = {
   id: string;
   imageUrl: string;

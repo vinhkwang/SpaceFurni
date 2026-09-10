@@ -3,9 +3,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useState, type ChangeEvent, type DragEvent, type FormEvent } from "react";
 import type { AdminProductDetailResponse, CategoryTreeResponse, ProductStatus } from "@/lib/api/types";
-import { createProductAction, updateProductAction, type ProductFormValues } from "@/lib/products/productActions";
+import {
+  createProductAction,
+  updateProductAction,
+  uploadProductImageAction,
+  type ProductFormValues,
+} from "@/lib/products/productActions";
 import { StorefrontPreviewCard } from "@/components/products/StorefrontPreviewCard";
 import { useToast } from "@/components/ui/Toast";
 
@@ -31,11 +36,42 @@ const STATUS_OPTIONS: { value: ProductStatus; label: string }[] = [
   { value: "ARCHIVED", label: "Archived" },
 ];
 
+const ALLOWED_IMAGE_CONTENT_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_IMAGE_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+
 const fieldClassName =
   "h-12.5 rounded-xl border border-hairline bg-canvas px-4 text-[13.5px] text-ink outline-none transition-colors duration-200 placeholder:text-ink-muted focus:border-deep";
 
 function firstSubCategorySlug(department: CategoryTreeResponse | undefined): string {
   return department?.subCategories[0]?.slug ?? "";
+}
+
+function imageFileValidationError(file: File): string | null {
+  if (!ALLOWED_IMAGE_CONTENT_TYPES.includes(file.type)) {
+    return "Image must be JPEG, PNG or WebP.";
+  }
+  if (file.size > MAX_IMAGE_FILE_SIZE_BYTES) {
+    return "Image must be 5MB or smaller.";
+  }
+  return null;
+}
+
+function UploadCloudIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden
+      className="h-4 w-4 shrink-0 stroke-current"
+      fill="none"
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M7 18a4.5 4.5 0 0 1-.6-8.96A5.5 5.5 0 0 1 17.3 8.2 4 4 0 0 1 17 16" />
+      <path d="M12 21v-8" />
+      <path d="m9 15.5 3-3 3 3" />
+    </svg>
+  );
 }
 
 export function ProductForm({ departments, product }: ProductFormProps) {
@@ -59,6 +95,9 @@ export function ProductForm({ departments, product }: ProductFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isConflict, setIsConflict] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isDraggingOverDropzone, setIsDraggingOverDropzone] = useState(false);
+  const [uploadErrorMessage, setUploadErrorMessage] = useState("");
 
   const selectedDepartment = departments.find((department) => department.slug === departmentSlug);
   const subCategoryOptions = selectedDepartment?.subCategories ?? [];
@@ -68,6 +107,54 @@ export function ProductForm({ departments, product }: ProductFormProps) {
     setDepartmentSlug(nextDepartmentSlug);
     const nextDepartment = departments.find((department) => department.slug === nextDepartmentSlug);
     setSubCategorySlug(firstSubCategorySlug(nextDepartment));
+  }
+
+  async function uploadImageFile(file: File) {
+    const validationError = imageFileValidationError(file);
+    if (validationError) {
+      setUploadErrorMessage(validationError);
+      return;
+    }
+
+    setUploadErrorMessage("");
+    setIsUploadingImage(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    const result = await uploadProductImageAction(formData);
+    setIsUploadingImage(false);
+
+    if (result.success) {
+      setImageUrl(result.imageUrl);
+      showToast("Photo uploaded.");
+    } else {
+      setUploadErrorMessage(result.errorMessage);
+    }
+  }
+
+  function handleFileInputChange(changeEvent: ChangeEvent<HTMLInputElement>) {
+    const file = changeEvent.target.files?.[0];
+    changeEvent.target.value = "";
+    if (file) {
+      void uploadImageFile(file);
+    }
+  }
+
+  function handleDropzoneDrop(dropEvent: DragEvent<HTMLLabelElement>) {
+    dropEvent.preventDefault();
+    setIsDraggingOverDropzone(false);
+    const file = dropEvent.dataTransfer.files?.[0];
+    if (file) {
+      void uploadImageFile(file);
+    }
+  }
+
+  function handleDropzoneDragOver(dragEvent: DragEvent<HTMLLabelElement>) {
+    dragEvent.preventDefault();
+    setIsDraggingOverDropzone(true);
+  }
+
+  function handleDropzoneDragLeave() {
+    setIsDraggingOverDropzone(false);
   }
 
   async function submitProduct(submitEvent: FormEvent<HTMLFormElement>) {
@@ -229,6 +316,30 @@ export function ProductForm({ departments, product }: ProductFormProps) {
                 </button>
               ))}
             </div>
+
+            <label
+              onDrop={handleDropzoneDrop}
+              onDragOver={handleDropzoneDragOver}
+              onDragLeave={handleDropzoneDragLeave}
+              className={`flex cursor-pointer items-center gap-3 rounded-xl border border-dashed px-4.5 py-4 text-[12px] transition-colors duration-200 ${
+                isDraggingOverDropzone ? "border-deep bg-surface" : "border-hairline text-ink-muted hover:border-hairline-soft"
+              }`}
+            >
+              <UploadCloudIcon />
+              <span>
+                {isUploadingImage
+                  ? "Uploading…"
+                  : "Or drag a new photo here — 1600×1200 px, white background"}
+              </span>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleFileInputChange}
+                className="sr-only"
+              />
+            </label>
+
+            {uploadErrorMessage ? <p className="text-[11.5px] text-terracotta">{uploadErrorMessage}</p> : null}
           </div>
 
           <div className="col-span-2 flex items-center justify-between border-t border-hairline-soft pt-5.5">

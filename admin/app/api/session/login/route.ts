@@ -1,7 +1,7 @@
 import { apiFetch } from "@/lib/api/apiClient";
 import { ApiError } from "@/lib/api/ApiError";
 import type { AuthenticationResponse, CurrentUserResponse } from "@/lib/api/types";
-import { clearSessionCookie, setSessionCookie } from "@/lib/auth/session";
+import { clearSessionCookies, setSessionCookies } from "@/lib/auth/session";
 
 type LoginRequestBody = {
   email: string;
@@ -32,7 +32,7 @@ export async function POST(request: Request): Promise<Response> {
       body: { email: body.email, password: body.password },
       cache: "no-store",
     });
-    await setSessionCookie(authentication.accessToken);
+    await setSessionCookies(authentication.accessToken, authentication.refreshToken);
   } catch (error) {
     if (error instanceof ApiError) {
       return Response.json(
@@ -46,11 +46,11 @@ export async function POST(request: Request): Promise<Response> {
   try {
     const currentUser = await apiFetch<CurrentUserResponse>("/auth/me", { cache: "no-store" });
     if (currentUser.role !== "ADMIN") {
-      await clearSessionCookie();
+      await clearSessionCookies();
       return forbiddenEnvelopeResponse();
     }
   } catch (error) {
-    await clearSessionCookie();
+    await clearSessionCookies();
     if (error instanceof ApiError) {
       return Response.json(
         { success: false, data: null, error: { code: error.code, message: error.message, details: error.details } },

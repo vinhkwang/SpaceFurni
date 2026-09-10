@@ -15,6 +15,10 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
 
 server:
   port: 8080
@@ -27,3 +31,6 @@ spacefurni:
     issuer: ${JWT_ISSUER:spacefurni}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:3001}
+  storage:
+    product-images-directory: ${PRODUCT_IMAGES_DIRECTORY:uploads/products}
+    public-base-url: ${STORAGE_PUBLIC_BASE_URL:http://localhost:8080}
