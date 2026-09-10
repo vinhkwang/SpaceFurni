@@ -103,7 +103,7 @@ export function ProductTable({ products, startIndex, currentPage, totalPages, qu
               {capitalizeStatus(product.status)}
             </span>
           </span>
-          <ProductRowActions productId={product.id} status={product.status} stockOnHand={product.stockOnHand} />
+          <ProductRowActions productId={product.id} />
         </div>
       ))}
 

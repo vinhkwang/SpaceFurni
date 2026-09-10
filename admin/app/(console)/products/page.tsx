@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { apiFetch } from "@/lib/api/apiClient";
 import type { AdminProductRowResponse, PageResponse } from "@/lib/api/types";
 import { ProductTable } from "@/components/products/ProductTable";
@@ -62,17 +63,25 @@ export default async function ProductsPage({ searchParams }: PageProps<"/product
             {resultCountLabel(productPage.totalElements, query)}
           </div>
         </div>
-        <form className="flex h-11 w-72 items-center gap-2.5 rounded-pill bg-surface-raised px-4.5">
-          <SearchIcon />
-          <input
-            type="text"
-            name="q"
-            defaultValue={query}
-            placeholder="Search products…"
-            aria-label="Search products"
-            className="flex-1 bg-transparent text-[12.5px] text-ink outline-none placeholder:text-ink-muted"
-          />
-        </form>
+        <div className="flex items-center gap-3">
+          <form className="flex h-11 w-72 items-center gap-2.5 rounded-pill bg-surface-raised px-4.5">
+            <SearchIcon />
+            <input
+              type="text"
+              name="q"
+              defaultValue={query}
+              placeholder="Search products…"
+              aria-label="Search products"
+              className="flex-1 bg-transparent text-[12.5px] text-ink outline-none placeholder:text-ink-muted"
+            />
+          </form>
+          <Link
+            href="/products/new"
+            className="flex h-11 items-center rounded-pill bg-deep px-5.5 text-[11px] font-semibold uppercase tracking-[0.13em] text-white transition-colors duration-200 hover:bg-terracotta"
+          >
+            Create
+          </Link>
+        </div>
       </div>
 
       <ProductTable

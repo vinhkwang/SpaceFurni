@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { ApiError } from "@/lib/api/ApiError";
 import { apiFetch } from "@/lib/api/apiClient";
-import type { ProductStatus } from "@/lib/api/types";
+import type { ProductImageUploadResponse, ProductStatus } from "@/lib/api/types";
 
 export type ProductFormValues = {
   title: string;
@@ -21,6 +21,10 @@ export type ProductActionResult =
   | { success: false; isConflict: boolean; errorMessage: string };
 
 export type ProductQuickActionResult = { success: true } | { success: false; errorMessage: string };
+
+export type ProductImageUploadResult =
+  | { success: true; imageUrl: string }
+  | { success: false; errorMessage: string };
 
 function toAdminProductRequestBody(values: ProductFormValues, version: number | null) {
   return {
@@ -77,15 +81,14 @@ export async function updateProductAction(
   }
 }
 
-export async function adjustProductStockAction(productId: string, delta: number): Promise<ProductQuickActionResult> {
+export async function uploadProductImageAction(formData: FormData): Promise<ProductImageUploadResult> {
   try {
-    await apiFetch<void>(`/admin/products/${productId}/stock`, {
-      method: "PATCH",
-      body: { delta },
+    const response = await apiFetch<ProductImageUploadResponse>("/admin/products/images", {
+      method: "POST",
+      body: formData,
       cache: "no-store",
     });
-    revalidatePath("/products");
-    return { success: true };
+    return { success: true, imageUrl: response.imageUrl };
   } catch (error) {
     return { success: false, errorMessage: productActionFailureMessage(error) };
   }

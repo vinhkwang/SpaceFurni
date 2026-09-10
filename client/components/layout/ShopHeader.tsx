@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { apiFetch } from "@/lib/api/apiClient";
-import type { CartResponse, CategoryTreeResponse } from "@/lib/api/types";
+import { getSessionToken } from "@/lib/auth/session";
+import type { CartResponse, CategoryTreeResponse, CurrentUserResponse } from "@/lib/api/types";
 import { CartIndicator } from "@/components/layout/CartIndicator";
 import { MegaNavigation } from "@/components/layout/MegaNavigation";
 import { SearchBar } from "@/components/layout/SearchBar";
@@ -14,10 +15,35 @@ function totalCartItemCount(cart: CartResponse): number {
   return cart.lines.reduce((runningTotal, line) => runningTotal + line.quantity, 0);
 }
 
+function userInitials(fullName: string): string {
+  const initials = fullName
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((namePart) => namePart.charAt(0).toUpperCase());
+  if (initials.length === 0) {
+    return "?";
+  }
+  return initials.length === 1 ? initials[0] : `${initials[0]}${initials[initials.length - 1]}`;
+}
+
+async function fetchCurrentUser(): Promise<CurrentUserResponse | null> {
+  const sessionToken = await getSessionToken();
+  if (!sessionToken) {
+    return null;
+  }
+  try {
+    return await apiFetch<CurrentUserResponse>("/auth/me");
+  } catch {
+    return null;
+  }
+}
+
 export async function ShopHeader() {
-  const [categories, cart] = await Promise.all([
+  const [categories, cart, currentUser] = await Promise.all([
     apiFetch<CategoryTreeResponse[]>("/categories"),
     apiFetch<CartResponse>("/cart"),
+    fetchCurrentUser(),
   ]);
 
   return (
@@ -47,23 +73,31 @@ export async function ShopHeader() {
 
           <CartIndicator itemCount={totalCartItemCount(cart)} />
 
-          <Link href="/login" className={`${headerPillClassName} pl-2 pr-5`}>
-            <span className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-deep">
-              <svg
-                viewBox="0 0 24 24"
-                aria-hidden
-                className="h-3 w-3 stroke-current"
-                fill="none"
-                strokeWidth={1.8}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <path d="M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" />
-              </svg>
-            </span>
-            <span className="text-[11px] font-medium uppercase tracking-[0.1em]">Sign in</span>
-          </Link>
+          {currentUser ? (
+            <Link href="/" title={currentUser.fullName} className={`${headerPillClassName} px-2`}>
+              <span className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-[11px] font-semibold text-deep">
+                {userInitials(currentUser.fullName)}
+              </span>
+            </Link>
+          ) : (
+            <Link href="/login" className={`${headerPillClassName} pl-2 pr-5`}>
+              <span className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-deep">
+                <svg
+                  viewBox="0 0 24 24"
+                  aria-hidden
+                  className="h-3 w-3 stroke-current"
+                  fill="none"
+                  strokeWidth={1.8}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <path d="M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" />
+                </svg>
+              </span>
+              <span className="text-[11px] font-medium uppercase tracking-[0.1em]">Sign in</span>
+            </Link>
+          )}
         </div>
       </Container>
 

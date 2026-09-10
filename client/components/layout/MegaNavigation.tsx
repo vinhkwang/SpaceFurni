@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import type { CategoryTreeResponse } from "@/lib/api/types";
+import { buildProductListingHref } from "@/lib/catalog/productListingUrl";
 
 type MegaNavigationProps = {
   categories: CategoryTreeResponse[];
@@ -50,7 +51,7 @@ export function MegaNavigation({ categories }: MegaNavigationProps) {
                 {category.subCategories.map((subCategory) => (
                   <Link
                     key={subCategory.id}
-                    href={`/category/${subCategory.slug}`}
+                    href={buildProductListingHref(category.slug, { sub: subCategory.slug })}
                     className="flex items-center justify-between rounded-[9px] px-3 py-2.5 text-[12.5px] text-ink transition-colors duration-200 hover:bg-surface"
                   >
                     <span>{subCategory.name}</span>

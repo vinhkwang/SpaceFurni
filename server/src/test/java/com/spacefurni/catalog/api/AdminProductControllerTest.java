@@ -8,6 +8,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -17,6 +18,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.spacefurni.catalog.api.dto.AdminProductDetailResponse;
 import com.spacefurni.catalog.api.dto.AdminProductRowResponse;
 import com.spacefurni.catalog.application.AdminProductService;
+import com.spacefurni.catalog.application.InvalidProductImageException;
+import com.spacefurni.catalog.application.ProductImageUploadService;
 import com.spacefurni.catalog.domain.ProductStatus;
 import com.spacefurni.identity.security.JwtTokenProvider;
 import com.spacefurni.identity.security.SecurityConfiguration;
@@ -31,6 +34,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -58,6 +62,9 @@ class AdminProductControllerTest {
 
     @MockitoBean
     private AdminProductService adminProductService;
+
+    @MockitoBean
+    private ProductImageUploadService productImageUploadService;
 
     @MockitoBean
     private JwtTokenProvider jwtTokenProvider;
@@ -186,5 +193,46 @@ class AdminProductControllerTest {
         mockMvc.perform(patch("/api/v1/admin/products/{id}/stock", productId).with(csrf())
                         .contentType(MediaType.APPLICATION_JSON).content("{\"delta\": 5}"))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void uploadImageIsRejectedWithoutAuthentication() throws Exception {
+        MockMultipartFile file = new MockMultipartFile("file", "chair.jpg", "image/jpeg", "bytes".getBytes());
+
+        mockMvc.perform(multipart("/api/v1/admin/products/images").file(file).with(csrf()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(roles = "CUSTOMER")
+    void uploadImageIsForbiddenForACustomer() throws Exception {
+        MockMultipartFile file = new MockMultipartFile("file", "chair.jpg", "image/jpeg", "bytes".getBytes());
+
+        mockMvc.perform(multipart("/api/v1/admin/products/images").file(file).with(csrf()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void uploadImageDelegatesToTheServiceAndReturnsThePublicUrl() throws Exception {
+        MockMultipartFile file = new MockMultipartFile("file", "chair.jpg", "image/jpeg", "bytes".getBytes());
+        when(productImageUploadService.uploadProductImage(any()))
+                .thenReturn("http://localhost:8080/uploads/products/chair.jpg");
+
+        mockMvc.perform(multipart("/api/v1/admin/products/images").file(file).with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.imageUrl").value("http://localhost:8080/uploads/products/chair.jpg"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void uploadImageReturnsBadRequestWhenTheServiceRejectsTheFile() throws Exception {
+        MockMultipartFile file = new MockMultipartFile("file", "manual.pdf", "application/pdf", "bytes".getBytes());
+        when(productImageUploadService.uploadProductImage(any()))
+                .thenThrow(new InvalidProductImageException("Image must be JPEG, PNG or WebP"));
+
+        mockMvc.perform(multipart("/api/v1/admin/products/images").file(file).with(csrf()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("VALIDATION_FAILED"));
     }
 }

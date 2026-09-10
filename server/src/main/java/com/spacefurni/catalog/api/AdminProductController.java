@@ -3,8 +3,10 @@ package com.spacefurni.catalog.api;
 import com.spacefurni.catalog.api.dto.AdminProductDetailResponse;
 import com.spacefurni.catalog.api.dto.AdminProductRequest;
 import com.spacefurni.catalog.api.dto.AdminProductRowResponse;
+import com.spacefurni.catalog.api.dto.ProductImageUploadResponse;
 import com.spacefurni.catalog.api.dto.StockAdjustmentRequest;
 import com.spacefurni.catalog.application.AdminProductService;
+import com.spacefurni.catalog.application.ProductImageUploadService;
 import com.spacefurni.shared.api.ApiResponse;
 import com.spacefurni.shared.api.PageResponse;
 import jakarta.validation.Valid;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/admin/products")
@@ -32,9 +35,12 @@ public class AdminProductController {
     private static final int MAX_PAGE_SIZE = 100;
 
     private final AdminProductService adminProductService;
+    private final ProductImageUploadService productImageUploadService;
 
-    public AdminProductController(AdminProductService adminProductService) {
+    public AdminProductController(
+            AdminProductService adminProductService, ProductImageUploadService productImageUploadService) {
         this.adminProductService = adminProductService;
+        this.productImageUploadService = productImageUploadService;
     }
 
     @GetMapping
@@ -55,6 +61,11 @@ public class AdminProductController {
     @PostMapping
     public ApiResponse<UUID> createProduct(@Valid @RequestBody AdminProductRequest request) {
         return ApiResponse.success(adminProductService.createProduct(request));
+    }
+
+    @PostMapping("/images")
+    public ApiResponse<ProductImageUploadResponse> uploadImage(@RequestParam("file") MultipartFile file) {
+        return ApiResponse.success(new ProductImageUploadResponse(productImageUploadService.uploadProductImage(file)));
     }
 
     @PutMapping("/{id}")
