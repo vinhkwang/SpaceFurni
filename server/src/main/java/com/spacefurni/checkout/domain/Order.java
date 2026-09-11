@@ -134,6 +134,10 @@ public class Order {
         this.paymentStatus = paymentStatus;
     }
 
+    public boolean isCancellableByCustomer() {
+        return status == OrderStatus.PENDING || status == OrderStatus.PAID;
+    }
+
     public UUID getId() {
         return id;
     }
