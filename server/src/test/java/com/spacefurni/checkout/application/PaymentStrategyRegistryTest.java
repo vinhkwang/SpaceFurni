@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.spacefurni.checkout.domain.BankTransferPaymentStrategy;
 import com.spacefurni.checkout.domain.CardPaymentStrategy;
 import com.spacefurni.checkout.domain.CashOnDeliveryPaymentStrategy;
+import com.spacefurni.checkout.domain.EWalletPaymentStrategy;
 import com.spacefurni.checkout.domain.PaymentMethod;
 import com.spacefurni.checkout.domain.PaymentStrategy;
 import java.util.List;
@@ -18,13 +19,15 @@ class PaymentStrategyRegistryTest {
         CardPaymentStrategy cardPaymentStrategy = new CardPaymentStrategy();
         CashOnDeliveryPaymentStrategy cashOnDeliveryPaymentStrategy = new CashOnDeliveryPaymentStrategy();
         BankTransferPaymentStrategy bankTransferPaymentStrategy = new BankTransferPaymentStrategy();
+        EWalletPaymentStrategy eWalletPaymentStrategy = new EWalletPaymentStrategy();
 
-        PaymentStrategyRegistry registry = new PaymentStrategyRegistry(
-                List.of(cardPaymentStrategy, cashOnDeliveryPaymentStrategy, bankTransferPaymentStrategy));
+        PaymentStrategyRegistry registry = new PaymentStrategyRegistry(List.of(cardPaymentStrategy,
+                cashOnDeliveryPaymentStrategy, bankTransferPaymentStrategy, eWalletPaymentStrategy));
 
         assertThat(registry.resolve(PaymentMethod.CARD)).isSameAs(cardPaymentStrategy);
         assertThat(registry.resolve(PaymentMethod.CASH_ON_DELIVERY)).isSameAs(cashOnDeliveryPaymentStrategy);
         assertThat(registry.resolve(PaymentMethod.BANK_TRANSFER)).isSameAs(bankTransferPaymentStrategy);
+        assertThat(registry.resolve(PaymentMethod.E_WALLET)).isSameAs(eWalletPaymentStrategy);
     }
 
     @Test
