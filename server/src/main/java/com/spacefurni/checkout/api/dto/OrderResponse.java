@@ -11,7 +11,8 @@ import java.util.UUID;
 public record OrderResponse(UUID id, String orderNumber, OrderStatus status, long subtotalAmount,
         long shippingAmount, long discountAmount, long totalAmount, String currencyCode, String promotionCode,
         DeliveryDetailsResponse deliveryDetails, DeliveryWindow deliveryWindow, PaymentMethod paymentMethod,
-        PaymentStatus paymentStatus, Instant placedAt, List<OrderItemResponse> items) {
+        PaymentStatus paymentStatus, Instant placedAt, boolean cancellable,
+        List<OrderTimelineStepResponse> timeline, List<OrderItemResponse> items) {
 
     public record DeliveryDetailsResponse(String fullName, String phone, String street, String district,
             String city, String note) {

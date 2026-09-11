@@ -135,6 +135,12 @@ export type OrderItemResponse = {
   lineTotalAmount: number;
 };
 
+export type OrderTimelineStepResponse = {
+  label: string;
+  detail: string | null;
+  complete: boolean;
+};
+
 export type OrderResponse = {
   id: string;
   orderNumber: string;
@@ -150,6 +156,8 @@ export type OrderResponse = {
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
   placedAt: string;
+  cancellable: boolean;
+  timeline: OrderTimelineStepResponse[];
   items: OrderItemResponse[];
 };
 
