@@ -91,6 +91,9 @@ public class Order {
     @Column(name = "placed_at", nullable = false)
     private Instant placedAt;
 
+    @Column(name = "cancellation_reason")
+    private String cancellationReason;
+
     @Version
     private Long version;
 
@@ -132,6 +135,10 @@ public class Order {
 
     public void recordPaymentStatus(PaymentStatus paymentStatus) {
         this.paymentStatus = paymentStatus;
+    }
+
+    public void recordCancellationReason(String cancellationReason) {
+        this.cancellationReason = cancellationReason;
     }
 
     public boolean isCancellableByCustomer() {
@@ -192,6 +199,10 @@ public class Order {
 
     public Instant getPlacedAt() {
         return placedAt;
+    }
+
+    public String getCancellationReason() {
+        return cancellationReason;
     }
 
     public Long getVersion() {
