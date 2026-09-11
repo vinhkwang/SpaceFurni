@@ -1,10 +1,12 @@
 package com.spacefurni.checkout.api;
 
+import com.spacefurni.checkout.api.dto.CancelOrderRequest;
 import com.spacefurni.checkout.api.dto.OrderResponse;
 import com.spacefurni.checkout.api.dto.OrderSummaryResponse;
 import com.spacefurni.checkout.api.dto.PlaceOrderRequest;
 import com.spacefurni.checkout.api.mapper.OrderResponseMapper;
 import com.spacefurni.checkout.application.CheckoutService;
+import com.spacefurni.checkout.application.OrderCancellationService;
 import com.spacefurni.checkout.application.OrderQueryService;
 import com.spacefurni.checkout.domain.Order;
 import com.spacefurni.identity.application.CurrentUserQueryService;
@@ -35,13 +37,16 @@ public class OrderController {
 
     private final CheckoutService checkoutService;
     private final OrderQueryService orderQueryService;
+    private final OrderCancellationService orderCancellationService;
     private final OrderResponseMapper orderResponseMapper;
     private final CurrentUserQueryService currentUserQueryService;
 
     public OrderController(CheckoutService checkoutService, OrderQueryService orderQueryService,
-            OrderResponseMapper orderResponseMapper, CurrentUserQueryService currentUserQueryService) {
+            OrderCancellationService orderCancellationService, OrderResponseMapper orderResponseMapper,
+            CurrentUserQueryService currentUserQueryService) {
         this.checkoutService = checkoutService;
         this.orderQueryService = orderQueryService;
+        this.orderCancellationService = orderCancellationService;
         this.orderResponseMapper = orderResponseMapper;
         this.currentUserQueryService = currentUserQueryService;
     }
@@ -68,6 +73,13 @@ public class OrderController {
     public ApiResponse<OrderResponse> orderDetail(@AuthenticationPrincipal UserDetails principal,
             @PathVariable String orderNumber) {
         return ApiResponse.success(orderQueryService.findOrderDetail(resolveUserId(principal), orderNumber));
+    }
+
+    @PostMapping("/{id}/cancel")
+    public ApiResponse<OrderResponse> cancelOrder(@AuthenticationPrincipal UserDetails principal,
+            @PathVariable UUID id, @Valid @RequestBody CancelOrderRequest request) {
+        Order order = orderCancellationService.cancelOrder(resolveUserId(principal), id, request.reason());
+        return ApiResponse.success(orderResponseMapper.toResponse(order));
     }
 
     private UUID resolveUserId(UserDetails principal) {

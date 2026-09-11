@@ -4,11 +4,13 @@ import com.spacefurni.checkout.api.dto.AdminOrderDetailResponse;
 import com.spacefurni.checkout.api.dto.AdminOrderListResponse;
 import com.spacefurni.checkout.api.dto.AdminOrderRowResponse;
 import com.spacefurni.checkout.api.dto.OrderStatusTransitionRequest;
+import com.spacefurni.checkout.api.dto.RefundOrderRequest;
 import com.spacefurni.checkout.application.AdminOrderQueryService;
 import com.spacefurni.checkout.application.AdminOrderService;
 import com.spacefurni.checkout.domain.OrderStatus;
 import com.spacefurni.shared.api.ApiResponse;
 import com.spacefurni.shared.api.PageResponse;
+import com.spacefurni.shared.domain.Money;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,6 +18,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -58,6 +61,13 @@ public class AdminOrderController {
     public ApiResponse<Void> transitionStatus(@PathVariable String orderNumber,
             @Valid @RequestBody OrderStatusTransitionRequest request) {
         adminOrderService.transitionOrderStatus(orderNumber, request.status(), request.version());
+        return ApiResponse.success(null);
+    }
+
+    @PostMapping("/{orderNumber}/refund")
+    public ApiResponse<Void> refundOrder(@PathVariable String orderNumber,
+            @Valid @RequestBody RefundOrderRequest request) {
+        adminOrderService.processRefund(orderNumber, Money.ofVnd(request.amountVnd()));
         return ApiResponse.success(null);
     }
 

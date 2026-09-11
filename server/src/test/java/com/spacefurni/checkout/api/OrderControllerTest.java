@@ -17,6 +17,7 @@ import com.spacefurni.checkout.api.dto.OrderResponse;
 import com.spacefurni.checkout.api.dto.OrderSummaryResponse;
 import com.spacefurni.checkout.api.mapper.OrderResponseMapper;
 import com.spacefurni.checkout.application.CheckoutService;
+import com.spacefurni.checkout.application.OrderCancellationService;
 import com.spacefurni.checkout.application.OrderQueryService;
 import com.spacefurni.checkout.domain.DeliveryWindow;
 import com.spacefurni.checkout.domain.Order;
@@ -72,6 +73,9 @@ class OrderControllerTest {
 
     @MockitoBean
     private OrderQueryService orderQueryService;
+
+    @MockitoBean
+    private OrderCancellationService orderCancellationService;
 
     @MockitoBean
     private OrderResponseMapper orderResponseMapper;
