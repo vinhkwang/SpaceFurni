@@ -94,6 +94,9 @@ public class Order {
     @Column(name = "cancellation_reason")
     private String cancellationReason;
 
+    @Column(name = "refunded_amount")
+    private Long refundedAmount;
+
     @Version
     private Long version;
 
@@ -139,6 +142,10 @@ public class Order {
 
     public void recordCancellationReason(String cancellationReason) {
         this.cancellationReason = cancellationReason;
+    }
+
+    public void recordRefundedAmount(Money refundedAmount) {
+        this.refundedAmount = refundedAmount.amount();
     }
 
     public boolean isCancellableByCustomer() {
@@ -203,6 +210,10 @@ public class Order {
 
     public String getCancellationReason() {
         return cancellationReason;
+    }
+
+    public Long getRefundedAmount() {
+        return refundedAmount;
     }
 
     public Long getVersion() {
