@@ -7,7 +7,7 @@ import type { OrderStatus } from "@/lib/api/types";
 
 export type OrderStatusTransitionResult = { success: true } | { success: false; isConflict: boolean; errorMessage: string };
 
-function orderStatusTransitionFailureMessage(error: unknown): string {
+function orderActionFailureMessage(error: unknown): string {
   return error instanceof ApiError ? error.message : "Something went wrong. Try again.";
 }
 
@@ -29,7 +29,24 @@ export async function transitionOrderStatusAction(
     return {
       success: false,
       isConflict: error instanceof ApiError && error.status === 409,
-      errorMessage: orderStatusTransitionFailureMessage(error),
+      errorMessage: orderActionFailureMessage(error),
     };
+  }
+}
+
+export type ProcessRefundResult = { success: true } | { success: false; errorMessage: string };
+
+export async function processRefundAction(orderNumber: string, amountVnd: number): Promise<ProcessRefundResult> {
+  try {
+    await apiFetch<void>(`/admin/orders/${orderNumber}/refund`, {
+      method: "POST",
+      body: { amountVnd },
+      cache: "no-store",
+    });
+    revalidatePath(`/orders/${orderNumber}`);
+    revalidatePath("/orders");
+    return { success: true };
+  } catch (error) {
+    return { success: false, errorMessage: orderActionFailureMessage(error) };
   }
 }

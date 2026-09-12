@@ -107,6 +107,7 @@ public class AdminOrderQueryService {
             case CARD -> "Card";
             case CASH_ON_DELIVERY -> "Cash on delivery";
             case BANK_TRANSFER -> "Bank transfer";
+            case E_WALLET -> "E-wallet";
         };
     }
 

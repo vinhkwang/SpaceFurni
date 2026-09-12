@@ -91,6 +91,12 @@ public class Order {
     @Column(name = "placed_at", nullable = false)
     private Instant placedAt;
 
+    @Column(name = "cancellation_reason")
+    private String cancellationReason;
+
+    @Column(name = "refunded_amount")
+    private Long refundedAmount;
+
     @Version
     private Long version;
 
@@ -132,6 +138,18 @@ public class Order {
 
     public void recordPaymentStatus(PaymentStatus paymentStatus) {
         this.paymentStatus = paymentStatus;
+    }
+
+    public void recordCancellationReason(String cancellationReason) {
+        this.cancellationReason = cancellationReason;
+    }
+
+    public void recordRefundedAmount(Money refundedAmount) {
+        this.refundedAmount = refundedAmount.amount();
+    }
+
+    public boolean isCancellableByCustomer() {
+        return status == OrderStatus.PENDING || status == OrderStatus.PAID;
     }
 
     public UUID getId() {
@@ -188,6 +206,14 @@ public class Order {
 
     public Instant getPlacedAt() {
         return placedAt;
+    }
+
+    public String getCancellationReason() {
+        return cancellationReason;
+    }
+
+    public Long getRefundedAmount() {
+        return refundedAmount;
     }
 
     public Long getVersion() {

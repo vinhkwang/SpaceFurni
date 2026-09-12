@@ -17,6 +17,7 @@ import com.spacefurni.checkout.api.dto.OrderResponse;
 import com.spacefurni.checkout.api.dto.OrderSummaryResponse;
 import com.spacefurni.checkout.api.mapper.OrderResponseMapper;
 import com.spacefurni.checkout.application.CheckoutService;
+import com.spacefurni.checkout.application.OrderCancellationService;
 import com.spacefurni.checkout.application.OrderQueryService;
 import com.spacefurni.checkout.domain.DeliveryWindow;
 import com.spacefurni.checkout.domain.Order;
@@ -74,6 +75,9 @@ class OrderControllerTest {
     private OrderQueryService orderQueryService;
 
     @MockitoBean
+    private OrderCancellationService orderCancellationService;
+
+    @MockitoBean
     private OrderResponseMapper orderResponseMapper;
 
     @MockitoBean
@@ -97,8 +101,8 @@ class OrderControllerTest {
         return new OrderResponse(UUID.randomUUID(), "SF-1001", OrderStatus.PENDING, 1_000_000L, 300_000L, 0L,
                 1_300_000L, "VND", null, new OrderResponse.DeliveryDetailsResponse("Nguyen Van A", "0901234567",
                         "1 Le Loi", "District 1", "Ho Chi Minh City", null),
-                DeliveryWindow.STANDARD, PaymentMethod.CASH_ON_DELIVERY, PaymentStatus.PENDING, Instant.now(),
-                List.of());
+                DeliveryWindow.STANDARD, PaymentMethod.CASH_ON_DELIVERY, PaymentStatus.PENDING, Instant.now(), true,
+                List.of(), List.of());
     }
 
     @Test

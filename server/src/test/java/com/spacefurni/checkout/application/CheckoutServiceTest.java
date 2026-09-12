@@ -132,6 +132,19 @@ class CheckoutServiceTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void capturesAnEWalletPaymentAndMarksTheOrderPaid() {
+        UUID userId = persistUser();
+        UUID productId = seedProductWithStock(10);
+        cartWithLine(userId, productId, 1);
+        PlaceOrderRequest request = placeOrderRequest(DeliveryWindow.STANDARD, PaymentMethod.E_WALLET, "0901234567");
+
+        Order order = checkoutService.placeOrder(userId, UUID.randomUUID().toString(), request);
+
+        assertThat(order.getStatus()).isEqualTo(OrderStatus.PAID);
+        assertThat(order.getPaymentStatus()).isEqualTo(PaymentStatus.CAPTURED);
+    }
+
+    @Test
     void rejectsCheckoutFromAnEmptyCart() {
         UUID userId = persistUser();
         cartService.resolveOrCreateActiveCart(userId, null);
