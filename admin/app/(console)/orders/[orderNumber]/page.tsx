@@ -10,11 +10,13 @@ import { OrderTimeline } from "@/components/orders/OrderTimeline";
 import { OrderStatusActions } from "@/components/orders/OrderStatusActions";
 import { OrderCustomerPanel } from "@/components/orders/OrderCustomerPanel";
 import { PrintPackingSlipButton } from "@/components/orders/PrintPackingSlipButton";
+import { RefundOrderDialog } from "@/components/orders/RefundOrderDialog";
 
 const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   CARD: "Card",
   CASH_ON_DELIVERY: "Cash on delivery",
   BANK_TRANSFER: "Bank transfer",
+  E_WALLET: "E-wallet",
 };
 
 const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
@@ -22,6 +24,7 @@ const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
   AUTHORISED: "Authorised",
   CAPTURED: "Captured",
   FAILED: "Failed",
+  REFUNDED: "Refunded",
 };
 
 function BackArrowIcon() {
@@ -108,6 +111,7 @@ export default async function OrderDetailPage({ params }: PageProps<"/orders/[or
 
       <div className="flex flex-col gap-4.5">
         <OrderStatusActions orderNumber={order.orderNumber} currentStatus={order.status} version={order.version} />
+        <RefundOrderDialog orderNumber={order.orderNumber} status={order.status} totalAmount={order.totalAmount} />
         <OrderCustomerPanel
           customer={order.customer}
           deliveryAddress={order.deliveryAddress}

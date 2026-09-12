@@ -18,9 +18,9 @@ export type OrderStatus = "PENDING" | "PAID" | "PACKING" | "DELIVERED" | "CANCEL
 
 export type DeliveryWindow = "STANDARD" | "NEXT_DAY";
 
-export type PaymentMethod = "CARD" | "CASH_ON_DELIVERY" | "BANK_TRANSFER";
+export type PaymentMethod = "CARD" | "CASH_ON_DELIVERY" | "BANK_TRANSFER" | "E_WALLET";
 
-export type PaymentStatus = "PENDING" | "AUTHORISED" | "CAPTURED" | "FAILED";
+export type PaymentStatus = "PENDING" | "AUTHORISED" | "CAPTURED" | "FAILED" | "REFUNDED";
 
 export type PageResponse<T> = {
   content: T[];
