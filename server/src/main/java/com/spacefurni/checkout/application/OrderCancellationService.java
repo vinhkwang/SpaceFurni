@@ -31,6 +31,7 @@ public class OrderCancellationService {
         order.transitionTo(OrderStatus.CANCELLED);
         order.recordCancellationReason(reason);
         inventoryService.releaseStockForOrderLines(toStockReservationLines(order));
+        orderRepository.save(order);
         return order;
     }
 
