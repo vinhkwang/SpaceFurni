@@ -65,7 +65,8 @@ class CartServiceTest {
                 new DiscountStrategyFactory(new PercentageDiscountStrategy(), new FixedAmountDiscountStrategy(),
                         new NoDiscountStrategy()),
                 new ShippingFeeStrategyResolver(new StandardShippingFeeStrategy(), new NextDayShippingFeeStrategy()));
-        return new CartService(cartRepository, new InventoryService(inventoryItemRepository), pricingService);
+        return new CartService(cartRepository, new InventoryService(inventoryItemRepository, event -> { }),
+                pricingService);
     }
 
     private UUID seedProductWithStock(int quantityOnHand) {

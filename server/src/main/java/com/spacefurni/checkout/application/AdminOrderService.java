@@ -9,8 +9,10 @@ import com.spacefurni.checkout.infrastructure.OrderRepository;
 import com.spacefurni.inventory.api.dto.StockReservationLine;
 import com.spacefurni.inventory.application.InventoryService;
 import com.spacefurni.shared.domain.Money;
+import com.spacefurni.shared.domain.OrderStatusChangedEvent;
 import com.spacefurni.shared.exception.BusinessRuleViolationException;
 import com.spacefurni.shared.exception.ResourceNotFoundException;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,12 +23,14 @@ public class AdminOrderService {
     private final OrderRepository orderRepository;
     private final InventoryService inventoryService;
     private final RefundStrategyRegistry refundStrategyRegistry;
+    private final ApplicationEventPublisher eventPublisher;
 
     public AdminOrderService(OrderRepository orderRepository, InventoryService inventoryService,
-            RefundStrategyRegistry refundStrategyRegistry) {
+            RefundStrategyRegistry refundStrategyRegistry, ApplicationEventPublisher eventPublisher) {
         this.orderRepository = orderRepository;
         this.inventoryService = inventoryService;
         this.refundStrategyRegistry = refundStrategyRegistry;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -35,11 +39,14 @@ public class AdminOrderService {
         if (!order.getVersion().equals(version)) {
             throw new OptimisticLockingFailureException("Order was modified by another request: " + orderNumber);
         }
+        OrderStatus previousStatus = order.getStatus();
         order.transitionTo(targetStatus);
         if (targetStatus == OrderStatus.CANCELLED) {
             releaseReservedStock(order);
         }
         orderRepository.save(order);
+        eventPublisher.publishEvent(new OrderStatusChangedEvent(order.getId(), order.getOrderNumber(),
+                order.getUserId(), previousStatus.name(), targetStatus.name()));
     }
 
     @Transactional

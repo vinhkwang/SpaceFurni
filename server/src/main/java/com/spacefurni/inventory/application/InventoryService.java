@@ -4,12 +4,14 @@ import com.spacefurni.inventory.api.dto.StockReservationLine;
 import com.spacefurni.inventory.domain.InsufficientStockException;
 import com.spacefurni.inventory.domain.InventoryItem;
 import com.spacefurni.inventory.infrastructure.InventoryItemRepository;
+import com.spacefurni.shared.domain.LowStockEvent;
 import com.spacefurni.shared.exception.ResourceNotFoundException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,9 +21,12 @@ public class InventoryService {
     private static final int LOW_STOCK_THRESHOLD = 6;
 
     private final InventoryItemRepository inventoryItemRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public InventoryService(InventoryItemRepository inventoryItemRepository) {
+    public InventoryService(InventoryItemRepository inventoryItemRepository,
+            ApplicationEventPublisher eventPublisher) {
         this.inventoryItemRepository = inventoryItemRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -33,6 +38,17 @@ public class InventoryService {
                 throw new InsufficientStockException(line.productId(), line.quantity(),
                         availableQuantityOf(line.productId()));
             }
+            publishLowStockEventIfThresholdJustCrossed(line.productId(), line.quantity());
+        }
+    }
+
+    private void publishLowStockEventIfThresholdJustCrossed(UUID productId, int decrementedQuantity) {
+        int quantityOnHandAfterDecrement = availableQuantityOf(productId);
+        int quantityOnHandBeforeDecrement = quantityOnHandAfterDecrement + decrementedQuantity;
+        if (quantityOnHandBeforeDecrement >= LOW_STOCK_THRESHOLD
+                && quantityOnHandAfterDecrement < LOW_STOCK_THRESHOLD) {
+            eventPublisher.publishEvent(
+                    new LowStockEvent(productId, quantityOnHandAfterDecrement, LOW_STOCK_THRESHOLD));
         }
     }
 

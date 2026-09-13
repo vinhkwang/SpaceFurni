@@ -44,7 +44,7 @@ class InventoryServiceTest {
     private TestEntityManager entityManager;
 
     private InventoryService service() {
-        return new InventoryService(inventoryItemRepository);
+        return new InventoryService(inventoryItemRepository, event -> { });
     }
 
     private UUID seedProductWithStock(int quantityOnHand) {

@@ -22,11 +22,13 @@ import com.spacefurni.pricing.application.PricingLine;
 import com.spacefurni.pricing.application.PricingService;
 import com.spacefurni.pricing.domain.PriceBreakdown;
 import com.spacefurni.shared.domain.Money;
+import com.spacefurni.shared.domain.OrderPlacedEvent;
 import com.spacefurni.shared.exception.BusinessRuleViolationException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,12 +45,13 @@ public class CheckoutService {
     private final OrderRepository orderRepository;
     private final PaymentStrategyRegistry paymentStrategyRegistry;
     private final PaymentRepository paymentRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public CheckoutService(IdempotencyService idempotencyService, CartService cartService,
             CatalogQueryService catalogQueryService, InventoryService inventoryService,
             PricingService pricingService, OrderNumberGenerator orderNumberGenerator,
             OrderRepository orderRepository, PaymentStrategyRegistry paymentStrategyRegistry,
-            PaymentRepository paymentRepository) {
+            PaymentRepository paymentRepository, ApplicationEventPublisher eventPublisher) {
         this.idempotencyService = idempotencyService;
         this.cartService = cartService;
         this.catalogQueryService = catalogQueryService;
@@ -58,6 +61,7 @@ public class CheckoutService {
         this.orderRepository = orderRepository;
         this.paymentStrategyRegistry = paymentStrategyRegistry;
         this.paymentRepository = paymentRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
@@ -76,6 +80,7 @@ public class CheckoutService {
         persistPaymentRejectingFailure(order, paymentResult);
         transitionOrderForPaymentResult(order, paymentResult);
         markCartConverted(cart);
+        eventPublisher.publishEvent(new OrderPlacedEvent(order.getId(), order.getOrderNumber(), order.getUserId()));
         return order;
     }
 
