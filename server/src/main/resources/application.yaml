@@ -43,3 +43,5 @@ spacefurni:
   storage:
     product-images-directory: ${PRODUCT_IMAGES_DIRECTORY:uploads/products}
     public-base-url: ${STORAGE_PUBLIC_BASE_URL:http://localhost:8080}
+  notification:
+    low-stock-alert-recipient: ${LOW_STOCK_ALERT_RECIPIENT:admin@spacefurni.dev}
