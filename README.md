@@ -43,6 +43,17 @@ Seeded accounts:
 | Admin | `admin@spacefurni.dev` | `DevAdmin123!` |
 | Customer | `customer@spacefurni.dev` | `DevCustomer123!` |
 
+## Local mail catcher
+
+Order and low-stock notification emails are sent to a local [Mailpit](https://github.com/axllent/mailpit)
+instance in development, never to a real inbox.
+
+```bash
+make mail-up
+```
+
+View captured mail at [http://localhost:8025](http://localhost:8025). Stop it with `make mail-down`.
+
 ## Useful commands
 
 ```bash

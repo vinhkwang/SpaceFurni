@@ -47,7 +47,7 @@ class CartMergeServiceTest {
     private TestEntityManager entityManager;
 
     private CartMergeService service() {
-        return new CartMergeService(cartRepository, new InventoryService(inventoryItemRepository));
+        return new CartMergeService(cartRepository, new InventoryService(inventoryItemRepository, event -> { }));
     }
 
     private UUID persistUser() {

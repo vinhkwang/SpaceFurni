@@ -51,7 +51,7 @@ class CatalogQueryServiceTest {
 
     private CatalogQueryService service() {
         return new CatalogQueryService(productRepository, categoryRepository, new ProductResponseMapper(),
-                new CategoryResponseMapper(), new InventoryService(inventoryItemRepository));
+                new CategoryResponseMapper(), new InventoryService(inventoryItemRepository, event -> { }));
     }
 
     @Test

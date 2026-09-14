@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="'Order ' + ${orderNumber} + ' status update'">Order status update</title>
+</head>
+<body style="font-family: sans-serif;">
+    <p>
+        Order <strong th:text="${orderNumber}">SF-0000</strong> changed from
+        <strong th:text="${previousStatus}">PENDING</strong> to
+        <strong th:text="${newStatus}">PAID</strong>.
+    </p>
+</body>
+</html>

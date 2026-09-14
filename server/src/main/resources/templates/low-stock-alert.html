@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="'Low stock: ' + ${productName}">Low stock alert</title>
+</head>
+<body style="font-family: sans-serif;">
+    <p>
+        <strong th:text="${productName}">Product</strong> has
+        <strong th:text="${quantityOnHand}">0</strong> units on hand, below the low-stock threshold of
+        <strong th:text="${threshold}">0</strong>.
+    </p>
+</body>
+</html>
