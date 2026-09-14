@@ -4,6 +4,7 @@ import com.spacefurni.checkout.domain.DeliveryWindow;
 import com.spacefurni.pricing.domain.PriceBreakdown;
 import com.spacefurni.pricing.domain.Promotion;
 import com.spacefurni.pricing.infrastructure.PromotionRepository;
+import com.spacefurni.shared.application.PlatformSettingsService;
 import com.spacefurni.shared.domain.Money;
 import java.time.Instant;
 import java.util.List;
@@ -13,17 +14,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class PricingService {
 
-    private static final long FREE_SHIPPING_THRESHOLD_AMOUNT = 10_000_000L;
-
     private final PromotionRepository promotionRepository;
     private final DiscountStrategyFactory discountStrategyFactory;
     private final ShippingFeeStrategyResolver shippingFeeStrategyResolver;
+    private final PlatformSettingsService platformSettingsService;
 
     public PricingService(PromotionRepository promotionRepository, DiscountStrategyFactory discountStrategyFactory,
-            ShippingFeeStrategyResolver shippingFeeStrategyResolver) {
+            ShippingFeeStrategyResolver shippingFeeStrategyResolver, PlatformSettingsService platformSettingsService) {
         this.promotionRepository = promotionRepository;
         this.discountStrategyFactory = discountStrategyFactory;
         this.shippingFeeStrategyResolver = shippingFeeStrategyResolver;
+        this.platformSettingsService = platformSettingsService;
     }
 
     @Transactional(readOnly = true)
@@ -59,7 +60,8 @@ public class PricingService {
     }
 
     private Money computeAmountToFreeShipping(Money subtotal) {
-        long amount = Math.max(FREE_SHIPPING_THRESHOLD_AMOUNT + 1 - subtotal.amount(), 0L);
+        Money freeDeliveryThreshold = platformSettingsService.getSettings().freeDeliveryThreshold();
+        long amount = Math.max(freeDeliveryThreshold.amount() + 1 - subtotal.amount(), 0L);
         return new Money(amount, subtotal.currencyCode());
     }
 }

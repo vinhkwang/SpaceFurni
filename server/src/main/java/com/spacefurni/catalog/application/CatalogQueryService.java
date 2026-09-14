@@ -12,6 +12,7 @@ import com.spacefurni.catalog.infrastructure.CategoryRepository;
 import com.spacefurni.catalog.infrastructure.ProductRepository;
 import com.spacefurni.catalog.infrastructure.ProductSearchSpecifications;
 import com.spacefurni.inventory.application.InventoryService;
+import com.spacefurni.shared.application.PlatformSettingsService;
 import com.spacefurni.shared.exception.ResourceNotFoundException;
 import java.util.HashMap;
 import java.util.List;
@@ -34,15 +35,17 @@ public class CatalogQueryService {
     private final ProductResponseMapper productResponseMapper;
     private final CategoryResponseMapper categoryResponseMapper;
     private final InventoryService inventoryService;
+    private final PlatformSettingsService platformSettingsService;
 
     public CatalogQueryService(ProductRepository productRepository, CategoryRepository categoryRepository,
             ProductResponseMapper productResponseMapper, CategoryResponseMapper categoryResponseMapper,
-            InventoryService inventoryService) {
+            InventoryService inventoryService, PlatformSettingsService platformSettingsService) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
         this.productResponseMapper = productResponseMapper;
         this.categoryResponseMapper = categoryResponseMapper;
         this.inventoryService = inventoryService;
+        this.platformSettingsService = platformSettingsService;
     }
 
     @Transactional(readOnly = true)
@@ -59,7 +62,8 @@ public class CatalogQueryService {
         List<Product> relatedProducts = fetchRelatedProductEntities(product, 3);
         int availableQuantity = inventoryService.findAvailableQuantities(List.of(product.getId()))
                 .getOrDefault(product.getId(), 0);
-        return productResponseMapper.toDetail(product, relatedProducts, availableQuantity);
+        int lowStockThresholdUnits = platformSettingsService.getSettings().lowStockThresholdUnits();
+        return productResponseMapper.toDetail(product, relatedProducts, availableQuantity, lowStockThresholdUnits);
     }
 
     @Transactional(readOnly = true)
