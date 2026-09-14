@@ -149,3 +149,14 @@ export type PlatformSettingsResponse = {
   nextDayDeliveryFeeAmount: number;
   lowStockThresholdUnits: number;
 };
+
+export type MonthlyRevenuePointResponse = {
+  month: string;
+  revenueAmount: number;
+};
+
+export type DepartmentRevenueShareResponse = {
+  departmentName: string;
+  revenueAmount: number;
+  percentageShare: number;
+};
