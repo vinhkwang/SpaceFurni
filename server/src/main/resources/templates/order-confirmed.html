@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="'Order ' + ${orderNumber} + ' confirmed'">Order confirmed</title>
+</head>
+<body style="font-family: sans-serif;">
+    <p>Thank you for your order <strong th:text="${orderNumber}">SF-0000</strong>.</p>
+    <table cellpadding="4" cellspacing="0" border="1">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Qty</th>
+                <th>Line total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="line : ${lines}">
+                <td th:text="${line.productName}">Product</td>
+                <td th:text="${line.quantity}">1</td>
+                <td th:text="${line.lineTotal}">0</td>
+            </tr>
+        </tbody>
+    </table>
+    <p>Total: <strong th:text="${total}">0</strong></p>
+</body>
+</html>
