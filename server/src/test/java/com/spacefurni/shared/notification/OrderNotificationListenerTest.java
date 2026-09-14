@@ -3,6 +3,7 @@ package com.spacefurni.shared.notification;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -15,10 +16,16 @@ import com.spacefurni.catalog.infrastructure.CategoryRepository;
 import com.spacefurni.catalog.infrastructure.ProductRepository;
 import com.spacefurni.checkout.api.dto.DeliveryDetailsRequest;
 import com.spacefurni.checkout.api.dto.PlaceOrderRequest;
+import com.spacefurni.checkout.application.AdminOrderService;
 import com.spacefurni.checkout.application.CheckoutService;
+import com.spacefurni.checkout.application.OrderCancellationService;
+import com.spacefurni.checkout.domain.DeliveryDetails;
 import com.spacefurni.checkout.domain.DeliveryWindow;
 import com.spacefurni.checkout.domain.Order;
+import com.spacefurni.checkout.domain.OrderItem;
+import com.spacefurni.checkout.domain.OrderStatus;
 import com.spacefurni.checkout.domain.PaymentMethod;
+import com.spacefurni.checkout.infrastructure.OrderRepository;
 import com.spacefurni.identity.domain.User;
 import com.spacefurni.identity.domain.UserRole;
 import com.spacefurni.identity.infrastructure.UserRepository;
@@ -57,6 +64,15 @@ class OrderNotificationListenerTest extends AbstractIntegrationTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private AdminOrderService adminOrderService;
+
+    @Autowired
+    private OrderCancellationService orderCancellationService;
+
+    @Autowired
+    private OrderRepository orderRepository;
+
     @MockitoBean
     private NotificationService notificationService;
 
@@ -65,14 +81,45 @@ class OrderNotificationListenerTest extends AbstractIntegrationTest {
         return userRepository.saveAndFlush(user).getId();
     }
 
+    private String emailOf(UUID userId) {
+        return userRepository.findById(userId).orElseThrow().getEmail();
+    }
+
+    private Order persistOrderAtStatus(UUID userId, UUID productId, OrderStatus status) {
+        DeliveryDetails deliveryDetails = new DeliveryDetails("Nguyen Van A", "0901234567", "1 Le Loi",
+                "District 1", "Ho Chi Minh City", null);
+        String orderNumber = "SF-" + Math.abs(UUID.randomUUID().getLeastSignificantBits() % 1_000_000L);
+        Order order = new Order(orderNumber, userId, Money.ofVnd(1_000_000L), Money.ofVnd(300_000L),
+                Money.zeroVnd(), Money.ofVnd(1_300_000L), null, deliveryDetails, DeliveryWindow.STANDARD,
+                PaymentMethod.CARD);
+        order.addItem(new OrderItem(productId, "Test Sofa", "SKU-1", 1_000_000L, 1, 1_000_000L));
+        advanceToStatus(order, status);
+        return orderRepository.save(order);
+    }
+
+    private void advanceToStatus(Order order, OrderStatus target) {
+        if (target == OrderStatus.PENDING) {
+            return;
+        }
+        order.transitionTo(OrderStatus.PAID);
+        if (target == OrderStatus.PAID) {
+            return;
+        }
+        order.transitionTo(OrderStatus.PACKING);
+    }
+
     private UUID seedProductWithStock(int quantityOnHand) {
+        return seedProductWithReservedStock(quantityOnHand, 0);
+    }
+
+    private UUID seedProductWithReservedStock(int quantityOnHand, int quantityReserved) {
         Category category = categoryRepository
                 .save(new Category(null, "Sofa", "sofa-" + UUID.randomUUID(), null, 1));
         Product product = new Product("SKU-" + UUID.randomUUID(), "Test Sofa", "test-sofa-" + UUID.randomUUID(),
                 category, Money.ofVnd(1_000_000L), null, ProductStatus.DRAFT, "short", "long", "1x1x1cm", "Fabric",
                 "Grey", new BigDecimal("4.0"), 0, false, false);
         productRepository.saveAndFlush(product);
-        inventoryItemRepository.saveAndFlush(new InventoryItem(product.getId(), quantityOnHand, 0));
+        inventoryItemRepository.saveAndFlush(new InventoryItem(product.getId(), quantityOnHand, quantityReserved));
         return product.getId();
     }
 
@@ -110,5 +157,103 @@ class OrderNotificationListenerTest extends AbstractIntegrationTest {
         Order order = checkoutService.placeOrder(userId, UUID.randomUUID().toString(), placeOrderRequest());
 
         verify(notificationService).sendOrderConfirmation(any(), eq(order.getOrderNumber()), any(), any());
+    }
+
+    @Test
+    void adminTransitionFromPendingToPaidSendsCorrectStatusUpdateContent() {
+        UUID userId = persistUser();
+        String email = emailOf(userId);
+        UUID productId = seedProductWithStock(10);
+        Order order = persistOrderAtStatus(userId, productId, OrderStatus.PENDING);
+
+        adminOrderService.transitionOrderStatus(order.getOrderNumber(), OrderStatus.PAID, order.getVersion());
+
+        verify(notificationService).sendOrderStatusUpdate(email, order.getOrderNumber(), "PENDING", "PAID");
+    }
+
+    @Test
+    void adminTransitionFromPendingToPackingSendsCorrectStatusUpdateContent() {
+        UUID userId = persistUser();
+        String email = emailOf(userId);
+        UUID productId = seedProductWithStock(10);
+        Order order = persistOrderAtStatus(userId, productId, OrderStatus.PENDING);
+
+        adminOrderService.transitionOrderStatus(order.getOrderNumber(), OrderStatus.PACKING, order.getVersion());
+
+        verify(notificationService).sendOrderStatusUpdate(email, order.getOrderNumber(), "PENDING", "PACKING");
+    }
+
+    @Test
+    void adminTransitionFromPendingToCancelledSendsCorrectStatusUpdateContent() {
+        UUID userId = persistUser();
+        String email = emailOf(userId);
+        UUID productId = seedProductWithReservedStock(10, 1);
+        Order order = persistOrderAtStatus(userId, productId, OrderStatus.PENDING);
+
+        adminOrderService.transitionOrderStatus(order.getOrderNumber(), OrderStatus.CANCELLED, order.getVersion());
+
+        verify(notificationService).sendOrderStatusUpdate(email, order.getOrderNumber(), "PENDING", "CANCELLED");
+    }
+
+    @Test
+    void adminTransitionFromPaidToPackingSendsCorrectStatusUpdateContent() {
+        UUID userId = persistUser();
+        String email = emailOf(userId);
+        UUID productId = seedProductWithStock(10);
+        Order order = persistOrderAtStatus(userId, productId, OrderStatus.PAID);
+
+        adminOrderService.transitionOrderStatus(order.getOrderNumber(), OrderStatus.PACKING, order.getVersion());
+
+        verify(notificationService).sendOrderStatusUpdate(email, order.getOrderNumber(), "PAID", "PACKING");
+    }
+
+    @Test
+    void adminTransitionFromPaidToCancelledSendsCorrectStatusUpdateContent() {
+        UUID userId = persistUser();
+        String email = emailOf(userId);
+        UUID productId = seedProductWithReservedStock(10, 1);
+        Order order = persistOrderAtStatus(userId, productId, OrderStatus.PAID);
+
+        adminOrderService.transitionOrderStatus(order.getOrderNumber(), OrderStatus.CANCELLED, order.getVersion());
+
+        verify(notificationService).sendOrderStatusUpdate(email, order.getOrderNumber(), "PAID", "CANCELLED");
+    }
+
+    @Test
+    void adminTransitionFromPackingToDeliveredSendsCorrectStatusUpdateContent() {
+        UUID userId = persistUser();
+        String email = emailOf(userId);
+        UUID productId = seedProductWithStock(10);
+        Order order = persistOrderAtStatus(userId, productId, OrderStatus.PACKING);
+
+        adminOrderService.transitionOrderStatus(order.getOrderNumber(), OrderStatus.DELIVERED, order.getVersion());
+
+        verify(notificationService).sendOrderStatusUpdate(email, order.getOrderNumber(), "PACKING", "DELIVERED");
+    }
+
+    @Test
+    void customerCancellationSendsCorrectStatusUpdateContent() {
+        UUID userId = persistUser();
+        String email = emailOf(userId);
+        UUID productId = seedProductWithReservedStock(10, 1);
+        Order order = persistOrderAtStatus(userId, productId, OrderStatus.PAID);
+
+        orderCancellationService.cancelOrder(userId, order.getId(), "Changed my mind");
+
+        verify(notificationService).sendOrderStatusUpdate(email, order.getOrderNumber(), "PAID", "CANCELLED");
+    }
+
+    @Test
+    void refundAfterCancellationDoesNotTriggerAnAdditionalStatusUpdate() {
+        UUID userId = persistUser();
+        String email = emailOf(userId);
+        UUID productId = seedProductWithReservedStock(10, 1);
+        Order order = persistOrderAtStatus(userId, productId, OrderStatus.PAID);
+
+        orderCancellationService.cancelOrder(userId, order.getId(), "Changed my mind");
+        adminOrderService.processRefund(order.getOrderNumber(), order.getTotal());
+
+        verify(notificationService, times(1)).sendOrderStatusUpdate(email, order.getOrderNumber(), "PAID",
+                "CANCELLED");
     }
 }
