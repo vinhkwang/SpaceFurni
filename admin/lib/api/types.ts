@@ -142,3 +142,10 @@ export type AdminOrderDetailResponse = {
   lines: AdminOrderLineResponse[];
   timeline: OrderTimelineStepResponse[];
 };
+
+export type PlatformSettingsResponse = {
+  freeDeliveryThresholdAmount: number;
+  standardDeliveryFeeAmount: number;
+  nextDayDeliveryFeeAmount: number;
+  lowStockThresholdUnits: number;
+};
