@@ -47,7 +47,7 @@ class InventoryNotificationListenerTest extends AbstractIntegrationTest {
                 .save(new Category(null, "Sofa", "sofa-" + UUID.randomUUID(), null, 1));
         String name = "Test Sofa " + UUID.randomUUID();
         Product product = new Product("SKU-" + UUID.randomUUID(), name, "test-sofa-" + UUID.randomUUID(), category,
-                Money.ofVnd(1_000_000L), null, ProductStatus.PUBLISHED, "short", "long", "1x1x1cm", "Fabric",
+                Money.ofVnd(1_000_000L), null, ProductStatus.DRAFT, "short", "long", "1x1x1cm", "Fabric",
                 "Grey", new BigDecimal("4.0"), 0, false, false);
         productRepository.saveAndFlush(product);
         inventoryItemRepository.saveAndFlush(new InventoryItem(product.getId(), quantityOnHand, 0));
