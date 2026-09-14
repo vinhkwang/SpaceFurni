@@ -4,6 +4,7 @@ import com.spacefurni.inventory.api.dto.StockReservationLine;
 import com.spacefurni.inventory.domain.InsufficientStockException;
 import com.spacefurni.inventory.domain.InventoryItem;
 import com.spacefurni.inventory.infrastructure.InventoryItemRepository;
+import com.spacefurni.shared.application.PlatformSettingsService;
 import com.spacefurni.shared.domain.LowStockEvent;
 import com.spacefurni.shared.exception.ResourceNotFoundException;
 import java.util.Comparator;
@@ -18,15 +19,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class InventoryService {
 
-    private static final int LOW_STOCK_THRESHOLD = 6;
-
     private final InventoryItemRepository inventoryItemRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final PlatformSettingsService platformSettingsService;
 
     public InventoryService(InventoryItemRepository inventoryItemRepository,
-            ApplicationEventPublisher eventPublisher) {
+            ApplicationEventPublisher eventPublisher, PlatformSettingsService platformSettingsService) {
         this.inventoryItemRepository = inventoryItemRepository;
         this.eventPublisher = eventPublisher;
+        this.platformSettingsService = platformSettingsService;
     }
 
     @Transactional
@@ -43,12 +44,12 @@ public class InventoryService {
     }
 
     private void publishLowStockEventIfThresholdJustCrossed(UUID productId, int decrementedQuantity) {
+        int lowStockThreshold = platformSettingsService.getSettings().lowStockThresholdUnits();
         int quantityOnHandAfterDecrement = availableQuantityOf(productId);
         int quantityOnHandBeforeDecrement = quantityOnHandAfterDecrement + decrementedQuantity;
-        if (quantityOnHandBeforeDecrement >= LOW_STOCK_THRESHOLD
-                && quantityOnHandAfterDecrement < LOW_STOCK_THRESHOLD) {
+        if (quantityOnHandBeforeDecrement >= lowStockThreshold && quantityOnHandAfterDecrement < lowStockThreshold) {
             eventPublisher.publishEvent(
-                    new LowStockEvent(productId, quantityOnHandAfterDecrement, LOW_STOCK_THRESHOLD));
+                    new LowStockEvent(productId, quantityOnHandAfterDecrement, lowStockThreshold));
         }
     }
 
@@ -83,7 +84,8 @@ public class InventoryService {
 
     @Transactional(readOnly = true)
     public long countLowStockItems() {
-        return inventoryItemRepository.countByQuantityOnHandLessThan(LOW_STOCK_THRESHOLD);
+        int lowStockThreshold = platformSettingsService.getSettings().lowStockThresholdUnits();
+        return inventoryItemRepository.countByQuantityOnHandLessThan(lowStockThreshold);
     }
 
     private int availableQuantityOf(UUID productId) {

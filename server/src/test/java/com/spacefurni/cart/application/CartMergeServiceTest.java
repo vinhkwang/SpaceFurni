@@ -15,8 +15,10 @@ import com.spacefurni.identity.domain.UserRole;
 import com.spacefurni.inventory.application.InventoryService;
 import com.spacefurni.inventory.domain.InventoryItem;
 import com.spacefurni.inventory.infrastructure.InventoryItemRepository;
+import com.spacefurni.shared.application.PlatformSettingsService;
 import com.spacefurni.shared.config.JpaAuditingConfiguration;
 import com.spacefurni.shared.domain.Money;
+import com.spacefurni.shared.infrastructure.PlatformSettingsRepository;
 import java.math.BigDecimal;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -46,8 +48,12 @@ class CartMergeServiceTest {
     @Autowired
     private TestEntityManager entityManager;
 
+    @Autowired
+    private PlatformSettingsRepository platformSettingsRepository;
+
     private CartMergeService service() {
-        return new CartMergeService(cartRepository, new InventoryService(inventoryItemRepository, event -> { }));
+        return new CartMergeService(cartRepository, new InventoryService(inventoryItemRepository, event -> { },
+                new PlatformSettingsService(platformSettingsRepository)));
     }
 
     private UUID persistUser() {

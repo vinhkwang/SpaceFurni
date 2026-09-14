@@ -25,9 +25,11 @@ import com.spacefurni.pricing.domain.NoDiscountStrategy;
 import com.spacefurni.pricing.domain.PercentageDiscountStrategy;
 import com.spacefurni.pricing.domain.StandardShippingFeeStrategy;
 import com.spacefurni.pricing.infrastructure.PromotionRepository;
+import com.spacefurni.shared.application.PlatformSettingsService;
 import com.spacefurni.shared.config.JpaAuditingConfiguration;
 import com.spacefurni.shared.domain.Money;
 import com.spacefurni.shared.exception.BusinessRuleViolationException;
+import com.spacefurni.shared.infrastructure.PlatformSettingsRepository;
 import java.math.BigDecimal;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -60,12 +62,19 @@ class CartServiceTest {
     @Autowired
     private TestEntityManager entityManager;
 
+    @Autowired
+    private PlatformSettingsRepository platformSettingsRepository;
+
     private CartService service() {
+        PlatformSettingsService platformSettingsService = new PlatformSettingsService(platformSettingsRepository);
         PricingService pricingService = new PricingService(promotionRepository,
                 new DiscountStrategyFactory(new PercentageDiscountStrategy(), new FixedAmountDiscountStrategy(),
                         new NoDiscountStrategy()),
-                new ShippingFeeStrategyResolver(new StandardShippingFeeStrategy(), new NextDayShippingFeeStrategy()));
-        return new CartService(cartRepository, new InventoryService(inventoryItemRepository, event -> { }),
+                new ShippingFeeStrategyResolver(new StandardShippingFeeStrategy(platformSettingsService),
+                        new NextDayShippingFeeStrategy(platformSettingsService)),
+                platformSettingsService);
+        return new CartService(cartRepository,
+                new InventoryService(inventoryItemRepository, event -> { }, platformSettingsService),
                 pricingService);
     }
 

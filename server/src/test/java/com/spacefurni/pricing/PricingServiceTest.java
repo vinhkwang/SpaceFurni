@@ -16,7 +16,9 @@ import com.spacefurni.pricing.domain.Promotion;
 import com.spacefurni.pricing.domain.PromotionType;
 import com.spacefurni.pricing.domain.StandardShippingFeeStrategy;
 import com.spacefurni.pricing.infrastructure.PromotionRepository;
+import com.spacefurni.shared.application.PlatformSettingsService;
 import com.spacefurni.shared.domain.Money;
+import com.spacefurni.shared.infrastructure.PlatformSettingsRepository;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -31,12 +33,18 @@ class PricingServiceTest {
     @Autowired
     private PromotionRepository promotionRepository;
 
+    @Autowired
+    private PlatformSettingsRepository platformSettingsRepository;
+
     private PricingService service() {
+        PlatformSettingsService platformSettingsService = new PlatformSettingsService(platformSettingsRepository);
         DiscountStrategyFactory discountStrategyFactory = new DiscountStrategyFactory(
                 new PercentageDiscountStrategy(), new FixedAmountDiscountStrategy(), new NoDiscountStrategy());
         ShippingFeeStrategyResolver shippingFeeStrategyResolver = new ShippingFeeStrategyResolver(
-                new StandardShippingFeeStrategy(), new NextDayShippingFeeStrategy());
-        return new PricingService(promotionRepository, discountStrategyFactory, shippingFeeStrategyResolver);
+                new StandardShippingFeeStrategy(platformSettingsService),
+                new NextDayShippingFeeStrategy(platformSettingsService));
+        return new PricingService(promotionRepository, discountStrategyFactory, shippingFeeStrategyResolver,
+                platformSettingsService);
     }
 
     private List<PricingLine> lineOf(long unitPriceAmount, int quantity) {

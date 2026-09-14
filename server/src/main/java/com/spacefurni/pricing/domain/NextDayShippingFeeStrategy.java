@@ -1,15 +1,21 @@
 package com.spacefurni.pricing.domain;
 
+import com.spacefurni.shared.application.PlatformSettingsService;
 import com.spacefurni.shared.domain.Money;
 import org.springframework.stereotype.Component;
 
 @Component
 public class NextDayShippingFeeStrategy implements ShippingFeeStrategy {
 
-    private static final long NEXT_DAY_SHIPPING_FEE_AMOUNT = 300_000L;
+    private final PlatformSettingsService platformSettingsService;
+
+    public NextDayShippingFeeStrategy(PlatformSettingsService platformSettingsService) {
+        this.platformSettingsService = platformSettingsService;
+    }
 
     @Override
     public Money calculateFee(Money subtotal) {
-        return new Money(NEXT_DAY_SHIPPING_FEE_AMOUNT, subtotal.currencyCode());
+        Money nextDayDeliveryFee = platformSettingsService.getSettings().nextDayDeliveryFee();
+        return new Money(nextDayDeliveryFee.amount(), subtotal.currencyCode());
     }
 }

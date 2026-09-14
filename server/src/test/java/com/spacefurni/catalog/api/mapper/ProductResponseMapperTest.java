@@ -88,7 +88,7 @@ class ProductResponseMapperTest {
                 Money.ofVnd(4_300_000L), null, ProductStatus.PUBLISHED, "short", "long", "52x40x55cm", "Oak",
                 "Natural", new BigDecimal("4.8"), 62, true, true);
 
-        ProductDetailResponse detail = mapper.toDetail(product, List.of(related), 8);
+        ProductDetailResponse detail = mapper.toDetail(product, List.of(related), 8, 6);
 
         assertThat(detail.imageUrls()).containsExactly("https://example.com/bed.jpg");
         assertThat(detail.specifications()).containsExactly(
@@ -107,7 +107,7 @@ class ProductResponseMapperTest {
                 null, ProductStatus.PUBLISHED, "short", "long", "160x200cm", "Oak", "Natural", new BigDecimal("4.6"),
                 8, false, false);
 
-        ProductDetailResponse detail = mapper.toDetail(product, List.of(), 3);
+        ProductDetailResponse detail = mapper.toDetail(product, List.of(), 3, 6);
 
         assertThat(detail.availableQuantity()).isEqualTo(3);
         assertThat(detail.stockLabel()).isEqualTo("Only 3 left");
@@ -120,7 +120,7 @@ class ProductResponseMapperTest {
                 null, ProductStatus.PUBLISHED, "short", "long", "160x200cm", "Oak", "Natural", new BigDecimal("4.6"),
                 8, false, false);
 
-        ProductDetailResponse detail = mapper.toDetail(product, List.of(), 0);
+        ProductDetailResponse detail = mapper.toDetail(product, List.of(), 0, 6);
 
         assertThat(detail.availableQuantity()).isEqualTo(0);
         assertThat(detail.stockLabel()).isEqualTo("Out of stock");

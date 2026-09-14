@@ -25,7 +25,8 @@ public class ProductResponseMapper {
                 product.getPrimaryColorName(), primaryColorHexCode(product));
     }
 
-    public ProductDetailResponse toDetail(Product product, List<Product> relatedProducts, int availableQuantity) {
+    public ProductDetailResponse toDetail(Product product, List<Product> relatedProducts, int availableQuantity,
+            int lowStockThresholdUnits) {
         Money price = product.getPrice();
         Money compareAtPrice = product.getCompareAtPrice();
         List<ProductDetailResponse.SpecificationEntry> specifications = product.getSpecifications().stream()
@@ -39,7 +40,8 @@ public class ProductResponseMapper {
                 product.getRatingAverage(), product.getReviewCount(), product.getShortDescription(),
                 product.getLongDescription(), product.getDimensions(), product.getMaterial(),
                 product.getPrimaryColorName(), toBadge(product), orderedImageUrls(product), specifications,
-                orderedColorSwatchHexCodes(product), availableQuantity, toStockLabel(availableQuantity),
+                orderedColorSwatchHexCodes(product), availableQuantity,
+                toStockLabel(availableQuantity, lowStockThresholdUnits),
                 relatedProducts.stream().map(this::toSummary).toList());
     }
 
@@ -61,11 +63,11 @@ public class ProductResponseMapper {
         return orderedColorSwatchHexCodes(product).stream().findFirst().orElse(null);
     }
 
-    private String toStockLabel(int availableQuantity) {
+    private String toStockLabel(int availableQuantity, int lowStockThresholdUnits) {
         if (availableQuantity <= 0) {
             return "Out of stock";
         }
-        if (availableQuantity < 5) {
+        if (availableQuantity < lowStockThresholdUnits) {
             return "Only " + availableQuantity + " left";
         }
         return "In stock";

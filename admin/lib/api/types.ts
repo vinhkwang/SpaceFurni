@@ -142,3 +142,21 @@ export type AdminOrderDetailResponse = {
   lines: AdminOrderLineResponse[];
   timeline: OrderTimelineStepResponse[];
 };
+
+export type PlatformSettingsResponse = {
+  freeDeliveryThresholdAmount: number;
+  standardDeliveryFeeAmount: number;
+  nextDayDeliveryFeeAmount: number;
+  lowStockThresholdUnits: number;
+};
+
+export type MonthlyRevenuePointResponse = {
+  month: string;
+  revenueAmount: number;
+};
+
+export type DepartmentRevenueShareResponse = {
+  departmentName: string;
+  revenueAmount: number;
+  percentageShare: number;
+};

@@ -1,6 +1,8 @@
 import { apiFetch } from "@/lib/api/apiClient";
-import type { AdminSummaryResponse } from "@/lib/api/types";
+import type { AdminSummaryResponse, DepartmentRevenueShareResponse, MonthlyRevenuePointResponse } from "@/lib/api/types";
 import { StatCard } from "@/components/dashboard/StatCard";
+import { RevenueChart } from "@/components/dashboard/RevenueChart";
+import { DepartmentShareChart } from "@/components/dashboard/DepartmentShareChart";
 
 function PublishedProductsIcon() {
   return (
@@ -40,20 +42,12 @@ function LowStockIcon() {
   );
 }
 
-function NotPartOfMvpScopePanel({ title, subtitle }: { title: string; subtitle: string }) {
-  return (
-    <div className="flex flex-col rounded-2xl border border-hairline-soft bg-white p-6.5">
-      <div className="mb-6.5">
-        <div className="text-[15px] font-semibold text-ink">{title}</div>
-        <div className="mt-1 text-[11.5px] text-ink-muted">{subtitle}</div>
-      </div>
-      <div className="flex flex-1 items-center justify-center text-[12.5px] text-ink-muted">Not part of MVP scope</div>
-    </div>
-  );
-}
-
 export default async function DashboardPage() {
-  const summary = await apiFetch<AdminSummaryResponse>("/admin/summary", { cache: "no-store" });
+  const [summary, revenuePoints, departmentShares] = await Promise.all([
+    apiFetch<AdminSummaryResponse>("/admin/summary", { cache: "no-store" }),
+    apiFetch<MonthlyRevenuePointResponse[]>("/admin/dashboard/revenue?months=12", { cache: "no-store" }),
+    apiFetch<DepartmentRevenueShareResponse[]>("/admin/dashboard/department-share", { cache: "no-store" }),
+  ]);
 
   return (
     <div className="flex flex-col gap-4.5">
@@ -64,8 +58,8 @@ export default async function DashboardPage() {
         <StatCard label="Low stock products" value={summary.lowStockProductCount} icon={<LowStockIcon />} />
       </div>
       <div className="grid grid-cols-[1fr_380px] gap-4.5">
-        <NotPartOfMvpScopePanel title="Revenue" subtitle="Last 12 months" />
-        <NotPartOfMvpScopePanel title="Top departments" subtitle="Share of revenue this month" />
+        <RevenueChart points={revenuePoints} />
+        <DepartmentShareChart shares={departmentShares} />
       </div>
     </div>
   );

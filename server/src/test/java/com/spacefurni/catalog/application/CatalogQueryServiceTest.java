@@ -16,9 +16,11 @@ import com.spacefurni.catalog.infrastructure.ProductRepository;
 import com.spacefurni.inventory.application.InventoryService;
 import com.spacefurni.inventory.domain.InventoryItem;
 import com.spacefurni.inventory.infrastructure.InventoryItemRepository;
+import com.spacefurni.shared.application.PlatformSettingsService;
 import com.spacefurni.shared.config.JpaAuditingConfiguration;
 import com.spacefurni.shared.domain.Money;
 import com.spacefurni.shared.exception.ResourceNotFoundException;
+import com.spacefurni.shared.infrastructure.PlatformSettingsRepository;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -49,9 +51,15 @@ class CatalogQueryServiceTest {
     @Autowired
     private TestEntityManager entityManager;
 
+    @Autowired
+    private PlatformSettingsRepository platformSettingsRepository;
+
     private CatalogQueryService service() {
+        PlatformSettingsService platformSettingsService = new PlatformSettingsService(platformSettingsRepository);
         return new CatalogQueryService(productRepository, categoryRepository, new ProductResponseMapper(),
-                new CategoryResponseMapper(), new InventoryService(inventoryItemRepository, event -> { }));
+                new CategoryResponseMapper(),
+                new InventoryService(inventoryItemRepository, event -> { }, platformSettingsService),
+                platformSettingsService);
     }
 
     @Test

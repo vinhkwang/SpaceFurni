@@ -12,9 +12,11 @@ import com.spacefurni.inventory.api.dto.StockReservationLine;
 import com.spacefurni.inventory.domain.InsufficientStockException;
 import com.spacefurni.inventory.domain.InventoryItem;
 import com.spacefurni.inventory.infrastructure.InventoryItemRepository;
+import com.spacefurni.shared.application.PlatformSettingsService;
 import com.spacefurni.shared.config.JpaAuditingConfiguration;
 import com.spacefurni.shared.domain.Money;
 import com.spacefurni.shared.exception.ResourceNotFoundException;
+import com.spacefurni.shared.infrastructure.PlatformSettingsRepository;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -43,8 +45,12 @@ class InventoryServiceTest {
     @Autowired
     private TestEntityManager entityManager;
 
+    @Autowired
+    private PlatformSettingsRepository platformSettingsRepository;
+
     private InventoryService service() {
-        return new InventoryService(inventoryItemRepository, event -> { });
+        return new InventoryService(inventoryItemRepository, event -> { },
+                new PlatformSettingsService(platformSettingsRepository));
     }
 
     private UUID seedProductWithStock(int quantityOnHand) {

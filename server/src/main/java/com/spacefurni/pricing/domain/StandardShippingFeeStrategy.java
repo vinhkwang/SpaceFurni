@@ -1,19 +1,24 @@
 package com.spacefurni.pricing.domain;
 
+import com.spacefurni.shared.application.PlatformSettingsService;
 import com.spacefurni.shared.domain.Money;
 import org.springframework.stereotype.Component;
 
 @Component
 public class StandardShippingFeeStrategy implements ShippingFeeStrategy {
 
-    private static final long FREE_SHIPPING_THRESHOLD_AMOUNT = 10_000_000L;
-    private static final long STANDARD_SHIPPING_FEE_AMOUNT = 300_000L;
+    private final PlatformSettingsService platformSettingsService;
+
+    public StandardShippingFeeStrategy(PlatformSettingsService platformSettingsService) {
+        this.platformSettingsService = platformSettingsService;
+    }
 
     @Override
     public Money calculateFee(Money subtotal) {
-        if (subtotal.isZero() || subtotal.amount() > FREE_SHIPPING_THRESHOLD_AMOUNT) {
+        PlatformSettingsService.PlatformSettingsSnapshot settings = platformSettingsService.getSettings();
+        if (subtotal.isZero() || subtotal.isGreaterThan(settings.freeDeliveryThreshold())) {
             return new Money(0L, subtotal.currencyCode());
         }
-        return new Money(STANDARD_SHIPPING_FEE_AMOUNT, subtotal.currencyCode());
+        return new Money(settings.standardDeliveryFee().amount(), subtotal.currencyCode());
     }
 }
