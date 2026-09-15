@@ -38,6 +38,10 @@ public interface RecentlyViewedProductRepository extends JpaRepository<RecentlyV
     void evictBeyondRetainedCountForGuest(@Param("guestToken") UUID guestToken,
             @Param("retainedCount") int retainedCount);
 
+    List<RecentlyViewedProduct> findByUserIdOrderByViewedAtDesc(UUID userId, Pageable pageable);
+
+    List<RecentlyViewedProduct> findByGuestTokenOrderByViewedAtDesc(UUID guestToken, Pageable pageable);
+
     List<RecentlyViewedProduct> findByUserIdAndProductIdNotOrderByViewedAtDesc(UUID userId, UUID excludedProductId,
             Pageable pageable);
 
