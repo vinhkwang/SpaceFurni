@@ -3,13 +3,16 @@ package com.spacefurni.catalog.api;
 import com.spacefurni.catalog.api.dto.CategoryTreeResponse;
 import com.spacefurni.catalog.api.dto.ProductDetailResponse;
 import com.spacefurni.catalog.api.dto.ProductFilterRequest;
+import com.spacefurni.catalog.api.dto.ProductRecommendationResponse;
 import com.spacefurni.catalog.api.dto.ProductSummaryResponse;
 import com.spacefurni.catalog.application.CatalogQueryService;
 import com.spacefurni.catalog.application.ProductFilter;
+import com.spacefurni.catalog.application.ProductRecommendationQueryService;
 import com.spacefurni.catalog.application.ProductSortOption;
 import com.spacefurni.shared.api.ApiResponse;
 import com.spacefurni.shared.api.PageResponse;
 import java.util.List;
+import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,11 +30,15 @@ public class CatalogController {
     private static final int MAX_PAGE_SIZE = 48;
     private static final int RELATED_PRODUCTS_LIMIT = 3;
     private static final int SEARCH_SUGGESTIONS_LIMIT = 5;
+    private static final int DEFAULT_RECOMMENDATIONS_LIMIT = 8;
 
     private final CatalogQueryService catalogQueryService;
+    private final ProductRecommendationQueryService productRecommendationQueryService;
 
-    public CatalogController(CatalogQueryService catalogQueryService) {
+    public CatalogController(CatalogQueryService catalogQueryService,
+            ProductRecommendationQueryService productRecommendationQueryService) {
         this.catalogQueryService = catalogQueryService;
+        this.productRecommendationQueryService = productRecommendationQueryService;
     }
 
     @GetMapping("/categories")
@@ -65,6 +72,15 @@ public class CatalogController {
     @GetMapping("/products/search")
     public ApiResponse<List<ProductSummaryResponse>> searchSuggestions(@RequestParam String q) {
         return ApiResponse.success(catalogQueryService.suggestProducts(q, SEARCH_SUGGESTIONS_LIMIT));
+    }
+
+    @GetMapping("/products/{id}/recommendations")
+    public ApiResponse<ProductRecommendationResponse> recommendations(@PathVariable UUID id,
+            @RequestParam(required = false) Integer limit) {
+        int resolvedLimit = limit == null ? DEFAULT_RECOMMENDATIONS_LIMIT : limit;
+        List<ProductSummaryResponse> recommendedProducts =
+                productRecommendationQueryService.recommendationsFor(id, resolvedLimit);
+        return ApiResponse.success(new ProductRecommendationResponse(recommendedProducts));
     }
 
     private ProductSortOption resolveSortOption(String rawSort) {
