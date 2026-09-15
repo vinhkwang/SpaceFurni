@@ -34,8 +34,8 @@ export type ApiRequestOptions = {
   headers?: Record<string, string>;
 };
 
-function isCartRequestPath(path: string): boolean {
-  return path.startsWith("/cart");
+function requiresGuestTokenHeader(path: string): boolean {
+  return path.startsWith("/cart") || path.startsWith("/recently-viewed");
 }
 
 async function resolveRequestHeaders(path: string): Promise<Record<string, string>> {
@@ -48,7 +48,7 @@ async function resolveRequestHeaders(path: string): Promise<Record<string, strin
     headers.Authorization = `Bearer ${sessionToken}`;
   }
 
-  if (isCartRequestPath(path)) {
+  if (requiresGuestTokenHeader(path)) {
     const cookieStore = await cookies();
     const guestCartToken = cookieStore.get(GUEST_CART_TOKEN_COOKIE_NAME)?.value;
     if (guestCartToken) {
