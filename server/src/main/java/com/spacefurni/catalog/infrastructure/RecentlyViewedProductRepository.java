@@ -11,26 +11,26 @@ import org.springframework.data.repository.query.Param;
 
 public interface RecentlyViewedProductRepository extends JpaRepository<RecentlyViewedProduct, UUID> {
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query(value = "insert into recently_viewed_products (user_id, product_id, viewed_at) "
             + "values (:userId, :productId, clock_timestamp()) "
             + "on conflict (user_id, product_id) do update set viewed_at = clock_timestamp()", nativeQuery = true)
     void upsertViewForUser(@Param("userId") UUID userId, @Param("productId") UUID productId);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query(value = "insert into recently_viewed_products (guest_token, product_id, viewed_at) "
             + "values (:guestToken, :productId, clock_timestamp()) "
             + "on conflict (guest_token, product_id) do update set viewed_at = clock_timestamp()", nativeQuery = true)
     void upsertViewForGuest(@Param("guestToken") UUID guestToken, @Param("productId") UUID productId);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query(value = "delete from recently_viewed_products "
             + "where user_id = :userId and id not in "
             + "(select id from recently_viewed_products where user_id = :userId "
             + "order by viewed_at desc limit :retainedCount)", nativeQuery = true)
     void evictBeyondRetainedCountForUser(@Param("userId") UUID userId, @Param("retainedCount") int retainedCount);
 
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query(value = "delete from recently_viewed_products "
             + "where guest_token = :guestToken and id not in "
             + "(select id from recently_viewed_products where guest_token = :guestToken "
