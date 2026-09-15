@@ -3,6 +3,10 @@ import { notFound } from "next/navigation";
 import { apiFetch } from "@/lib/api/apiClient";
 import { ApiError } from "@/lib/api/ApiError";
 import type { ProductDetailResponse } from "@/lib/api/types";
+import { RecentlyViewedRail } from "@/components/discovery/RecentlyViewedRail";
+import { RecommendationRail } from "@/components/discovery/RecommendationRail";
+import { RecordRecentlyViewed } from "@/components/discovery/RecordRecentlyViewed";
+import { fetchRecentlyViewedProducts, fetchRecommendedProducts } from "@/lib/discovery/discoveryApi";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductInformationTabs } from "@/components/product/ProductInformationTabs";
 import { ProductPurchasePanel } from "@/components/product/ProductPurchasePanel";
@@ -36,8 +40,14 @@ export default async function ProductDetailPage({ params }: PageProps<"/products
     throw error;
   }
 
+  const [recentlyViewedProducts, recommendedProducts] = await Promise.all([
+    fetchRecentlyViewedProducts(product.id),
+    fetchRecommendedProducts(product.id),
+  ]);
+
   return (
     <main className="pb-22">
+      <RecordRecentlyViewed productId={product.id} />
       <Container alignToNavLabel className="pt-7.5">
         <nav
           aria-label="Breadcrumb"
@@ -64,6 +74,14 @@ export default async function ProductDetailPage({ params }: PageProps<"/products
 
       <Container alignToNavLabel className="mt-20">
         <RelatedProducts relatedProducts={product.relatedProducts} />
+      </Container>
+
+      <Container alignToNavLabel className="mt-20">
+        <RecommendationRail products={recommendedProducts} />
+      </Container>
+
+      <Container alignToNavLabel className="mt-20">
+        <RecentlyViewedRail products={recentlyViewedProducts} />
       </Container>
     </main>
   );

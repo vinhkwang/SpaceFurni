@@ -12,8 +12,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.spacefurni.catalog.api.dto.CategoryTreeResponse;
 import com.spacefurni.catalog.api.dto.ProductDetailResponse;
+import com.spacefurni.catalog.api.dto.ProductSummaryResponse;
 import com.spacefurni.catalog.application.CatalogQueryService;
 import com.spacefurni.catalog.application.ProductFilter;
+import com.spacefurni.catalog.application.ProductRecommendationQueryService;
 import com.spacefurni.catalog.application.ProductSortOption;
 import com.spacefurni.identity.security.JwtTokenProvider;
 import com.spacefurni.identity.security.SecurityConfiguration;
@@ -52,6 +54,9 @@ class CatalogControllerTest {
 
     @MockitoBean
     private CatalogQueryService catalogQueryService;
+
+    @MockitoBean
+    private ProductRecommendationQueryService productRecommendationQueryService;
 
     @MockitoBean
     private JwtTokenProvider jwtTokenProvider;
@@ -127,5 +132,28 @@ class CatalogControllerTest {
                 .andExpect(jsonPath("$.success").value(true));
 
         verify(catalogQueryService).suggestProducts("sofa", 5);
+    }
+
+    @Test
+    void recommendationsDefaultsLimitToEightAndWrapsResult() throws Exception {
+        UUID productId = UUID.randomUUID();
+        when(productRecommendationQueryService.recommendationsFor(eq(productId), eq(8))).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/v1/products/{id}/recommendations", productId)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.products").isArray());
+
+        verify(productRecommendationQueryService).recommendationsFor(productId, 8);
+    }
+
+    @Test
+    void recommendationsPassesExplicitLimitToService() throws Exception {
+        UUID productId = UUID.randomUUID();
+        when(productRecommendationQueryService.recommendationsFor(eq(productId), eq(4)))
+                .thenReturn(List.<ProductSummaryResponse>of());
+
+        mockMvc.perform(get("/api/v1/products/{id}/recommendations", productId).param("limit", "4"))
+                .andExpect(status().isOk());
+
+        verify(productRecommendationQueryService).recommendationsFor(productId, 4);
     }
 }

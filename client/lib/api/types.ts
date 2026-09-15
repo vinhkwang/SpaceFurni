@@ -57,6 +57,14 @@ export type ProductSummaryResponse = {
   badge: ProductBadgeResponse | null;
 };
 
+export type ProductRecommendationResponse = {
+  products: ProductSummaryResponse[];
+};
+
+export type RecordRecentlyViewedResponse = {
+  guestToken: string | null;
+};
+
 export type ProductSpecificationEntry = {
   key: string;
   value: string;
