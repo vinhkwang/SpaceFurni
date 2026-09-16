@@ -47,6 +47,13 @@ public class OrderQueryService {
                 .isPresent();
     }
 
+    @Transactional(readOnly = true)
+    public UUID findProductIdForOrderItem(UUID orderItemId) {
+        return orderItemRepository.findById(orderItemId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order item not found: " + orderItemId))
+                .getProductId();
+    }
+
     private Order findOwnedOrderByOrderNumberOrThrow(UUID userId, String orderNumber) {
         Order order = orderRepository.findByOrderNumber(orderNumber)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found: " + orderNumber));
