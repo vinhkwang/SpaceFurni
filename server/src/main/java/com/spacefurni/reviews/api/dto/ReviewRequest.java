@@ -1,0 +1,11 @@
+package com.spacefurni.reviews.api.dto;
+
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import java.util.UUID;
+
+public record ReviewRequest(@NotNull UUID orderItemId, @NotNull @Min(1) @Max(5) Short rating,
+        @Size(max = 2000) String comment) {
+}
