@@ -53,6 +53,14 @@ public class Review {
         this.createdAt = Instant.now();
     }
 
+    public void hide() {
+        this.status = ReviewStatus.HIDDEN;
+    }
+
+    public void restore() {
+        this.status = ReviewStatus.PUBLISHED;
+    }
+
     public UUID getId() {
         return id;
     }

@@ -36,7 +36,7 @@ public class ReviewService {
         return review;
     }
 
-    private void recomputeRatingAggregateFor(UUID productId) {
+    void recomputeRatingAggregateFor(UUID productId) {
         ReviewRepository.RatingAggregateRow aggregate = reviewRepository.findRatingAggregateByProductId(productId);
         productRatingAggregateService.recomputeRatingAggregate(productId, aggregate.getAverage(),
                 (int) aggregate.getCount());
