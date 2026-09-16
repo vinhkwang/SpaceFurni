@@ -18,7 +18,7 @@ public record OrderResponse(UUID id, String orderNumber, OrderStatus status, lon
             String city, String note) {
     }
 
-    public record OrderItemResponse(UUID productId, String productName, String sku, long unitPriceAmount,
+    public record OrderItemResponse(UUID id, UUID productId, String productName, String sku, long unitPriceAmount,
             int quantity, long lineTotalAmount) {
     }
 }

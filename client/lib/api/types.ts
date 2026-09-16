@@ -135,6 +135,7 @@ export type OrderDeliveryDetailsResponse = {
 };
 
 export type OrderItemResponse = {
+  id: string;
   productId: string;
   productName: string;
   sku: string;
@@ -177,4 +178,22 @@ export type OrderSummaryResponse = {
   currencyCode: string;
   itemCount: number;
   placedAt: string;
+};
+
+export type ReviewResponse = {
+  id: string;
+  productId: string;
+  userId: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+};
+
+export type StarRatingCount = {
+  stars: number;
+  count: number;
+};
+
+export type RatingHistogramResponse = {
+  counts: StarRatingCount[];
 };

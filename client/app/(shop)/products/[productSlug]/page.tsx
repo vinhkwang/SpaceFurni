@@ -11,7 +11,23 @@ import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductInformationTabs } from "@/components/product/ProductInformationTabs";
 import { ProductPurchasePanel } from "@/components/product/ProductPurchasePanel";
 import { RelatedProducts } from "@/components/product/RelatedProducts";
+import { RatingHistogram } from "@/components/reviews/RatingHistogram";
+import { ReviewForm } from "@/components/reviews/ReviewForm";
+import { ReviewList } from "@/components/reviews/ReviewList";
+import { fetchRatingHistogram, fetchReviews, findEligibleOrderItemId } from "@/lib/reviews/reviewsApi";
 import { Container } from "@/components/ui/Container";
+
+function firstSearchParamValue(rawValue: string | string[] | undefined): string | undefined {
+  return Array.isArray(rawValue) ? rawValue[0] : rawValue;
+}
+
+function toReviewsPageIndex(rawPage: string | undefined): number {
+  const parsedPage = Number(rawPage);
+  if (!Number.isInteger(parsedPage) || parsedPage < 1) {
+    return 0;
+  }
+  return parsedPage - 1;
+}
 
 const chevronIcon = (
   <svg
@@ -27,8 +43,13 @@ const chevronIcon = (
   </svg>
 );
 
-export default async function ProductDetailPage({ params }: PageProps<"/products/[productSlug]">) {
+export default async function ProductDetailPage({
+  params,
+  searchParams,
+}: PageProps<"/products/[productSlug]">) {
   const { productSlug } = await params;
+  const resolvedSearchParams = await searchParams;
+  const reviewsPageIndex = toReviewsPageIndex(firstSearchParamValue(resolvedSearchParams.reviewsPage));
 
   let product: ProductDetailResponse;
   try {
@@ -40,10 +61,14 @@ export default async function ProductDetailPage({ params }: PageProps<"/products
     throw error;
   }
 
-  const [recentlyViewedProducts, recommendedProducts] = await Promise.all([
-    fetchRecentlyViewedProducts(product.id),
-    fetchRecommendedProducts(product.id),
-  ]);
+  const [recentlyViewedProducts, recommendedProducts, ratingHistogram, reviewPage, eligibleOrderItemId] =
+    await Promise.all([
+      fetchRecentlyViewedProducts(product.id),
+      fetchRecommendedProducts(product.id),
+      fetchRatingHistogram(product.id),
+      fetchReviews(product.id, reviewsPageIndex),
+      findEligibleOrderItemId(product.id),
+    ]);
 
   return (
     <main className="pb-22">
@@ -70,6 +95,23 @@ export default async function ProductDetailPage({ params }: PageProps<"/products
 
       <Container alignToNavLabel className="mt-16">
         <ProductInformationTabs product={product} />
+      </Container>
+
+      <Container alignToNavLabel className="mt-20 max-w-[900px]">
+        <h2 className="mb-6.5 text-[29px] font-medium tracking-[-0.015em]">Reviews</h2>
+        <RatingHistogram
+          ratingAverage={product.ratingAverage}
+          reviewCount={product.reviewCount}
+          histogram={ratingHistogram}
+        />
+        {eligibleOrderItemId === null ? null : (
+          <div className="mt-7.5">
+            <ReviewForm productId={product.id} productSlug={productSlug} orderItemId={eligibleOrderItemId} />
+          </div>
+        )}
+        <div className="mt-9">
+          <ReviewList reviewPage={reviewPage} productSlug={productSlug} />
+        </div>
       </Container>
 
       <Container alignToNavLabel className="mt-20">
