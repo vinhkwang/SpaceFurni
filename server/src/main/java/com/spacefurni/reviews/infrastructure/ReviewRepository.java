@@ -3,6 +3,7 @@ package com.spacefurni.reviews.infrastructure;
 import com.spacefurni.reviews.domain.Review;
 import com.spacefurni.reviews.domain.ReviewStatus;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,8 +25,23 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
             """, nativeQuery = true)
     RatingAggregateRow findRatingAggregateByProductId(@Param("productId") UUID productId);
 
+    @Query(value = """
+            SELECT rating, COUNT(*) AS count
+              FROM reviews
+             WHERE product_id = :productId
+               AND status = 'PUBLISHED'
+             GROUP BY rating
+            """, nativeQuery = true)
+    List<RatingHistogramRow> findRatingHistogramByProductId(@Param("productId") UUID productId);
+
     interface RatingAggregateRow {
         BigDecimal getAverage();
+
+        long getCount();
+    }
+
+    interface RatingHistogramRow {
+        Short getRating();
 
         long getCount();
     }
