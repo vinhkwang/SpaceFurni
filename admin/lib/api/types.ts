@@ -16,6 +16,8 @@ export type ProductStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
 
 export type OrderStatus = "PENDING" | "PAID" | "PACKING" | "DELIVERED" | "CANCELLED";
 
+export type ReviewStatus = "PUBLISHED" | "HIDDEN";
+
 export type DeliveryWindow = "STANDARD" | "NEXT_DAY";
 
 export type PaymentMethod = "CARD" | "CASH_ON_DELIVERY" | "BANK_TRANSFER" | "E_WALLET";
@@ -95,6 +97,16 @@ export type AdminOrderRowResponse = {
 export type AdminOrderListResponse = {
   orders: PageResponse<AdminOrderRowResponse>;
   statusCounts: Partial<Record<OrderStatus, number>>;
+};
+
+export type AdminReviewRowResponse = {
+  id: string;
+  productId: string;
+  userId: string;
+  rating: number;
+  comment: string | null;
+  status: ReviewStatus;
+  createdAt: string;
 };
 
 export type OrderTimelineStepResponse = {

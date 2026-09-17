@@ -58,6 +58,14 @@ function CustomersIcon() {
   );
 }
 
+function ReviewsIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden className="h-4 w-4 shrink-0 stroke-current" fill="none" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="m12 4 2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4-3.9-3.8 5.4-.8z" />
+    </svg>
+  );
+}
+
 function MessagesIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden className="h-4 w-4 shrink-0 stroke-current" fill="none" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
@@ -107,6 +115,7 @@ export function AdminSidebar({ publishedProductCount, pendingOrderCount }: Admin
     { label: "Products", href: "/products", icon: <ProductsIcon />, count: publishedProductCount },
     { label: "Orders", href: "/orders", icon: <OrdersIcon />, count: pendingOrderCount },
     { label: "Customers", href: "/customers", icon: <CustomersIcon />, count: null },
+    { label: "Reviews", href: "/reviews", icon: <ReviewsIcon />, count: null },
     { label: "Messages", href: "/messages", icon: <MessagesIcon />, count: null },
     { label: "Settings", href: "/settings", icon: <SettingsIcon />, count: null },
   ];
