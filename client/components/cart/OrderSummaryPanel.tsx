@@ -1,9 +1,11 @@
+import Link from "next/link";
 import type { CartResponse } from "@/lib/api/types";
 import { formatMoney } from "@/lib/formatting/formatMoney";
 import { PromotionCodeInput } from "@/components/cart/PromotionCodeInput";
 
 type OrderSummaryPanelProps = {
   cart: CartResponse;
+  checkoutHref?: string;
 };
 
 function totalItemCount(cart: CartResponse): number {
@@ -24,7 +26,7 @@ function freeShippingNote(amountToFreeShippingAmount: number): string {
     : "You have unlocked free delivery";
 }
 
-export function OrderSummaryPanel({ cart }: OrderSummaryPanelProps) {
+export function OrderSummaryPanel({ cart, checkoutHref }: OrderSummaryPanelProps) {
   const { priceBreakdown } = cart;
 
   return (
@@ -64,6 +66,15 @@ export function OrderSummaryPanel({ cart }: OrderSummaryPanelProps) {
       <div className="mb-4">
         <PromotionCodeInput cart={cart} />
       </div>
+
+      {checkoutHref === undefined ? null : (
+        <Link
+          href={checkoutHref}
+          className="mb-4 flex h-13.5 w-full items-center justify-center gap-3 rounded-pill bg-deep text-[11.5px] font-semibold uppercase tracking-[0.14em] text-white transition-colors duration-300 hover:bg-terracotta"
+        >
+          Proceed to checkout
+        </Link>
+      )}
 
       <div className="text-[12px] text-ink-muted">
         {freeShippingNote(priceBreakdown.amountToFreeShippingAmount)}

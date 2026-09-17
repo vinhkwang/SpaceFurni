@@ -5,7 +5,7 @@ const REFRESH_TOKEN_COOKIE_NAME = "spacefurni_refresh_token";
 
 const HTTP_ONLY_COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: true,
+  secure: process.env.NODE_ENV === "production",
   sameSite: "lax" as const,
   path: "/",
 };
