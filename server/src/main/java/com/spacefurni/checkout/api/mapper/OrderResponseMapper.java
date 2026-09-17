@@ -40,7 +40,7 @@ public class OrderResponseMapper {
     }
 
     private OrderResponse.OrderItemResponse toItemResponse(OrderItem item) {
-        return new OrderResponse.OrderItemResponse(item.getProductId(), item.getProductNameSnapshot(),
+        return new OrderResponse.OrderItemResponse(item.getId(), item.getProductId(), item.getProductNameSnapshot(),
                 item.getSkuSnapshot(), item.getUnitPriceAmount(), item.getQuantity(), item.getLineTotalAmount());
     }
 }

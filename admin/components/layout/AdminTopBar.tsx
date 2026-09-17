@@ -17,6 +17,7 @@ const ROUTE_META: Record<string, RouteMeta> = {
   "/products": { title: "Products", subtitle: "Catalogue and stock levels" },
   "/orders": { title: "Orders", subtitle: "Every order placed on the storefront" },
   "/customers": { title: "Customers", subtitle: "Everyone who has bought from the store" },
+  "/reviews": { title: "Reviews", subtitle: "Moderate ratings and comments left on products" },
   "/messages": { title: "Messages", subtitle: "Customer enquiries" },
   "/settings": { title: "Settings", subtitle: "Store details, delivery rules and team access" },
 };

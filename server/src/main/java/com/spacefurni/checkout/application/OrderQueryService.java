@@ -4,6 +4,8 @@ import com.spacefurni.checkout.api.dto.OrderResponse;
 import com.spacefurni.checkout.api.dto.OrderSummaryResponse;
 import com.spacefurni.checkout.api.mapper.OrderResponseMapper;
 import com.spacefurni.checkout.domain.Order;
+import com.spacefurni.checkout.domain.OrderStatus;
+import com.spacefurni.checkout.infrastructure.OrderItemRepository;
 import com.spacefurni.checkout.infrastructure.OrderRepository;
 import com.spacefurni.shared.exception.ResourceNotFoundException;
 import java.util.UUID;
@@ -16,10 +18,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrderQueryService {
 
     private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
     private final OrderResponseMapper orderResponseMapper;
 
-    public OrderQueryService(OrderRepository orderRepository, OrderResponseMapper orderResponseMapper) {
+    public OrderQueryService(OrderRepository orderRepository, OrderItemRepository orderItemRepository,
+            OrderResponseMapper orderResponseMapper) {
         this.orderRepository = orderRepository;
+        this.orderItemRepository = orderItemRepository;
         this.orderResponseMapper = orderResponseMapper;
     }
 
@@ -32,6 +37,21 @@ public class OrderQueryService {
     @Transactional(readOnly = true)
     public OrderResponse findOrderDetail(UUID userId, String orderNumber) {
         return orderResponseMapper.toResponse(findOwnedOrderByOrderNumberOrThrow(userId, orderNumber));
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isOrderItemDeliveredForUser(UUID userId, UUID orderItemId) {
+        return orderItemRepository.findById(orderItemId)
+                .filter(item -> item.getOrder().getUserId().equals(userId))
+                .filter(item -> item.getOrder().getStatus() == OrderStatus.DELIVERED)
+                .isPresent();
+    }
+
+    @Transactional(readOnly = true)
+    public UUID findProductIdForOrderItem(UUID orderItemId) {
+        return orderItemRepository.findById(orderItemId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order item not found: " + orderItemId))
+                .getProductId();
     }
 
     private Order findOwnedOrderByOrderNumberOrThrow(UUID userId, String orderNumber) {
