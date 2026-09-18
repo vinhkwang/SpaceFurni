@@ -2,6 +2,7 @@ import Link from "next/link";
 import { apiFetch } from "@/lib/api/apiClient";
 import { getSessionToken } from "@/lib/auth/session";
 import type { CartResponse, CategoryTreeResponse, CurrentUserResponse } from "@/lib/api/types";
+import { AccountMenu } from "@/components/layout/AccountMenu";
 import { CartIndicator } from "@/components/layout/CartIndicator";
 import { MegaNavigation } from "@/components/layout/MegaNavigation";
 import { SearchBar } from "@/components/layout/SearchBar";
@@ -11,20 +12,11 @@ import { LogoLockup } from "@/components/ui/LogoLockup";
 const headerPillClassName =
   "flex h-[46px] items-center gap-[9px] rounded-pill bg-surface transition-colors duration-200 hover:bg-deep hover:text-white";
 
+const inertHeaderPillClassName =
+  "flex h-[46px] cursor-not-allowed items-center gap-[9px] rounded-pill bg-surface opacity-50";
+
 function totalCartItemCount(cart: CartResponse): number {
   return cart.lines.reduce((runningTotal, line) => runningTotal + line.quantity, 0);
-}
-
-function userInitials(fullName: string): string {
-  const initials = fullName
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((namePart) => namePart.charAt(0).toUpperCase());
-  if (initials.length === 0) {
-    return "?";
-  }
-  return initials.length === 1 ? initials[0] : `${initials[0]}${initials[initials.length - 1]}`;
 }
 
 async function fetchCurrentUser(): Promise<CurrentUserResponse | null> {
@@ -56,7 +48,11 @@ export async function ShopHeader() {
         <SearchBar />
 
         <div className="flex items-center gap-2.5">
-          <Link href="/wishlist" title="Saved items" className={`${headerPillClassName} px-4`}>
+          <span
+            aria-disabled
+            title="Saved items — coming soon"
+            className={`${inertHeaderPillClassName} px-4`}
+          >
             <svg
               viewBox="0 0 24 24"
               aria-hidden
@@ -69,16 +65,12 @@ export async function ShopHeader() {
               <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21.2l8.8-8.8a5.5 5.5 0 0 0 0-7.8z" />
             </svg>
             <span className="text-[11px] font-medium uppercase tracking-[0.1em]">Saved</span>
-          </Link>
+          </span>
 
           <CartIndicator itemCount={totalCartItemCount(cart)} />
 
           {currentUser ? (
-            <Link href="/" title={currentUser.fullName} className={`${headerPillClassName} px-2`}>
-              <span className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-[11px] font-semibold text-deep">
-                {userInitials(currentUser.fullName)}
-              </span>
-            </Link>
+            <AccountMenu currentUser={currentUser} />
           ) : (
             <Link href="/login" className={`${headerPillClassName} pl-2 pr-5`}>
               <span className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-white text-deep">

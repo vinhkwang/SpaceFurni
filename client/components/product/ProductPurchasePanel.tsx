@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import type { ProductDetailResponse } from "@/lib/api/types";
+import { addCartLineAction } from "@/lib/cart/cartActions";
 import { Price } from "@/components/ui/Price";
 import { Rating } from "@/components/ui/Rating";
 import { formatMoney } from "@/lib/formatting/formatMoney";
@@ -58,8 +60,11 @@ function saveAmountLabel(priceAmount: number, compareAtPriceAmount: number): str
 }
 
 export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
+  const router = useRouter();
   const [selectedColorIndex, setSelectedColorIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [isAddingToCart, startAddToCart] = useTransition();
+  const [addToCartError, setAddToCartError] = useState<string | null>(null);
 
   const isInStock = product.availableQuantity > 0;
   const deliveryDate = formatDeliveryDate(new Date());
@@ -70,6 +75,18 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
 
   function incrementQuantity() {
     setQuantity((currentQuantity) => Math.min(product.availableQuantity, currentQuantity + 1));
+  }
+
+  function addToCart() {
+    setAddToCartError(null);
+    startAddToCart(async () => {
+      const result = await addCartLineAction(product.id, quantity);
+      if (!result.success) {
+        setAddToCartError(result.errorMessage);
+        return;
+      }
+      router.push(`/cart?highlightProductId=${product.id}`);
+    });
   }
 
   return (
@@ -157,13 +174,20 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
         </div>
         <button
           type="button"
-          disabled
-          className="flex h-13.5 flex-1 cursor-not-allowed items-center justify-center gap-3 rounded-pill bg-deep text-[11.5px] font-semibold uppercase tracking-[0.14em] text-white opacity-50"
+          onClick={addToCart}
+          disabled={!isInStock || isAddingToCart}
+          className="flex h-13.5 flex-1 items-center justify-center gap-3 rounded-pill bg-deep text-[11.5px] font-semibold uppercase tracking-[0.14em] text-white transition-colors duration-300 hover:bg-terracotta disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-deep"
         >
           {bagIcon}
-          {isInStock ? "Add to cart" : "Out of stock"}
+          {!isInStock ? "Out of stock" : isAddingToCart ? "Adding…" : "Add to cart"}
         </button>
       </div>
+
+      {addToCartError === null ? null : (
+        <p role="alert" className="text-[12.5px] text-terracotta">
+          {addToCartError}
+        </p>
+      )}
 
       <div className="flex flex-col gap-3.5 rounded-[14px] bg-surface px-5.5 py-5">
         <div className="flex items-start gap-3.5">

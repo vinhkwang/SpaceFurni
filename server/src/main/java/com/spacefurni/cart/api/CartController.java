@@ -62,12 +62,12 @@ public class CartController {
     public ApiResponse<CartResponse> currentCart(@AuthenticationPrincipal UserDetails principal,
             @RequestHeader(name = GUEST_TOKEN_HEADER, required = false) String guestTokenHeader) {
         UUID userId = resolveUserId(principal);
-        if (userId == null && guestTokenHeader == null) {
+        UUID guestToken = userId == null ? parseGuestToken(guestTokenHeader) : null;
+        if (userId == null && guestToken == null) {
             PriceBreakdown emptyBreakdown = pricingService.calculate(List.of(), null, DeliveryWindow.STANDARD);
             return ApiResponse.success(
                     new CartResponse(null, null, List.of(), cartResponseMapper.toPriceBreakdownResponse(emptyBreakdown)));
         }
-        UUID guestToken = userId == null ? UUID.fromString(guestTokenHeader) : null;
         Cart cart = cartService.resolveOrCreateActiveCart(userId, guestToken);
         return ApiResponse.success(toResponse(cart));
     }
@@ -103,7 +103,7 @@ public class CartController {
     public ApiResponse<CartResponse> mergeGuestCart(@AuthenticationPrincipal UserDetails principal,
             @RequestHeader(name = GUEST_TOKEN_HEADER, required = false) String guestTokenHeader) {
         UUID userId = resolveUserId(principal);
-        UUID guestToken = guestTokenHeader != null ? UUID.fromString(guestTokenHeader) : null;
+        UUID guestToken = parseGuestToken(guestTokenHeader);
         cartMergeService.mergeGuestCartIntoUserCart(guestToken, userId);
         Cart cart = cartService.resolveOrCreateActiveCart(userId, null);
         return ApiResponse.success(toResponse(cart));
@@ -124,8 +124,8 @@ public class CartController {
         if (userId != null) {
             return cartService.resolveOrCreateActiveCart(userId, null);
         }
-        UUID guestToken = guestTokenHeader != null ? UUID.fromString(guestTokenHeader) : UUID.randomUUID();
-        return cartService.resolveOrCreateActiveCart(null, guestToken);
+        UUID guestToken = parseGuestToken(guestTokenHeader);
+        return cartService.resolveOrCreateActiveCart(null, guestToken == null ? UUID.randomUUID() : guestToken);
     }
 
     private UUID resolveUserId(UserDetails principal) {
@@ -133,6 +133,17 @@ public class CartController {
             return null;
         }
         return currentUserQueryService.getByEmail(principal.getUsername()).getId();
+    }
+
+    private UUID parseGuestToken(String guestTokenHeader) {
+        if (guestTokenHeader == null) {
+            return null;
+        }
+        try {
+            return UUID.fromString(guestTokenHeader);
+        } catch (IllegalArgumentException exception) {
+            return null;
+        }
     }
 
     private CartResponse toResponse(Cart cart) {

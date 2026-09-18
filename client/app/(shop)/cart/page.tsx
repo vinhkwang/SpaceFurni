@@ -33,7 +33,7 @@ export default async function CartPage(props: PageProps<"/cart">) {
           <CartLines cart={cart} highlightProductId={highlightProductId} />
           {hasLines ? (
             <div className="lg:sticky lg:top-5">
-              <OrderSummaryPanel cart={cart} />
+              <OrderSummaryPanel cart={cart} checkoutHref="/checkout" />
             </div>
           ) : null}
         </div>
