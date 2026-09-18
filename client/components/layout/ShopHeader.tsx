@@ -12,6 +12,9 @@ import { LogoLockup } from "@/components/ui/LogoLockup";
 const headerPillClassName =
   "flex h-[46px] items-center gap-[9px] rounded-pill bg-surface transition-colors duration-200 hover:bg-deep hover:text-white";
 
+const inertHeaderPillClassName =
+  "flex h-[46px] cursor-not-allowed items-center gap-[9px] rounded-pill bg-surface opacity-50";
+
 function totalCartItemCount(cart: CartResponse): number {
   return cart.lines.reduce((runningTotal, line) => runningTotal + line.quantity, 0);
 }
@@ -45,7 +48,11 @@ export async function ShopHeader() {
         <SearchBar />
 
         <div className="flex items-center gap-2.5">
-          <Link href="/wishlist" title="Saved items" className={`${headerPillClassName} px-4`}>
+          <span
+            aria-disabled
+            title="Saved items — coming soon"
+            className={`${inertHeaderPillClassName} px-4`}
+          >
             <svg
               viewBox="0 0 24 24"
               aria-hidden
@@ -58,7 +65,7 @@ export async function ShopHeader() {
               <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21.2l8.8-8.8a5.5 5.5 0 0 0 0-7.8z" />
             </svg>
             <span className="text-[11px] font-medium uppercase tracking-[0.1em]">Saved</span>
-          </Link>
+          </span>
 
           <CartIndicator itemCount={totalCartItemCount(cart)} />
 

@@ -17,11 +17,11 @@ const aboutLinks: FooterLink[] = [
 ];
 
 const customerServiceLinks: FooterLink[] = [
-  { label: "Track my order", href: "/orders" },
+  { label: "Track my order", href: "/account/orders" },
   { label: "Delivery & assembly", href: null },
   { label: "Returns", href: null },
   { label: "Care & repair", href: null },
-  { label: "Wishlist", href: "/wishlist" },
+  { label: "Wishlist", href: null },
   { label: "Terms of use", href: null },
 ];
 
