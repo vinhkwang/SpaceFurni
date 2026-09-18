@@ -31,10 +31,20 @@ public class CartService {
     public Cart resolveOrCreateActiveCart(UUID userId, UUID guestToken) {
         if (userId != null) {
             return cartRepository.findByUserIdAndStatus(userId, CartStatus.ACTIVE)
-                    .orElseGet(() -> cartRepository.save(new Cart(userId, null)));
+                    .orElseGet(() -> insertAndReloadUserCart(userId));
         }
         return cartRepository.findByGuestTokenAndStatus(guestToken, CartStatus.ACTIVE)
-                .orElseGet(() -> cartRepository.save(new Cart(null, guestToken)));
+                .orElseGet(() -> insertAndReloadGuestCart(guestToken));
+    }
+
+    private Cart insertAndReloadUserCart(UUID userId) {
+        cartRepository.insertActiveUserCartIfAbsent(userId);
+        return cartRepository.findByUserIdAndStatus(userId, CartStatus.ACTIVE).orElseThrow();
+    }
+
+    private Cart insertAndReloadGuestCart(UUID guestToken) {
+        cartRepository.insertActiveGuestCartIfAbsent(guestToken);
+        return cartRepository.findByGuestTokenAndStatus(guestToken, CartStatus.ACTIVE).orElseThrow();
     }
 
     @Transactional
