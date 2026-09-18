@@ -62,7 +62,7 @@ export function AccountMenu({ currentUser }: AccountMenuProps) {
       {isOpen ? (
         <div
           role="menu"
-          className="absolute right-0 top-[54px] w-[200px] rounded-2xl border border-hairline bg-white py-2 shadow-lg"
+          className="absolute right-0 top-[54px] z-60 w-[200px] rounded-2xl border border-hairline bg-white py-2 shadow-lg"
         >
           <Link
             href="/account/profile"
