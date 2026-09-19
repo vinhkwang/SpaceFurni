@@ -21,6 +21,11 @@ export const vi: Dictionary = {
     english: "EN",
     vietnamese: "VI",
   },
+  accountMenu: {
+    accountMenuAriaLabel: "Menu tài khoản",
+    profile: "Hồ sơ",
+    signOut: "Đăng xuất",
+  },
   sidebar: {
     adminConsole: "Trang quản trị",
     dashboard: "Tổng quan",
@@ -30,8 +35,6 @@ export const vi: Dictionary = {
     reviews: "Đánh giá",
     messages: "Tin nhắn",
     settings: "Cài đặt",
-    backToStore: "Về cửa hàng",
-    signOut: "Đăng xuất",
   },
   topbar: {
     defaultTitle: "Trang quản trị",
@@ -43,6 +46,7 @@ export const vi: Dictionary = {
       reviews: { title: "Đánh giá", subtitle: "Kiểm duyệt điểm đánh giá và bình luận trên sản phẩm" },
       messages: { title: "Tin nhắn", subtitle: "Yêu cầu từ khách hàng" },
       settings: { title: "Cài đặt", subtitle: "Thông tin cửa hàng, quy tắc giao hàng và quyền truy cập" },
+      profile: { title: "Hồ sơ", subtitle: "Thông tin tài khoản của bạn" },
     },
   },
   dashboard: {
@@ -175,7 +179,24 @@ export const vi: Dictionary = {
     columnOrders: "Đơn hàng",
     columnLifetime: "Tổng chi tiêu",
     columnTier: "Hạng",
-    plannedNotInScope: "Dự kiến triển khai — chưa nằm trong phạm vi MVP",
+    backToCustomersAriaLabel: "Về danh sách khách hàng",
+    firstOrder: "Đơn hàng đầu tiên",
+    recentOrders: "Đơn hàng gần đây",
+    noRecentOrders: "Chưa có đơn hàng nào.",
+    tierLabels: {
+      NEW: "Mới",
+      RETURNING: "Quay lại",
+      VIP: "VIP",
+    },
+    statTotalCustomers: "Tổng số khách hàng",
+    searchPlaceholder: "Tìm khách hàng…",
+    searchAriaLabel: "Tìm khách hàng",
+    resultCount: (totalElements: number, query: string): string => {
+      const customerLabel = `${totalElements} khách hàng`;
+      return query ? `${customerLabel} khớp với “${query}”` : customerLabel;
+    },
+    noCustomersMatch: "Không có khách hàng nào khớp với bộ lọc này.",
+    exportCsv: "Xuất CSV",
   },
   reviews: {
     columnProduct: "Sản phẩm",
@@ -229,5 +250,11 @@ export const vi: Dictionary = {
   },
   header: {
     tagline: "Nội thất cho ngôi nhà thật",
+  },
+  profile: {
+    yourProfile: "Hồ sơ của bạn",
+    fullName: "Họ và tên",
+    emailAddress: "Địa chỉ email",
+    accountType: "Loại tài khoản",
   },
 };

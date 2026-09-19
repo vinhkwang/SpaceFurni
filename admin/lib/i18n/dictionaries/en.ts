@@ -19,6 +19,11 @@ export const en = {
     english: "EN",
     vietnamese: "VI",
   },
+  accountMenu: {
+    accountMenuAriaLabel: "Account menu",
+    profile: "Profile",
+    signOut: "Sign out",
+  },
   sidebar: {
     adminConsole: "Admin console",
     dashboard: "Dashboard",
@@ -28,8 +33,6 @@ export const en = {
     reviews: "Reviews",
     messages: "Messages",
     settings: "Settings",
-    backToStore: "Back to store",
-    signOut: "Sign out",
   },
   topbar: {
     defaultTitle: "Admin console",
@@ -41,6 +44,7 @@ export const en = {
       reviews: { title: "Reviews", subtitle: "Moderate ratings and comments left on products" },
       messages: { title: "Messages", subtitle: "Customer enquiries" },
       settings: { title: "Settings", subtitle: "Store details, delivery rules and team access" },
+      profile: { title: "Profile", subtitle: "Your account details" },
     },
   },
   dashboard: {
@@ -173,7 +177,24 @@ export const en = {
     columnOrders: "Orders",
     columnLifetime: "Lifetime",
     columnTier: "Tier",
-    plannedNotInScope: "Planned — not part of MVP scope",
+    backToCustomersAriaLabel: "Back to customers",
+    firstOrder: "First order",
+    recentOrders: "Recent orders",
+    noRecentOrders: "No orders yet.",
+    tierLabels: {
+      NEW: "New",
+      RETURNING: "Returning",
+      VIP: "VIP",
+    } as Record<string, string>,
+    statTotalCustomers: "Total customers",
+    searchPlaceholder: "Search customers…",
+    searchAriaLabel: "Search customers",
+    resultCount: (totalElements: number, query: string): string => {
+      const customerLabel = totalElements === 1 ? "1 customer" : `${totalElements} customers`;
+      return query ? `${customerLabel} matching “${query}”` : customerLabel;
+    },
+    noCustomersMatch: "No customers match this filter.",
+    exportCsv: "Export CSV",
   },
   reviews: {
     columnProduct: "Product",
@@ -227,6 +248,12 @@ export const en = {
   },
   header: {
     tagline: "Furniture for real homes",
+  },
+  profile: {
+    yourProfile: "Your profile",
+    fullName: "Full name",
+    emailAddress: "Email address",
+    accountType: "Account type",
   },
 };
 

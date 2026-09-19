@@ -172,3 +172,43 @@ export type DepartmentRevenueShareResponse = {
   revenueAmount: number;
   percentageShare: number;
 };
+
+export type CustomerTier = "NEW" | "RETURNING" | "VIP";
+
+export type AdminCustomerRowResponse = {
+  id: string;
+  fullName: string;
+  email: string;
+  district: string;
+  orderCount: number;
+  lifetimeValueAmount: number;
+  currencyCode: string;
+  firstOrderAt: string;
+  tier: CustomerTier;
+};
+
+export type AdminCustomerListResponse = {
+  customers: PageResponse<AdminCustomerRowResponse>;
+  tierCounts: Partial<Record<CustomerTier, number>>;
+};
+
+export type AdminCustomerOrderSummaryResponse = {
+  orderNumber: string;
+  placedAt: string;
+  totalAmount: number;
+  currencyCode: string;
+  status: OrderStatus;
+};
+
+export type AdminCustomerDetailResponse = {
+  id: string;
+  fullName: string;
+  email: string;
+  district: string;
+  orderCount: number;
+  lifetimeValueAmount: number;
+  currencyCode: string;
+  firstOrderAt: string;
+  tier: CustomerTier;
+  recentOrders: AdminCustomerOrderSummaryResponse[];
+};

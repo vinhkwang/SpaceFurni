@@ -27,7 +27,7 @@ export default async function ConsoleLayout({ children }: { children: ReactNode 
           pendingOrderCount={summary.pendingOrdersCount}
         />
         <div className="flex min-w-0 flex-1 flex-col">
-          <AdminTopBar userFullName={currentUser.fullName} userRole={roleLabel(dictionary, currentUser.role)} />
+          <AdminTopBar currentUser={currentUser} userRole={roleLabel(dictionary, currentUser.role)} />
           <main className="flex-1 bg-canvas px-8.5 py-7.5">{children}</main>
         </div>
       </div>

@@ -1,7 +1,6 @@
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getLocale } from "@/lib/i18n/locale";
 import { LoginForm } from "@/components/LoginForm";
-import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { LogoLockup } from "@/components/ui/LogoLockup";
 
 export const metadata = {
@@ -23,9 +22,6 @@ export default async function LoginPage(props: PageProps<"/login">) {
   return (
     <main className="flex min-h-screen items-center justify-center bg-canvas px-6">
       <div className="w-full max-w-[380px]">
-        <div className="mb-6 flex justify-end">
-          <LanguageToggle />
-        </div>
         <div className="mb-8 flex justify-center">
           <LogoLockup />
         </div>

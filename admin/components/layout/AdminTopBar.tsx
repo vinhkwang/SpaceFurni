@@ -1,12 +1,14 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import type { CurrentUserResponse } from "@/lib/api/types";
 import { useDictionary } from "@/lib/i18n/LocaleProvider";
 import type { Dictionary } from "@/lib/i18n/dictionaries/en";
+import { AdminAccountMenu } from "@/components/layout/AdminAccountMenu";
 import { LanguageToggle } from "@/components/layout/LanguageToggle";
 
 type AdminTopBarProps = {
-  userFullName: string;
+  currentUser: CurrentUserResponse;
   userRole: string;
 };
 
@@ -24,6 +26,7 @@ function resolveRouteMeta(dictionary: Dictionary, pathname: string): RouteMeta {
     "/reviews": dictionary.topbar.routeMeta.reviews,
     "/messages": dictionary.topbar.routeMeta.messages,
     "/settings": dictionary.topbar.routeMeta.settings,
+    "/profile": dictionary.topbar.routeMeta.profile,
   };
   const matchedRoute = Object.keys(routeMetaByPath).find(
     (route) => pathname === route || pathname.startsWith(`${route}/`),
@@ -31,16 +34,7 @@ function resolveRouteMeta(dictionary: Dictionary, pathname: string): RouteMeta {
   return matchedRoute ? routeMetaByPath[matchedRoute] : { title: dictionary.topbar.defaultTitle, subtitle: "" };
 }
 
-function initialsFor(fullName: string): string {
-  return fullName
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((namePart) => namePart[0]?.toUpperCase())
-    .join("");
-}
-
-export function AdminTopBar({ userFullName, userRole }: AdminTopBarProps) {
+export function AdminTopBar({ currentUser, userRole }: AdminTopBarProps) {
   const pathname = usePathname();
   const dictionary = useDictionary();
   const { title, subtitle } = resolveRouteMeta(dictionary, pathname);
@@ -54,15 +48,7 @@ export function AdminTopBar({ userFullName, userRole }: AdminTopBarProps) {
 
       <div className="flex items-center gap-4.5">
         <LanguageToggle />
-        <div className="flex items-center gap-3.5 border-l border-hairline pl-4.5">
-          <span className="flex h-9.5 w-9.5 items-center justify-center rounded-pill bg-deep text-[12.5px] font-semibold text-white">
-            {initialsFor(userFullName)}
-          </span>
-          <div>
-            <div className="text-[12.5px] font-semibold text-ink">{userFullName}</div>
-            <div className="text-[10.5px] text-ink-muted">{userRole}</div>
-          </div>
-        </div>
+        <AdminAccountMenu currentUser={currentUser} userRole={userRole} />
       </div>
     </header>
   );
