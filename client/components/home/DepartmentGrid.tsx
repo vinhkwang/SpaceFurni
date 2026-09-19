@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api/apiClient";
 import type { CategoryTreeResponse } from "@/lib/api/types";
+import { localizedCategoryName } from "@/lib/catalog/categoryName";
 import { getDictionary, type Dictionary } from "@/lib/i18n/getDictionary";
 import { getLocale } from "@/lib/i18n/locale";
 
@@ -54,7 +55,7 @@ export async function DepartmentGrid() {
             <span className="absolute inset-0 bg-linear-to-b from-transparent from-[38%] to-deep/85" />
             <span className="absolute inset-x-[18px] bottom-[18px]">
               <span className="mb-[5px] block text-[13.5px] font-semibold uppercase tracking-[0.09em] text-white">
-                {department.name}
+                {localizedCategoryName(dictionary, department)}
               </span>
               <span className="flex items-center justify-between">
                 <span className="text-[10.5px] tracking-[0.1em] text-white/70">

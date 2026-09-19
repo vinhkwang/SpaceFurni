@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { apiFetch } from "@/lib/api/apiClient";
 import type { CategoryTreeResponse, PageResponse, ProductSummaryResponse } from "@/lib/api/types";
+import { localizedCategoryName } from "@/lib/catalog/categoryName";
 import { getDictionary, type Dictionary } from "@/lib/i18n/getDictionary";
 import { getLocale } from "@/lib/i18n/locale";
 import { ProductCard } from "@/components/product/ProductCard";
@@ -167,11 +168,11 @@ export default async function DepartmentListingPage({
             {dictionary.common.home}
           </Link>
           {chevronIcon}
-          <span className="text-ink">{department.name}</span>
+          <span className="text-ink">{localizedCategoryName(dictionary, department)}</span>
           {subCategory ? (
             <>
               {chevronIcon}
-              <span className="text-ink">{subCategory.name}</span>
+              <span className="text-ink">{localizedCategoryName(dictionary, subCategory)}</span>
             </>
           ) : null}
         </nav>
@@ -179,14 +180,17 @@ export default async function DepartmentListingPage({
         <div className="flex flex-col gap-6 border-b border-hairline pb-7.5 md:flex-row md:items-end md:justify-between md:gap-15">
           <div>
             <h1 className="mb-3 text-[42px] font-medium leading-[1.06] tracking-[-0.02em]">
-              {department.name}
+              {localizedCategoryName(dictionary, department)}
             </h1>
             <p className="text-[12.5px] tracking-[0.04em] text-ink-muted">
-              {dictionary.catalog.resultCount(productPage.totalElements, subCategory?.name)}
+              {dictionary.catalog.resultCount(
+                productPage.totalElements,
+                subCategory ? localizedCategoryName(dictionary, subCategory) : undefined,
+              )}
             </p>
           </div>
           <p className="max-w-100 text-[12.5px] leading-[1.7] text-ink-soft md:text-right">
-            {dictionary.catalog.departmentBlurb(department.name)}
+            {dictionary.catalog.departmentBlurb(localizedCategoryName(dictionary, department))}
           </p>
         </div>
       </Container>

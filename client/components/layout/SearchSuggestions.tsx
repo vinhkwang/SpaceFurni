@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ProductSummaryResponse } from "@/lib/api/types";
+import { localizedCategoryLabel } from "@/lib/catalog/categoryName";
 import { formatMoney } from "@/lib/formatting/formatMoney";
 import { useDictionary } from "@/lib/i18n/LocaleProvider";
 
@@ -50,7 +51,7 @@ export function SearchSuggestions({ suggestions, activeIndex, onSelect }: Search
             <span className="flex-1">
               <span className="block text-[12.5px] font-medium">{product.name}</span>
               <span className="block text-[10.5px] tracking-[0.04em] text-ink-muted">
-                {product.categoryName}
+                {localizedCategoryLabel(dictionary, product.categoryName)}
               </span>
             </span>
             <span className="text-[12px] font-medium text-ink-soft">

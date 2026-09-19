@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { ProductDetailResponse } from "@/lib/api/types";
 import { addCartLineAction } from "@/lib/cart/cartActions";
+import { localizedCategoryLabel } from "@/lib/catalog/categoryName";
 import { useDictionary } from "@/lib/i18n/LocaleProvider";
 import { Price } from "@/components/ui/Price";
 import { Rating } from "@/components/ui/Rating";
@@ -91,7 +92,7 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
     <div className="flex flex-col gap-5">
       <div>
         <div className="mb-3 text-[10.5px] uppercase tracking-[0.2em] text-terracotta">
-          {product.categoryName}
+          {localizedCategoryLabel(dictionary, product.categoryName)}
         </div>
         <h1 className="mb-3.5 text-[34px] font-medium leading-[1.12] tracking-[-0.02em] text-pretty">
           {product.name}

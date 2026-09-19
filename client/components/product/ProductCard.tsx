@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ProductSummaryResponse } from "@/lib/api/types";
+import { localizedCategoryLabel } from "@/lib/catalog/categoryName";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getLocale } from "@/lib/i18n/locale";
 import { Badge } from "@/components/ui/Badge";
@@ -55,7 +56,7 @@ export async function ProductCard({ product }: ProductCardProps) {
       <div className="flex flex-col gap-[9px] px-5 pb-5 pt-[18px]">
         <div className="flex items-center justify-between">
           <span className="text-[9.5px] uppercase tracking-[0.16em] text-ink-muted">
-            {product.categoryName}
+            {localizedCategoryLabel(dictionary, product.categoryName)}
           </span>
           {product.ratingAverage === null ? null : (
             <Rating value={product.ratingAverage} variant="compact" />

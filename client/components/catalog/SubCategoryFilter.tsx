@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { CategoryTreeResponse } from "@/lib/api/types";
+import { localizedCategoryName } from "@/lib/catalog/categoryName";
 import {
   buildProductListingHref,
   type ProductListingFilters,
@@ -62,6 +63,7 @@ export async function SubCategoryFilter({
 
       {subCategories.map((subCategory) => {
         const isActive = subCategory.slug === activeSubCategorySlug;
+        const subCategoryName = localizedCategoryName(dictionary, subCategory);
 
         return (
           <Link
@@ -85,13 +87,13 @@ export async function SubCategoryFilter({
                 />
               ) : (
                 <span className="text-[13px] font-medium text-ink-muted">
-                  {subCategory.name.charAt(0)}
+                  {subCategoryName.charAt(0)}
                 </span>
               )}
             </span>
             <span>
               <span className="block text-[12.5px] font-semibold tracking-[0.05em]">
-                {subCategory.name}
+                {subCategoryName}
               </span>
               <span className="mt-[3px] block text-[10.5px] text-ink-muted">
                 {dictionary.catalog.itemCount(subCategory.productCount)}

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ProductSummaryResponse } from "@/lib/api/types";
+import { localizedCategoryLabel } from "@/lib/catalog/categoryName";
 import { formatMoney } from "@/lib/formatting/formatMoney";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getLocale } from "@/lib/i18n/locale";
@@ -57,7 +58,7 @@ export async function RelatedProducts({ relatedProducts }: RelatedProductsProps)
             </div>
             <div className="min-w-0 flex-1">
               <div className="mb-[7px] text-[9.5px] uppercase tracking-[0.16em] text-ink-muted">
-                {product.categoryName}
+                {localizedCategoryLabel(dictionary, product.categoryName)}
               </div>
               <div className="mb-2 truncate text-[14px] font-medium">{product.name}</div>
               <div className="text-[14px] font-semibold">{formatMoney(product.priceAmount)}</div>

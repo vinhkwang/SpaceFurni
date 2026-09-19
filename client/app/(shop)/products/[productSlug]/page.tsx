@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { apiFetch } from "@/lib/api/apiClient";
 import { ApiError } from "@/lib/api/ApiError";
 import type { ProductDetailResponse } from "@/lib/api/types";
+import { localizedCategoryLabel } from "@/lib/catalog/categoryName";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getLocale } from "@/lib/i18n/locale";
 import { RecentlyViewedRail } from "@/components/discovery/RecentlyViewedRail";
@@ -86,7 +87,7 @@ export default async function ProductDetailPage({
             {dictionary.common.home}
           </Link>
           {chevronIcon}
-          <span>{product.categoryName}</span>
+          <span>{localizedCategoryLabel(dictionary, product.categoryName)}</span>
           {chevronIcon}
           <span className="text-ink">{product.name}</span>
         </nav>
