@@ -31,7 +31,7 @@ export async function WorkshopBand() {
         <p className="max-w-[420px] text-[13.5px] leading-[1.75] text-ink-soft">{dictionary.home.workshopBody}</p>
         <dl className="mt-3.5 grid grid-cols-3 gap-[22px] border-t border-hairline pt-[26px]">
           {workshopStatistics.map((statistic) => (
-            <div key={statistic.label} className="flex flex-col-reverse">
+            <div key={statistic.label} className="flex flex-col-reverse justify-end">
               <dt className="mt-[5px] text-[10.5px] uppercase tracking-[0.13em] text-ink-muted">
                 {statistic.label}
               </dt>
