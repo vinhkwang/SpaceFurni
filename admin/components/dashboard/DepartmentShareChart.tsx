@@ -1,7 +1,9 @@
 import type { DepartmentRevenueShareResponse } from "@/lib/api/types";
+import type { Dictionary } from "@/lib/i18n/getDictionary";
 
 type DepartmentShareChartProps = {
   shares: DepartmentRevenueShareResponse[];
+  dictionary: Dictionary;
 };
 
 const DEPARTMENT_COLOR_CLASS_NAMES: Record<string, string> = {
@@ -18,16 +20,18 @@ function departmentColorClassName(departmentName: string): string {
   return DEPARTMENT_COLOR_CLASS_NAMES[departmentName] ?? FALLBACK_DEPARTMENT_COLOR_CLASS_NAME;
 }
 
-export function DepartmentShareChart({ shares }: DepartmentShareChartProps) {
+export function DepartmentShareChart({ shares, dictionary }: DepartmentShareChartProps) {
   return (
     <div className="flex flex-col rounded-2xl border border-hairline-soft bg-white p-6.5">
       <div className="mb-6.5">
-        <div className="text-[15px] font-semibold text-ink">Top departments</div>
-        <div className="mt-1 text-[11.5px] text-ink-muted">Share of total revenue</div>
+        <div className="text-[15px] font-semibold text-ink">{dictionary.dashboard.topDepartments}</div>
+        <div className="mt-1 text-[11.5px] text-ink-muted">{dictionary.dashboard.shareOfRevenue}</div>
       </div>
 
       {shares.length === 0 ? (
-        <div className="flex flex-1 items-center justify-center text-[12.5px] text-ink-muted">No orders yet.</div>
+        <div className="flex flex-1 items-center justify-center text-[12.5px] text-ink-muted">
+          {dictionary.dashboard.noOrdersYet}
+        </div>
       ) : (
         <>
           <div className="flex h-3 gap-0.5 overflow-hidden rounded-pill">

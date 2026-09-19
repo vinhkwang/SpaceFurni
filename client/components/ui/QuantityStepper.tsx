@@ -1,5 +1,7 @@
 "use client";
 
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
+
 type QuantityStepperProps = {
   value: number;
   onChange: (nextQuantity: number) => void;
@@ -16,6 +18,7 @@ export function QuantityStepper({
   minimum = 1,
   maximum,
 }: QuantityStepperProps) {
+  const dictionary = useDictionary();
   const canDecrease = value > minimum;
   const canIncrease = typeof maximum !== "number" || value < maximum;
 
@@ -23,7 +26,7 @@ export function QuantityStepper({
     <div className="inline-flex h-[54px] items-center gap-0.5 rounded-pill border border-hairline px-1.5">
       <button
         type="button"
-        aria-label="Decrease quantity"
+        aria-label={dictionary.common.decreaseQuantity}
         disabled={!canDecrease}
         onClick={() => onChange(value - 1)}
         className={stepButtonClassName}
@@ -44,7 +47,7 @@ export function QuantityStepper({
       </span>
       <button
         type="button"
-        aria-label="Increase quantity"
+        aria-label={dictionary.common.increaseQuantity}
         disabled={!canIncrease}
         onClick={() => onChange(value + 1)}
         className={stepButtonClassName}

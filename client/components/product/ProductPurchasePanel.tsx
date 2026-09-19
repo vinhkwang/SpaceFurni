@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { ProductDetailResponse } from "@/lib/api/types";
 import { addCartLineAction } from "@/lib/cart/cartActions";
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
 import { Price } from "@/components/ui/Price";
 import { Rating } from "@/components/ui/Rating";
 import { formatMoney } from "@/lib/formatting/formatMoney";
@@ -55,12 +56,9 @@ const storeIcon = (
   </svg>
 );
 
-function saveAmountLabel(priceAmount: number, compareAtPriceAmount: number): string {
-  return `Save ${formatMoney(compareAtPriceAmount - priceAmount)}`;
-}
-
 export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
   const router = useRouter();
+  const dictionary = useDictionary();
   const [selectedColorIndex, setSelectedColorIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isAddingToCart, startAddToCart] = useTransition();
@@ -111,10 +109,10 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
         <Price amount={product.priceAmount} compareAtAmount={product.compareAtPriceAmount} size="large" />
         {product.compareAtPriceAmount === null ? null : (
           <span className="rounded-pill bg-terracotta/10 px-[11px] py-[5px] text-[10.5px] font-semibold uppercase tracking-[0.1em] text-terracotta">
-            {saveAmountLabel(product.priceAmount, product.compareAtPriceAmount)}
+            {dictionary.product.saveAmount(formatMoney(product.compareAtPriceAmount - product.priceAmount))}
           </span>
         )}
-        <span className="ml-auto text-[11.5px] text-ink-muted">VAT included</span>
+        <span className="ml-auto text-[11.5px] text-ink-muted">{dictionary.product.vatIncluded}</span>
       </div>
 
       <p className="text-[13.5px] leading-[1.75] text-ink-soft">{product.shortDescription}</p>
@@ -122,7 +120,7 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
       {product.colorSwatchHexCodes.length === 0 ? null : (
         <div>
           <div className="mb-3 text-[10.5px] uppercase tracking-[0.16em] text-ink-muted">
-            Finish — {product.primaryColorName}
+            {dictionary.product.finish(product.primaryColorName)}
           </div>
           <div className="flex gap-2.5">
             {product.colorSwatchHexCodes.map((hexCode, colorIndex) => {
@@ -133,7 +131,7 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
                   key={hexCode}
                   type="button"
                   onClick={() => setSelectedColorIndex(colorIndex)}
-                  aria-label={`Select finish ${colorIndex + 1} of ${product.colorSwatchHexCodes.length}`}
+                  aria-label={dictionary.product.selectFinishAriaLabel(colorIndex + 1, product.colorSwatchHexCodes.length)}
                   aria-current={isSelected ? "true" : undefined}
                   className={`flex h-10 w-10 items-center justify-center rounded-full transition duration-250 ${
                     isSelected ? "ring-2 ring-ink ring-offset-2 ring-offset-white" : ""
@@ -156,7 +154,7 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
             type="button"
             onClick={decrementQuantity}
             disabled={!isInStock || quantity <= 1}
-            aria-label="Decrease quantity"
+            aria-label={dictionary.common.decreaseQuantity}
             className="flex h-9.5 w-9.5 items-center justify-center rounded-full transition duration-200 hover:bg-surface disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
           >
             {minusIcon}
@@ -166,7 +164,7 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
             type="button"
             onClick={incrementQuantity}
             disabled={!isInStock || quantity >= product.availableQuantity}
-            aria-label="Increase quantity"
+            aria-label={dictionary.common.increaseQuantity}
             className="flex h-9.5 w-9.5 items-center justify-center rounded-full transition duration-200 hover:bg-surface disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
           >
             {plusIcon}
@@ -179,7 +177,11 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
           className="flex h-13.5 flex-1 items-center justify-center gap-3 rounded-pill bg-deep text-[11.5px] font-semibold uppercase tracking-[0.14em] text-white transition-colors duration-300 hover:bg-terracotta disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-deep"
         >
           {bagIcon}
-          {!isInStock ? "Out of stock" : isAddingToCart ? "Adding…" : "Add to cart"}
+          {!isInStock
+            ? dictionary.product.outOfStock
+            : isAddingToCart
+              ? dictionary.product.adding
+              : dictionary.product.addToCart}
         </button>
       </div>
 
@@ -193,22 +195,22 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
         <div className="flex items-start gap-3.5">
           {truckIcon}
           <div>
-            <div className="mb-[3px] text-[12.5px] font-semibold">Free delivery in Hanoi</div>
-            <div className="text-[11.5px] text-ink-muted">Arrives {deliveryDate} · carried in and assembled</div>
+            <div className="mb-[3px] text-[12.5px] font-semibold">{dictionary.product.freeDeliveryInHanoi}</div>
+            <div className="text-[11.5px] text-ink-muted">{dictionary.product.arrivesOn(deliveryDate)}</div>
           </div>
         </div>
         <div className="flex items-start gap-3.5">
           {returnIcon}
           <div>
-            <div className="mb-[3px] text-[12.5px] font-semibold">30-day returns</div>
-            <div className="text-[11.5px] text-ink-muted">Change your mind at home — we collect it for free</div>
+            <div className="mb-[3px] text-[12.5px] font-semibold">{dictionary.product.thirtyDayReturns}</div>
+            <div className="text-[11.5px] text-ink-muted">{dictionary.product.changeYourMind}</div>
           </div>
         </div>
         <div className="flex items-start gap-3.5">
           {storeIcon}
           <div>
-            <div className="mb-[3px] text-[12.5px] font-semibold">See it in the showroom</div>
-            <div className="text-[11.5px] text-ink-muted">15 & 17 Ha Ke Tan, open until 18:00 today</div>
+            <div className="mb-[3px] text-[12.5px] font-semibold">{dictionary.product.seeInShowroom}</div>
+            <div className="text-[11.5px] text-ink-muted">{dictionary.product.showroomHours}</div>
           </div>
         </div>
       </div>

@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ProductSummaryResponse } from "@/lib/api/types";
+import { getDictionary } from "@/lib/i18n/getDictionary";
+import { getLocale } from "@/lib/i18n/locale";
 import { Badge } from "@/components/ui/Badge";
 import { Price } from "@/components/ui/Price";
 import { Rating } from "@/components/ui/Rating";
@@ -9,8 +11,9 @@ type ProductCardProps = {
   product: ProductSummaryResponse;
 };
 
-export function ProductCard({ product }: ProductCardProps) {
+export async function ProductCard({ product }: ProductCardProps) {
   const productHref = `/products/${product.slug}`;
+  const dictionary = getDictionary(await getLocale());
 
   return (
     <article className="group relative overflow-hidden rounded-2xl border border-hairline-soft bg-white transition duration-300 hover:-translate-y-1.5 hover:border-hairline hover:shadow-2xl">
@@ -73,7 +76,7 @@ export function ProductCard({ product }: ProductCardProps) {
           disabled
           className="mt-[5px] flex h-[42px] cursor-not-allowed items-center justify-center gap-2.5 rounded-pill border border-hairline text-[10.5px] font-semibold uppercase tracking-[0.14em] opacity-50"
         >
-          Add to cart
+          {dictionary.product.addToCart}
         </button>
       </div>
     </article>

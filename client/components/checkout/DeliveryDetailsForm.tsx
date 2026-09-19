@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/Input";
 import { formatMoney } from "@/lib/formatting/formatMoney";
 import { formatDeliveryDate } from "@/lib/formatting/formatDeliveryDate";
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
+import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 import type { DeliveryWindow } from "@/lib/api/types";
 
 type DeliveryDetailsFormValues = {
@@ -47,23 +49,26 @@ function loadStoredFormValues(): DeliveryDetailsFormValues | null {
   }
 }
 
-function validateFormValues(formValues: DeliveryDetailsFormValues): DeliveryDetailsFieldErrors {
+function validateFormValues(
+  dictionary: Dictionary,
+  formValues: DeliveryDetailsFormValues,
+): DeliveryDetailsFieldErrors {
   const fieldErrors: DeliveryDetailsFieldErrors = {};
 
   if (formValues.fullName.trim() === "") {
-    fieldErrors.fullName = "Enter the recipient's full name";
+    fieldErrors.fullName = dictionary.checkout.fullNameRequired;
   }
   if (!VIETNAMESE_PHONE_PATTERN.test(formValues.phone.trim())) {
-    fieldErrors.phone = "Enter a valid Vietnamese phone number";
+    fieldErrors.phone = dictionary.checkout.phoneInvalid;
   }
   if (formValues.street.trim() === "") {
-    fieldErrors.street = "Enter a street address";
+    fieldErrors.street = dictionary.checkout.streetRequired;
   }
   if (formValues.district.trim() === "") {
-    fieldErrors.district = "Enter a district";
+    fieldErrors.district = dictionary.checkout.districtRequired;
   }
   if (formValues.city.trim() === "") {
-    fieldErrors.city = "Enter a city";
+    fieldErrors.city = dictionary.checkout.cityRequired;
   }
 
   return fieldErrors;
@@ -71,6 +76,7 @@ function validateFormValues(formValues: DeliveryDetailsFormValues): DeliveryDeta
 
 export function DeliveryDetailsForm() {
   const router = useRouter();
+  const dictionary = useDictionary();
   const [formValues, setFormValues] = useState<DeliveryDetailsFormValues>(
     () => loadStoredFormValues() ?? EMPTY_FORM_VALUES,
   );
@@ -85,7 +91,7 @@ export function DeliveryDetailsForm() {
 
   function submitDeliveryDetails(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
-    const validationErrors = validateFormValues(formValues);
+    const validationErrors = validateFormValues(dictionary, formValues);
     setFieldErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) {
       return;
@@ -104,11 +110,11 @@ export function DeliveryDetailsForm() {
       onSubmit={submitDeliveryDetails}
       className="rounded-2xl border border-hairline bg-white px-8.5 py-8"
     >
-      <h2 className="mb-6 text-[19px] font-medium">Delivery details</h2>
+      <h2 className="mb-6 text-[19px] font-medium">{dictionary.checkout.deliveryDetails}</h2>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Input
-          label="Full name"
+          label={dictionary.checkout.fullName}
           placeholder="Nguyen Minh"
           value={formValues.fullName}
           onChange={(event) => updateField("fullName", event.target.value)}
@@ -116,7 +122,7 @@ export function DeliveryDetailsForm() {
           autoComplete="name"
         />
         <Input
-          label="Phone"
+          label={dictionary.checkout.phone}
           placeholder="+84 …"
           value={formValues.phone}
           onChange={(event) => updateField("phone", event.target.value)}
@@ -125,8 +131,8 @@ export function DeliveryDetailsForm() {
         />
         <div className="sm:col-span-2">
           <Input
-            label="Street address"
-            placeholder="House number, street"
+            label={dictionary.checkout.streetAddress}
+            placeholder={dictionary.checkout.streetAddressPlaceholder}
             value={formValues.street}
             onChange={(event) => updateField("street", event.target.value)}
             errorMessage={fieldErrors.street}
@@ -134,7 +140,7 @@ export function DeliveryDetailsForm() {
           />
         </div>
         <Input
-          label="District"
+          label={dictionary.checkout.district}
           placeholder="Thanh Xuan"
           value={formValues.district}
           onChange={(event) => updateField("district", event.target.value)}
@@ -142,7 +148,7 @@ export function DeliveryDetailsForm() {
           autoComplete="address-level2"
         />
         <Input
-          label="City"
+          label={dictionary.checkout.city}
           placeholder="Ha Noi"
           value={formValues.city}
           onChange={(event) => updateField("city", event.target.value)}
@@ -152,12 +158,13 @@ export function DeliveryDetailsForm() {
         <div className="sm:col-span-2">
           <label className="flex flex-col gap-2">
             <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">
-              Delivery note <span className="normal-case tracking-normal text-ink-muted/70">(optional)</span>
+              {dictionary.checkout.deliveryNote}{" "}
+              <span className="normal-case tracking-normal text-ink-muted/70">{dictionary.checkout.optional}</span>
             </span>
             <textarea
               value={formValues.note}
               onChange={(event) => updateField("note", event.target.value)}
-              placeholder="Lift access, best time to arrive…"
+              placeholder={dictionary.checkout.deliveryNotePlaceholder}
               rows={3}
               className="resize-none rounded-xl border border-hairline bg-canvas px-4 py-3.5 text-[13px] text-ink outline-none transition-colors duration-200 placeholder:text-ink-muted focus:border-terracotta"
             />
@@ -167,7 +174,7 @@ export function DeliveryDetailsForm() {
 
       <div className="mt-6.5 flex flex-col gap-3 border-t border-hairline pt-6">
         <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">
-          Delivery window
+          {dictionary.checkout.deliveryWindow}
         </span>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <label
@@ -191,9 +198,9 @@ export function DeliveryDetailsForm() {
               }`}
             />
             <span>
-              <span className="block text-[12.5px] font-semibold">Standard · free</span>
+              <span className="block text-[12.5px] font-semibold">{dictionary.checkout.standardFree}</span>
               <span className="mt-0.5 block text-[11px] text-ink-muted">
-                {standardDeliveryDateLabel}, 9:00–18:00
+                {dictionary.checkout.standardWindowTime(standardDeliveryDateLabel)}
               </span>
             </span>
           </label>
@@ -220,9 +227,9 @@ export function DeliveryDetailsForm() {
             />
             <span>
               <span className="block text-[12.5px] font-semibold">
-                Next day · {formatMoney(NEXT_DAY_DELIVERY_FEE_AMOUNT)}
+                {dictionary.checkout.nextDay(formatMoney(NEXT_DAY_DELIVERY_FEE_AMOUNT))}
               </span>
-              <span className="mt-0.5 block text-[11px] text-ink-muted">Order before 15:00 today</span>
+              <span className="mt-0.5 block text-[11px] text-ink-muted">{dictionary.checkout.orderBefore1500}</span>
             </span>
           </label>
         </div>
@@ -232,7 +239,7 @@ export function DeliveryDetailsForm() {
         type="submit"
         className="mt-6.5 flex h-[54px] w-full cursor-pointer items-center justify-center gap-3 rounded-pill bg-deep text-[11.5px] font-semibold uppercase tracking-[0.14em] text-white transition-colors duration-300 hover:bg-terracotta"
       >
-        Continue to payment
+        {dictionary.checkout.continueToPayment}
       </button>
     </form>
   );

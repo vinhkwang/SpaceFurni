@@ -1,14 +1,19 @@
+"use client";
+
 import Link from "next/link";
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
 
 type CartIndicatorProps = {
   itemCount: number;
 };
 
 export function CartIndicator({ itemCount }: CartIndicatorProps) {
+  const dictionary = useDictionary();
+
   return (
     <Link
       href="/cart"
-      title="Shopping cart"
+      title={dictionary.header.cartAriaLabel}
       className="flex h-[46px] items-center gap-[9px] rounded-pill bg-surface px-4 transition-colors duration-200 hover:bg-deep hover:text-white"
     >
       <svg
@@ -24,7 +29,7 @@ export function CartIndicator({ itemCount }: CartIndicatorProps) {
         <path d="M3 6h18" />
         <path d="M16 10a4 4 0 0 1-8 0" />
       </svg>
-      <span className="text-[11px] font-medium uppercase tracking-[0.1em]">Cart</span>
+      <span className="text-[11px] font-medium uppercase tracking-[0.1em]">{dictionary.header.cart}</span>
       <span className="flex h-5 min-w-5 items-center justify-center rounded-pill bg-terracotta px-1.5 text-[10.5px] font-semibold text-white">
         {itemCount}
       </span>

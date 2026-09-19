@@ -1,3 +1,6 @@
+import { getDictionary, type Dictionary } from "@/lib/i18n/getDictionary";
+import { getLocale } from "@/lib/i18n/locale";
+
 export type CheckoutStep = "delivery" | "payment" | "confirmation";
 
 type CheckoutStepperProps = {
@@ -9,12 +12,14 @@ type StepDefinition = {
   label: string;
 };
 
-const STEP_DEFINITIONS: StepDefinition[] = [
-  { key: "cart", label: "Cart" },
-  { key: "delivery", label: "Delivery" },
-  { key: "payment", label: "Payment" },
-  { key: "confirmation", label: "Confirmation" },
-];
+function stepDefinitions(dictionary: Dictionary): StepDefinition[] {
+  return [
+    { key: "cart", label: dictionary.checkout.stepperCart },
+    { key: "delivery", label: dictionary.checkout.stepperDelivery },
+    { key: "payment", label: dictionary.checkout.stepperPayment },
+    { key: "confirmation", label: dictionary.checkout.stepperConfirmation },
+  ];
+}
 
 const checkIcon = (
   <svg
@@ -30,8 +35,10 @@ const checkIcon = (
   </svg>
 );
 
+const STEP_KEYS: StepDefinition["key"][] = ["cart", "delivery", "payment", "confirmation"];
+
 function activeStepIndex(currentStep: CheckoutStep): number {
-  return STEP_DEFINITIONS.findIndex((definition) => definition.key === currentStep);
+  return STEP_KEYS.findIndex((key) => key === currentStep);
 }
 
 function circleClassName(isCurrent: boolean, isComplete: boolean): string {
@@ -50,15 +57,17 @@ function labelClassName(isCurrent: boolean): string {
     : "text-[11px] font-semibold uppercase tracking-[0.13em] text-ink-muted";
 }
 
-export function CheckoutStepper({ currentStep }: CheckoutStepperProps) {
+export async function CheckoutStepper({ currentStep }: CheckoutStepperProps) {
+  const dictionary = getDictionary(await getLocale());
   const activeIndex = activeStepIndex(currentStep);
+  const definitions = stepDefinitions(dictionary);
 
   return (
     <div className="flex items-center gap-2.5">
-      {STEP_DEFINITIONS.map((definition, index) => {
+      {definitions.map((definition, index) => {
         const isComplete = index < activeIndex;
         const isCurrent = index === activeIndex;
-        const isLastDefinition = index === STEP_DEFINITIONS.length - 1;
+        const isLastDefinition = index === definitions.length - 1;
 
         return (
           <div key={definition.key} className="flex items-center gap-2.5">

@@ -7,3 +7,4 @@ export default async function SettingsPage() {
 
   return <SettingsForm settings={settings} />;
 }
+

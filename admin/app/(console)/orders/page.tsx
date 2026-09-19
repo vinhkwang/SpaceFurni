@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { apiFetch } from "@/lib/api/apiClient";
 import type { AdminOrderListResponse, OrderStatus } from "@/lib/api/types";
+import { getDictionary, type Dictionary } from "@/lib/i18n/getDictionary";
+import { getLocale } from "@/lib/i18n/locale";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { OrderTable, buildOrdersHref } from "@/components/orders/OrderTable";
 
@@ -8,14 +10,16 @@ const PAGE_SIZE = 20;
 
 const ORDER_STATUS_VALUES: OrderStatus[] = ["PENDING", "PAID", "PACKING", "DELIVERED", "CANCELLED"];
 
-const STATUS_FILTERS: { value: OrderStatus | undefined; label: string }[] = [
-  { value: undefined, label: "All" },
-  { value: "PENDING", label: "Pending" },
-  { value: "PAID", label: "Paid" },
-  { value: "PACKING", label: "Packing" },
-  { value: "DELIVERED", label: "Delivered" },
-  { value: "CANCELLED", label: "Cancelled" },
-];
+function statusFilters(dictionary: Dictionary): { value: OrderStatus | undefined; label: string }[] {
+  return [
+    { value: undefined, label: dictionary.common.all },
+    { value: "PENDING", label: dictionary.orders.statusLabels.PENDING },
+    { value: "PAID", label: dictionary.orders.statusLabels.PAID },
+    { value: "PACKING", label: dictionary.orders.statusLabels.PACKING },
+    { value: "DELIVERED", label: dictionary.orders.statusLabels.DELIVERED },
+    { value: "CANCELLED", label: dictionary.orders.statusLabels.CANCELLED },
+  ];
+}
 
 function firstSearchParamValue(rawValue: string | string[] | undefined): string | undefined {
   return Array.isArray(rawValue) ? rawValue[0] : rawValue;
@@ -77,7 +81,7 @@ function DeliveredIcon() {
 }
 
 export default async function OrdersPage({ searchParams }: PageProps<"/orders">) {
-  const resolvedSearchParams = await searchParams;
+  const [resolvedSearchParams, dictionary] = await Promise.all([searchParams, getLocale().then(getDictionary)]);
   const statusFilter = resolveStatusFilter(firstSearchParamValue(resolvedSearchParams.status));
   const pageIndex = toPageIndex(firstSearchParamValue(resolvedSearchParams.page));
 
@@ -93,17 +97,17 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
   return (
     <div className="flex flex-col gap-4.5">
       <div className="grid grid-cols-4 gap-4.5">
-        <StatCard label="Pending" value={orderList.statusCounts.PENDING ?? 0} icon={<PendingIcon />} />
-        <StatCard label="Paid" value={orderList.statusCounts.PAID ?? 0} icon={<PaidIcon />} />
-        <StatCard label="Packing" value={orderList.statusCounts.PACKING ?? 0} icon={<PackingIcon />} />
-        <StatCard label="Delivered" value={orderList.statusCounts.DELIVERED ?? 0} icon={<DeliveredIcon />} />
+        <StatCard label={dictionary.orders.statusLabels.PENDING} value={orderList.statusCounts.PENDING ?? 0} icon={<PendingIcon />} />
+        <StatCard label={dictionary.orders.statusLabels.PAID} value={orderList.statusCounts.PAID ?? 0} icon={<PaidIcon />} />
+        <StatCard label={dictionary.orders.statusLabels.PACKING} value={orderList.statusCounts.PACKING ?? 0} icon={<PackingIcon />} />
+        <StatCard label={dictionary.orders.statusLabels.DELIVERED} value={orderList.statusCounts.DELIVERED ?? 0} icon={<DeliveredIcon />} />
       </div>
 
       <div className="rounded-2xl border border-hairline-soft bg-white p-6.5">
         <div className="mb-6 flex flex-wrap gap-2">
-          {STATUS_FILTERS.map((filter) => (
+          {statusFilters(dictionary).map((filter) => (
             <Link
-              key={filter.label}
+              key={filter.value ?? "all"}
               href={buildOrdersHref(filter.value, 0)}
               className={`flex h-10 items-center gap-2 rounded-pill border px-4.5 text-[11.5px] transition-colors duration-200 ${
                 filter.value === statusFilter
@@ -122,6 +126,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/orders">)
           currentPage={orderList.orders.page}
           totalPages={orderList.orders.totalPages}
           status={statusFilter}
+          dictionary={dictionary}
         />
       </div>
     </div>

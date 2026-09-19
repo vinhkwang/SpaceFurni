@@ -1,9 +1,11 @@
 import Image from "next/image";
 import type { AdminOrderLineResponse } from "@/lib/api/types";
 import { formatMoney } from "@/lib/formatting/formatMoney";
+import type { Dictionary } from "@/lib/i18n/getDictionary";
 
 type OrderLinesProps = {
   lines: AdminOrderLineResponse[];
+  dictionary: Dictionary;
 };
 
 function ImagePlaceholderIcon() {
@@ -24,7 +26,7 @@ function ImagePlaceholderIcon() {
   );
 }
 
-export function OrderLines({ lines }: OrderLinesProps) {
+export function OrderLines({ lines, dictionary }: OrderLinesProps) {
   return (
     <div>
       {lines.map((line, lineIndex) => (
@@ -44,7 +46,9 @@ export function OrderLines({ lines }: OrderLinesProps) {
           </div>
           <div className="flex-1">
             <div className="text-[14px] font-medium text-ink">{line.productName}</div>
-            <div className="mt-1.5 text-[11.5px] text-ink-muted">{formatMoney(line.unitPriceAmount)} each</div>
+            <div className="mt-1.5 text-[11.5px] text-ink-muted">
+              {formatMoney(line.unitPriceAmount)} {dictionary.orders.each}
+            </div>
           </div>
           <span className="text-[12.5px] text-ink-soft">× {line.quantity}</span>
           <span className="w-[130px] text-right text-[14px] font-semibold text-ink">

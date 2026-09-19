@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import type { CategoryTreeResponse } from "@/lib/api/types";
 import { buildProductListingHref } from "@/lib/catalog/productListingUrl";
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
 
 type MegaNavigationProps = {
   categories: CategoryTreeResponse[];
@@ -14,13 +15,14 @@ const navigationItemClassName =
 
 export function MegaNavigation({ categories }: MegaNavigationProps) {
   const [openCategoryId, setOpenCategoryId] = useState<string | null>(null);
+  const dictionary = useDictionary();
 
   return (
     <nav className="relative flex h-14 items-center rounded-pill bg-deep pl-1 pr-2.5">
       <ul className="flex h-14 list-none items-center">
         <li className="flex h-14 items-center">
           <Link href="/" className={navigationItemClassName}>
-            Homepage
+            {dictionary.header.homepage}
           </Link>
         </li>
         {categories.map((category) => (

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState, type MouseEvent } from "react";
 import type { ProductBadgeResponse } from "@/lib/api/types";
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
 import { Badge } from "@/components/ui/Badge";
 
 type ProductGalleryProps = {
@@ -31,6 +32,7 @@ const expandIcon = (
 );
 
 export function ProductGallery({ images, productName, badge }: ProductGalleryProps) {
+  const dictionary = useDictionary();
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [zoomOrigin, setZoomOrigin] = useState<ZoomOrigin>({ x: 50, y: 50 });
   const [isZoomed, setIsZoomed] = useState(false);
@@ -73,7 +75,7 @@ export function ProductGallery({ images, productName, badge }: ProductGalleryPro
         ) : null}
         <span className="absolute bottom-5 right-5.5 flex items-center gap-2 text-[10.5px] uppercase tracking-[0.12em] text-ink-muted">
           {expandIcon}
-          Hover to zoom
+          {dictionary.product.hoverToZoom}
         </span>
       </div>
 
@@ -87,7 +89,7 @@ export function ProductGallery({ images, productName, badge }: ProductGalleryPro
                 key={imageIndex}
                 type="button"
                 onClick={() => setActiveImageIndex(imageIndex)}
-                aria-label={`Show image ${imageIndex + 1} of ${images.length}`}
+                aria-label={dictionary.product.showImageAriaLabel(imageIndex + 1, images.length)}
                 aria-current={isActiveThumbnail ? "true" : undefined}
                 className={`flex aspect-[1/0.82] items-center justify-center rounded-[11px] border bg-surface-warm p-3.5 transition-colors duration-250 ${
                   isActiveThumbnail ? "border-ink" : "border-hairline-soft hover:border-ink-muted"

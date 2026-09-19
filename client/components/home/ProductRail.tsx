@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { apiFetch } from "@/lib/api/apiClient";
 import type { PageResponse, ProductSummaryResponse } from "@/lib/api/types";
+import { getDictionary } from "@/lib/i18n/getDictionary";
+import { getLocale } from "@/lib/i18n/locale";
 import { ProductCard } from "@/components/product/ProductCard";
 
 export type ProductRailSortKey = "newest" | "priceAsc" | "priceDesc" | "rating";
@@ -22,7 +24,8 @@ async function fetchRailProducts(sort: ProductRailSortKey): Promise<ProductSumma
 }
 
 export async function ProductRail({ eyebrow, title, sort, shopAllHref }: ProductRailProps) {
-  const products = await fetchRailProducts(sort);
+  const [products, locale] = await Promise.all([fetchRailProducts(sort), getLocale()]);
+  const dictionary = getDictionary(locale);
 
   if (products.length === 0) {
     return null;
@@ -43,7 +46,7 @@ export async function ProductRail({ eyebrow, title, sort, shopAllHref }: Product
           href={shopAllHref}
           className="flex h-[46px] w-fit items-center gap-3 rounded-pill border border-hairline px-6 text-[11px] font-semibold uppercase tracking-[0.14em] transition-all duration-300 hover:gap-[18px] hover:border-deep hover:bg-deep hover:text-white"
         >
-          Shop all
+          {dictionary.home.shopAll}
           <svg
             viewBox="0 0 24 24"
             aria-hidden

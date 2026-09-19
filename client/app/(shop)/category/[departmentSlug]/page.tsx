@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { apiFetch } from "@/lib/api/apiClient";
 import type { CategoryTreeResponse, PageResponse, ProductSummaryResponse } from "@/lib/api/types";
+import { getDictionary, type Dictionary } from "@/lib/i18n/getDictionary";
+import { getLocale } from "@/lib/i18n/locale";
 import { ProductCard } from "@/components/product/ProductCard";
 import { PriceRangeFilter } from "@/components/catalog/PriceRangeFilter";
 import { SortSelect } from "@/components/catalog/SortSelect";
@@ -88,15 +90,6 @@ function buildProductQuery(
   return query.toString();
 }
 
-function departmentBlurb(departmentName: string): string {
-  return `Everything in ${departmentName.toLowerCase()} is photographed in the showroom, priced with VAT and delivered assembled inside Hanoi.`;
-}
-
-function resultCountLabel(totalElements: number, subCategoryName: string | undefined): string {
-  const pieceLabel = totalElements === 1 ? "1 piece" : `${totalElements} pieces`;
-  return subCategoryName ? `${pieceLabel} in ${subCategoryName.toLowerCase()}` : pieceLabel;
-}
-
 function hasNarrowingFilterApplied(
   subCategorySlug: string | undefined,
   minPrice: number | undefined,
@@ -104,16 +97,6 @@ function hasNarrowingFilterApplied(
   pageIndex: number,
 ): boolean {
   return Boolean(subCategorySlug) || minPrice !== undefined || maxPrice !== undefined || pageIndex > 0;
-}
-
-function emptyStateHeading(hasNarrowingFilter: boolean): string {
-  return hasNarrowingFilter ? "Nothing in that price range" : "Nothing in this room yet";
-}
-
-function emptyStateBody(hasNarrowingFilter: boolean): string {
-  return hasNarrowingFilter
-    ? "Try widening the range or clearing the filter."
-    : "We are still photographing this department. Browse another room in the meantime.";
 }
 
 function pageNumbers(totalPages: number): number[] {
@@ -142,7 +125,8 @@ export default async function DepartmentListingPage({
   searchParams,
 }: PageProps<"/category/[departmentSlug]">) {
   const { departmentSlug } = await params;
-  const resolvedSearchParams = await searchParams;
+  const [resolvedSearchParams, locale] = await Promise.all([searchParams, getLocale()]);
+  const dictionary: Dictionary = getDictionary(locale);
 
   const listingSearchParams: ProductListingFilters = {
     sub: firstSearchParamValue(resolvedSearchParams.sub),
@@ -176,11 +160,11 @@ export default async function DepartmentListingPage({
     <main className="pb-22">
       <Container alignToNavLabel className="pt-7.5">
         <nav
-          aria-label="Breadcrumb"
+          aria-label={dictionary.catalog.breadcrumbAriaLabel}
           className="mb-6.5 flex items-center gap-2.5 text-[11px] uppercase tracking-[0.1em] text-ink-muted"
         >
           <Link href="/" className="transition-colors duration-200 hover:text-terracotta">
-            Home
+            {dictionary.common.home}
           </Link>
           {chevronIcon}
           <span className="text-ink">{department.name}</span>
@@ -198,11 +182,11 @@ export default async function DepartmentListingPage({
               {department.name}
             </h1>
             <p className="text-[12.5px] tracking-[0.04em] text-ink-muted">
-              {resultCountLabel(productPage.totalElements, subCategory?.name)}
+              {dictionary.catalog.resultCount(productPage.totalElements, subCategory?.name)}
             </p>
           </div>
           <p className="max-w-100 text-[12.5px] leading-[1.7] text-ink-soft md:text-right">
-            {departmentBlurb(department.name)}
+            {dictionary.catalog.departmentBlurb(department.name)}
           </p>
         </div>
       </Container>
@@ -230,16 +214,16 @@ export default async function DepartmentListingPage({
       <Container alignToNavLabel className="mt-6.5">
         {productPage.content.length === 0 ? (
           <div className="py-20 text-center">
-            <p className="mb-2.5 text-[17px] font-medium">{emptyStateHeading(hasNarrowingFilter)}</p>
+            <p className="mb-2.5 text-[17px] font-medium">{dictionary.catalog.emptyStateHeading(hasNarrowingFilter)}</p>
             <p className="mb-5.5 text-[12.5px] text-ink-muted">
-              {emptyStateBody(hasNarrowingFilter)}
+              {dictionary.catalog.emptyStateBody(hasNarrowingFilter)}
             </p>
             {hasNarrowingFilter ? (
               <Link
                 href={`/category/${departmentSlug}`}
                 className="inline-flex h-11 items-center rounded-pill bg-deep px-6.5 text-[11px] font-semibold uppercase tracking-[0.13em] text-white"
               >
-                Clear filters
+                {dictionary.catalog.clearFilters}
               </Link>
             ) : null}
           </div>
@@ -254,11 +238,11 @@ export default async function DepartmentListingPage({
 
       {productPage.totalPages > 1 ? (
         <Container alignToNavLabel className="mt-11">
-          <nav aria-label="Pagination" className="flex items-center justify-center gap-2">
+          <nav aria-label={dictionary.catalog.paginationAriaLabel} className="flex items-center justify-center gap-2">
             {currentPageNumber > 1 ? (
               <Link
                 href={buildProductListingHref(departmentSlug, { ...listingSearchParams, page: String(currentPageNumber - 1) })}
-                aria-label="Previous page"
+                aria-label={dictionary.catalog.previousPage}
                 className={paginationArrowClassName}
               >
                 <span className="rotate-180">{chevronIcon}</span>
@@ -285,7 +269,7 @@ export default async function DepartmentListingPage({
                 <Link
                   key={pageNumber}
                   href={buildProductListingHref(departmentSlug, { ...listingSearchParams, page: String(pageNumber) })}
-                  aria-label={`Page ${pageNumber}`}
+                  aria-label={dictionary.catalog.pageAriaLabel(pageNumber)}
                   className="flex h-10 w-10 items-center justify-center rounded-full border border-hairline-soft text-[12.5px] transition duration-250 hover:bg-surface"
                 >
                   {pageNumber}
@@ -296,7 +280,7 @@ export default async function DepartmentListingPage({
             {currentPageNumber < productPage.totalPages ? (
               <Link
                 href={buildProductListingHref(departmentSlug, { ...listingSearchParams, page: String(currentPageNumber + 1) })}
-                aria-label="Next page"
+                aria-label={dictionary.catalog.nextPage}
                 className={paginationArrowClassName}
               >
                 {chevronIcon}

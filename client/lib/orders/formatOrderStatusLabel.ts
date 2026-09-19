@@ -1,13 +1,6 @@
 import type { OrderStatus } from "@/lib/api/types";
+import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 
-const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
-  PENDING: "Pending",
-  PAID: "Paid",
-  PACKING: "Packing",
-  DELIVERED: "Delivered",
-  CANCELLED: "Cancelled",
-};
-
-export function formatOrderStatusLabel(status: OrderStatus): string {
-  return ORDER_STATUS_LABELS[status];
+export function formatOrderStatusLabel(dictionary: Dictionary, status: OrderStatus): string {
+  return dictionary.orders.statusLabels[status];
 }

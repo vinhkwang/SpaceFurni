@@ -1,3 +1,7 @@
+"use client";
+
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
+
 type RatingVariant = "compact" | "full";
 
 type RatingProps = {
@@ -15,14 +19,16 @@ function filledPercentageForStar(value: number, position: number): number {
   return Math.min(Math.max(value - position, 0), 1) * 100;
 }
 
-function ratingLabelFor(value: number, reviewCount?: number | null): string {
-  if (typeof reviewCount !== "number") {
-    return value.toFixed(1);
-  }
-  return `${value.toFixed(1)} · ${reviewCount} reviews`;
-}
-
 export function Rating({ value, reviewCount, variant = "full" }: RatingProps) {
+  const dictionary = useDictionary();
+
+  function ratingLabel(): string {
+    if (typeof reviewCount !== "number") {
+      return value.toFixed(1);
+    }
+    return `${value.toFixed(1)} · ${dictionary.reviews.reviewsSuffix(reviewCount)}`;
+  }
+
   if (variant === "compact") {
     return (
       <span className="inline-flex items-center gap-1 text-[10.5px] tracking-[0.06em] text-brass">
@@ -35,10 +41,7 @@ export function Rating({ value, reviewCount, variant = "full" }: RatingProps) {
   }
 
   return (
-    <span
-      className="inline-flex items-center gap-3.5"
-      aria-label={ratingLabelFor(value, reviewCount)}
-    >
+    <span className="inline-flex items-center gap-3.5" aria-label={ratingLabel()}>
       <span className="inline-flex items-center gap-1 text-brass" aria-hidden>
         {starPositions.map((position) => (
           <span key={position} className="relative inline-flex h-[11px] w-[11px]">
@@ -56,9 +59,7 @@ export function Rating({ value, reviewCount, variant = "full" }: RatingProps) {
           </span>
         ))}
       </span>
-      <span className="text-[12px] text-ink-soft">
-        {ratingLabelFor(value, reviewCount)}
-      </span>
+      <span className="text-[12px] text-ink-soft">{ratingLabel()}</span>
     </span>
   );
 }

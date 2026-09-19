@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
 
 type HeroSlide = {
   imageUrl: string;
@@ -15,31 +16,10 @@ type HeroSlide = {
 
 const SLIDE_INTERVAL_MILLISECONDS = 6000;
 
-const heroSlides: HeroSlide[] = [
-  {
-    imageUrl: "/images/room-living.jpg",
-    eyebrow: "Living room",
-    title: "Rooms that feel finished",
-    body: "Sofas, tables and shelving designed as a set — so nothing in your living room looks accidental.",
-    callToAction: "Shop living room",
-    categorySlug: "living-room",
-  },
-  {
-    imageUrl: "/images/room-kitchen.jpg",
-    eyebrow: "Kitchen",
-    title: "Storage that earns its place",
-    body: "Cabinetry and trolleys built to the millimetre of your kitchen, installed by our own team.",
-    callToAction: "Shop kitchen",
-    categorySlug: "kitchen",
-  },
-  {
-    imageUrl: "/images/room-bedroom.png",
-    eyebrow: "Bedroom",
-    title: "A quieter place to sleep",
-    body: "Solid timber beds and bedsides in warm, low-sheen finishes. Delivered assembled.",
-    callToAction: "Shop bedroom",
-    categorySlug: "bedroom",
-  },
+const HERO_SLIDE_ASSETS = [
+  { imageUrl: "/images/room-living.jpg", categorySlug: "living-room" },
+  { imageUrl: "/images/room-kitchen.jpg", categorySlug: "kitchen" },
+  { imageUrl: "/images/room-bedroom.png", categorySlug: "bedroom" },
 ];
 
 const arrowButtonClassName =
@@ -50,6 +30,11 @@ function slideCounterLabel(activeIndex: number, slideCount: number): string {
 }
 
 export function HeroCarousel() {
+  const dictionary = useDictionary();
+  const heroSlides: HeroSlide[] = HERO_SLIDE_ASSETS.map((asset, slideIndex) => ({
+    ...asset,
+    ...dictionary.home.heroSlides[slideIndex],
+  }));
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -58,22 +43,22 @@ export function HeroCarousel() {
       return;
     }
     const advanceTimer = setInterval(() => {
-      setActiveIndex((currentIndex) => (currentIndex + 1) % heroSlides.length);
+      setActiveIndex((currentIndex) => (currentIndex + 1) % HERO_SLIDE_ASSETS.length);
     }, SLIDE_INTERVAL_MILLISECONDS);
     return () => clearInterval(advanceTimer);
   }, [isPaused]);
 
   function showPreviousSlide() {
-    setActiveIndex((currentIndex) => (currentIndex + heroSlides.length - 1) % heroSlides.length);
+    setActiveIndex((currentIndex) => (currentIndex + HERO_SLIDE_ASSETS.length - 1) % HERO_SLIDE_ASSETS.length);
   }
 
   function showNextSlide() {
-    setActiveIndex((currentIndex) => (currentIndex + 1) % heroSlides.length);
+    setActiveIndex((currentIndex) => (currentIndex + 1) % HERO_SLIDE_ASSETS.length);
   }
 
   return (
     <section
-      aria-label="Featured rooms"
+      aria-label={dictionary.home.heroCarouselAriaLabel}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       className="relative h-[524px] overflow-hidden rounded-2xl bg-surface"
@@ -116,7 +101,7 @@ export function HeroCarousel() {
 
       <button
         type="button"
-        aria-label="Previous slide"
+        aria-label={dictionary.home.previousSlide}
         onClick={showPreviousSlide}
         className={`${arrowButtonClassName} left-[22px]`}
       >
@@ -134,7 +119,7 @@ export function HeroCarousel() {
       </button>
       <button
         type="button"
-        aria-label="Next slide"
+        aria-label={dictionary.home.nextSlide}
         onClick={showNextSlide}
         className={`${arrowButtonClassName} right-[22px]`}
       >
@@ -156,7 +141,7 @@ export function HeroCarousel() {
           <button
             key={slide.categorySlug}
             type="button"
-            aria-label={`Show ${slide.eyebrow} slide`}
+            aria-label={dictionary.home.showSlideAria(slide.eyebrow)}
             aria-current={slideIndex === activeIndex}
             onClick={() => setActiveIndex(slideIndex)}
             className={`h-[3px] cursor-pointer rounded-sm transition-all duration-500 ${

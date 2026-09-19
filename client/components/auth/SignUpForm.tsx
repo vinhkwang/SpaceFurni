@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 
@@ -21,6 +22,7 @@ const socialButtonClassName =
 
 export function SignUpForm({ redirectTo }: SignUpFormProps) {
   const router = useRouter();
+  const dictionary = useDictionary();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -42,7 +44,7 @@ export function SignUpForm({ redirectTo }: SignUpFormProps) {
       const envelope = (await response.json()) as SessionEnvelope;
 
       if (!envelope.success) {
-        setErrorMessage(envelope.error?.message ?? "We could not create your account. Try again.");
+        setErrorMessage(envelope.error?.message ?? dictionary.auth.couldNotCreateAccount);
         setIsSubmitting(false);
         return;
       }
@@ -50,7 +52,7 @@ export function SignUpForm({ redirectTo }: SignUpFormProps) {
       router.replace(redirectTo);
       router.refresh();
     } catch {
-      setErrorMessage("We could not reach the server. Try again.");
+      setErrorMessage(dictionary.auth.couldNotReachServer);
       setIsSubmitting(false);
     }
   }
@@ -58,20 +60,20 @@ export function SignUpForm({ redirectTo }: SignUpFormProps) {
   return (
     <form onSubmit={submitRegistration} className="flex flex-col gap-[18px]">
       <Input
-        label="Full name"
+        label={dictionary.checkout.fullName}
         value={fullName}
         onChange={(event) => setFullName(event.target.value)}
-        placeholder="Nguyen Minh"
+        placeholder={dictionary.auth.fullNamePlaceholder}
         autoComplete="name"
         required
       />
 
       <Input
-        label="Email address"
+        label={dictionary.auth.emailAddress}
         type="email"
         value={email}
         onChange={(event) => setEmail(event.target.value)}
-        placeholder="you@email.com"
+        placeholder={dictionary.auth.emailPlaceholder}
         autoComplete="email"
         required
       />
@@ -79,22 +81,22 @@ export function SignUpForm({ redirectTo }: SignUpFormProps) {
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">
-            Password
+            {dictionary.auth.password}
           </span>
           <button
             type="button"
             onClick={() => setIsPasswordVisible(!isPasswordVisible)}
             className="cursor-pointer text-[10.5px] uppercase tracking-[0.1em] text-terracotta"
           >
-            {isPasswordVisible ? "Hide" : "Show"}
+            {isPasswordVisible ? dictionary.auth.hide : dictionary.auth.show}
           </button>
         </div>
         <Input
           type={isPasswordVisible ? "text" : "password"}
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          placeholder="At least 8 characters"
-          aria-label="Password"
+          placeholder={dictionary.auth.createPasswordPlaceholder}
+          aria-label={dictionary.auth.password}
           autoComplete="new-password"
           minLength={MINIMUM_PASSWORD_LENGTH}
           required
@@ -123,21 +125,21 @@ export function SignUpForm({ redirectTo }: SignUpFormProps) {
       ) : null}
 
       <Button type="submit" size="large" disabled={isSubmitting} className="mt-1.5 w-full">
-        {isSubmitting ? "Creating account" : "Create account"}
+        {isSubmitting ? dictionary.auth.creatingAccount : dictionary.auth.createAccount}
       </Button>
 
       <div className="my-1.5 flex items-center gap-4">
         <span className="h-px flex-1 bg-hairline" />
-        <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">or</span>
+        <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">{dictionary.auth.or}</span>
         <span className="h-px flex-1 bg-hairline" />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <button type="button" disabled className={socialButtonClassName}>
-          Google
+          {dictionary.common.google}
         </button>
         <button type="button" disabled className={socialButtonClassName}>
-          Facebook
+          {dictionary.common.facebook}
         </button>
       </div>
     </form>

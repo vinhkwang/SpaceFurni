@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { publicStorefrontUrl } from "@/lib/config/environment";
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
 
 type AdminSidebarProps = {
   publishedProductCount: number;
@@ -109,15 +110,16 @@ function isNavItemActive(pathname: string, href: string): boolean {
 export function AdminSidebar({ publishedProductCount, pendingOrderCount }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const dictionary = useDictionary();
 
   const navItems: NavItem[] = [
-    { label: "Dashboard", href: "/dashboard", icon: <DashboardIcon />, count: null },
-    { label: "Products", href: "/products", icon: <ProductsIcon />, count: publishedProductCount },
-    { label: "Orders", href: "/orders", icon: <OrdersIcon />, count: pendingOrderCount },
-    { label: "Customers", href: "/customers", icon: <CustomersIcon />, count: null },
-    { label: "Reviews", href: "/reviews", icon: <ReviewsIcon />, count: null },
-    { label: "Messages", href: "/messages", icon: <MessagesIcon />, count: null },
-    { label: "Settings", href: "/settings", icon: <SettingsIcon />, count: null },
+    { label: dictionary.sidebar.dashboard, href: "/dashboard", icon: <DashboardIcon />, count: null },
+    { label: dictionary.sidebar.products, href: "/products", icon: <ProductsIcon />, count: publishedProductCount },
+    { label: dictionary.sidebar.orders, href: "/orders", icon: <OrdersIcon />, count: pendingOrderCount },
+    { label: dictionary.sidebar.customers, href: "/customers", icon: <CustomersIcon />, count: null },
+    { label: dictionary.sidebar.reviews, href: "/reviews", icon: <ReviewsIcon />, count: null },
+    { label: dictionary.sidebar.messages, href: "/messages", icon: <MessagesIcon />, count: null },
+    { label: dictionary.sidebar.settings, href: "/settings", icon: <SettingsIcon />, count: null },
   ];
 
   async function signOut() {
@@ -139,7 +141,9 @@ export function AdminSidebar({ publishedProductCount, pendingOrderCount }: Admin
             <span className="font-bold">SPACE</span>
             <span className="font-light text-white/70">FURNI</span>
           </div>
-          <div className="mt-[3px] text-[9px] uppercase tracking-[0.16em] text-white/40">Admin console</div>
+          <div className="mt-[3px] text-[9px] uppercase tracking-[0.16em] text-white/40">
+            {dictionary.sidebar.adminConsole}
+          </div>
         </div>
       </div>
 
@@ -172,7 +176,7 @@ export function AdminSidebar({ publishedProductCount, pendingOrderCount }: Admin
           className="flex h-11 items-center gap-3.5 rounded-xl px-4 text-[12.5px] text-white/60 transition-colors duration-200 hover:bg-white/7 hover:text-white"
         >
           <StoreIcon />
-          Back to store
+          {dictionary.sidebar.backToStore}
         </a>
         <button
           type="button"
@@ -180,7 +184,7 @@ export function AdminSidebar({ publishedProductCount, pendingOrderCount }: Admin
           className="flex h-11 cursor-pointer items-center gap-3.5 rounded-xl px-4 text-[12.5px] text-white/60 transition-colors duration-200 hover:bg-white/7 hover:text-white"
         >
           <SignOutIcon />
-          Sign out
+          {dictionary.sidebar.signOut}
         </button>
       </div>
     </aside>

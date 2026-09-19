@@ -1,4 +1,7 @@
+"use client";
+
 import type { ReactNode } from "react";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 type StatCardProps = {
   label: string;
@@ -7,6 +10,7 @@ type StatCardProps = {
 };
 
 export function StatCard({ label, value, icon }: StatCardProps) {
+  const { locale } = useLocale();
   return (
     <div className="rounded-2xl border border-hairline-soft bg-white p-5.5">
       <div className="mb-4.5 flex items-center justify-between">
@@ -15,7 +19,9 @@ export function StatCard({ label, value, icon }: StatCardProps) {
           {icon}
         </span>
       </div>
-      <div className="text-[26px] font-semibold tracking-tight text-ink">{value.toLocaleString("en-US")}</div>
+      <div className="text-[26px] font-semibold tracking-tight text-ink">
+        {value.toLocaleString(locale === "vi" ? "vi-VN" : "en-US")}
+      </div>
     </div>
   );
 }

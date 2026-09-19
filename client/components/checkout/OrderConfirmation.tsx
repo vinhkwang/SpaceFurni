@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { formatMoney } from "@/lib/formatting/formatMoney";
 import { formatDeliveryDate } from "@/lib/formatting/formatDeliveryDate";
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
 import type { OrderResponse } from "@/lib/api/types";
 
 type OrderConfirmationProps = {
@@ -21,6 +24,7 @@ const checkIcon = (
 );
 
 export function OrderConfirmation({ order }: OrderConfirmationProps) {
+  const dictionary = useDictionary();
   const deliveryDateLabel = formatDeliveryDate(new Date(order.placedAt), deliveryOffsetDays(order));
 
   return (
@@ -28,19 +32,19 @@ export function OrderConfirmation({ order }: OrderConfirmationProps) {
       <div className="mx-auto mb-6.5 flex h-[78px] w-[78px] items-center justify-center rounded-full bg-deep text-white">
         {checkIcon}
       </div>
-      <h2 className="mb-3 text-[27px] font-medium tracking-[-0.015em]">Order placed — thank you</h2>
+      <h2 className="mb-3 text-[27px] font-medium tracking-[-0.015em]">{dictionary.checkout.orderPlacedThankYou}</h2>
       <p className="mx-auto mb-7.5 max-w-[420px] text-[13px] leading-[1.7] text-ink-soft">
-        We&apos;ve emailed your receipt. Our delivery team will call the morning before they arrive, {deliveryDateLabel}.
+        {dictionary.checkout.receiptBody(deliveryDateLabel)}
       </p>
 
       <div className="mb-8 inline-flex items-center gap-6.5 rounded-2xl bg-surface px-7.5 py-4.5">
         <div>
-          <div className="mb-1.5 text-[10px] uppercase tracking-[0.14em] text-ink-muted">Order</div>
+          <div className="mb-1.5 text-[10px] uppercase tracking-[0.14em] text-ink-muted">{dictionary.checkout.order}</div>
           <div className="text-[14px] font-semibold">#{order.orderNumber}</div>
         </div>
         <span className="h-7.5 w-px bg-hairline" />
         <div>
-          <div className="mb-1.5 text-[10px] uppercase tracking-[0.14em] text-ink-muted">Total paid</div>
+          <div className="mb-1.5 text-[10px] uppercase tracking-[0.14em] text-ink-muted">{dictionary.checkout.totalPaid}</div>
           <div className="text-[14px] font-semibold">{formatMoney(order.totalAmount)}</div>
         </div>
       </div>
@@ -50,7 +54,7 @@ export function OrderConfirmation({ order }: OrderConfirmationProps) {
           href="/"
           className="inline-flex h-[50px] cursor-pointer items-center justify-center rounded-pill bg-deep px-7.5 text-[11.5px] font-semibold uppercase tracking-[0.14em] text-white transition-colors duration-300 hover:bg-terracotta"
         >
-          Keep shopping
+          {dictionary.checkout.keepShopping}
         </Link>
       </div>
     </div>

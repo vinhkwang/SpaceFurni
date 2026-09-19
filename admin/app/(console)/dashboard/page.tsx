@@ -1,5 +1,7 @@
 import { apiFetch } from "@/lib/api/apiClient";
 import type { AdminSummaryResponse, DepartmentRevenueShareResponse, MonthlyRevenuePointResponse } from "@/lib/api/types";
+import { getDictionary } from "@/lib/i18n/getDictionary";
+import { getLocale } from "@/lib/i18n/locale";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { RevenueChart } from "@/components/dashboard/RevenueChart";
 import { DepartmentShareChart } from "@/components/dashboard/DepartmentShareChart";
@@ -43,23 +45,25 @@ function LowStockIcon() {
 }
 
 export default async function DashboardPage() {
-  const [summary, revenuePoints, departmentShares] = await Promise.all([
+  const [summary, revenuePoints, departmentShares, locale] = await Promise.all([
     apiFetch<AdminSummaryResponse>("/admin/summary", { cache: "no-store" }),
     apiFetch<MonthlyRevenuePointResponse[]>("/admin/dashboard/revenue?months=12", { cache: "no-store" }),
     apiFetch<DepartmentRevenueShareResponse[]>("/admin/dashboard/department-share", { cache: "no-store" }),
+    getLocale(),
   ]);
+  const dictionary = getDictionary(locale);
 
   return (
     <div className="flex flex-col gap-4.5">
       <div className="grid grid-cols-4 gap-4.5">
-        <StatCard label="Published products" value={summary.publishedProductCount} icon={<PublishedProductsIcon />} />
-        <StatCard label="Orders today" value={summary.ordersTodayCount} icon={<OrdersTodayIcon />} />
-        <StatCard label="Pending orders" value={summary.pendingOrdersCount} icon={<PendingOrdersIcon />} />
-        <StatCard label="Low stock products" value={summary.lowStockProductCount} icon={<LowStockIcon />} />
+        <StatCard label={dictionary.dashboard.publishedProducts} value={summary.publishedProductCount} icon={<PublishedProductsIcon />} />
+        <StatCard label={dictionary.dashboard.ordersToday} value={summary.ordersTodayCount} icon={<OrdersTodayIcon />} />
+        <StatCard label={dictionary.dashboard.pendingOrders} value={summary.pendingOrdersCount} icon={<PendingOrdersIcon />} />
+        <StatCard label={dictionary.dashboard.lowStockProducts} value={summary.lowStockProductCount} icon={<LowStockIcon />} />
       </div>
       <div className="grid grid-cols-[1fr_380px] gap-4.5">
-        <RevenueChart points={revenuePoints} />
-        <DepartmentShareChart shares={departmentShares} />
+        <RevenueChart points={revenuePoints} dictionary={dictionary} locale={locale} />
+        <DepartmentShareChart shares={departmentShares} dictionary={dictionary} />
       </div>
     </div>
   );

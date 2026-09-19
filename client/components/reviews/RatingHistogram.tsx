@@ -1,5 +1,7 @@
 import { Rating } from "@/components/ui/Rating";
 import type { RatingHistogramResponse } from "@/lib/api/types";
+import { getDictionary } from "@/lib/i18n/getDictionary";
+import { getLocale } from "@/lib/i18n/locale";
 
 type RatingHistogramProps = {
   ratingAverage: number | null;
@@ -7,9 +9,10 @@ type RatingHistogramProps = {
   histogram: RatingHistogramResponse;
 };
 
-export function RatingHistogram({ ratingAverage, reviewCount, histogram }: RatingHistogramProps) {
+export async function RatingHistogram({ ratingAverage, reviewCount, histogram }: RatingHistogramProps) {
   if (ratingAverage === null || reviewCount === 0) {
-    return <p className="text-[13px] text-ink-soft">No reviews yet — be the first.</p>;
+    const dictionary = getDictionary(await getLocale());
+    return <p className="text-[13px] text-ink-soft">{dictionary.reviews.noReviewsFirst}</p>;
   }
 
   const maxCount = Math.max(...histogram.counts.map((entry) => entry.count), 1);

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { OrderSummaryResponse } from "@/lib/api/types";
 import { formatMoney } from "@/lib/formatting/formatMoney";
+import { getDictionary } from "@/lib/i18n/getDictionary";
+import { getLocale } from "@/lib/i18n/locale";
 import { formatOrderPlacedAt } from "@/lib/orders/formatOrderPlacedAt";
 import { formatOrderStatusLabel } from "@/lib/orders/formatOrderStatusLabel";
 
@@ -8,7 +10,8 @@ type OrderHistoryRowProps = {
   order: OrderSummaryResponse;
 };
 
-export function OrderHistoryRow({ order }: OrderHistoryRowProps) {
+export async function OrderHistoryRow({ order }: OrderHistoryRowProps) {
+  const dictionary = getDictionary(await getLocale());
   const placedAtParts = formatOrderPlacedAt(order.placedAt);
   return (
     <Link
@@ -18,12 +21,12 @@ export function OrderHistoryRow({ order }: OrderHistoryRowProps) {
       <div>
         <div className="text-[13px] font-semibold text-ink">#{order.orderNumber}</div>
         <div className="mt-1 text-[11.5px] text-ink-muted">
-          {placedAtParts.date} · {order.itemCount} item{order.itemCount === 1 ? "" : "s"}
+          {placedAtParts.date} · {dictionary.orders.itemCount(order.itemCount)}
         </div>
       </div>
       <div className="flex items-center gap-6.5">
         <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-soft">
-          {formatOrderStatusLabel(order.status)}
+          {formatOrderStatusLabel(dictionary, order.status)}
         </span>
         <span className="text-[14px] font-semibold text-ink">{formatMoney(order.totalAmount)}</span>
       </div>

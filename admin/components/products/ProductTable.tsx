@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { AdminProductRowResponse, ProductStatus } from "@/lib/api/types";
 import { formatMoney } from "@/lib/formatting/formatMoney";
+import type { Dictionary } from "@/lib/i18n/getDictionary";
 import { ProductRowActions } from "@/components/products/ProductRowActions";
 
 const LOW_STOCK_THRESHOLD = 6;
@@ -12,13 +13,10 @@ type ProductTableProps = {
   currentPage: number;
   totalPages: number;
   query: string;
+  dictionary: Dictionary;
 };
 
 const tableRowGridClassName = "grid grid-cols-[44px_84px_1.4fr_1fr_120px_80px_110px_120px] items-center gap-3.5";
-
-function capitalizeStatus(status: ProductStatus): string {
-  return status.charAt(0) + status.slice(1).toLowerCase();
-}
 
 function statusBadgeClassName(status: ProductStatus): string {
   return status === "PUBLISHED" ? "bg-success/12 text-success" : "bg-hairline-soft text-ink-muted";
@@ -60,20 +58,20 @@ function ChevronIcon({ className }: { className?: string }) {
   );
 }
 
-export function ProductTable({ products, startIndex, currentPage, totalPages, query }: ProductTableProps) {
+export function ProductTable({ products, startIndex, currentPage, totalPages, query, dictionary }: ProductTableProps) {
   return (
     <div>
       <div
         className={`${tableRowGridClassName} border-b border-hairline-soft px-2.5 pb-3.5 text-[10px] uppercase tracking-[0.14em] text-ink-muted`}
       >
-        <span>#</span>
-        <span>Image</span>
-        <span>Title</span>
-        <span>Category</span>
-        <span className="text-right">Price</span>
-        <span className="text-right">Stock</span>
-        <span className="text-center">Status</span>
-        <span className="text-right">Actions</span>
+        <span>{dictionary.products.columnIndex}</span>
+        <span>{dictionary.products.columnImage}</span>
+        <span>{dictionary.products.columnTitle}</span>
+        <span>{dictionary.products.columnCategory}</span>
+        <span className="text-right">{dictionary.products.columnPrice}</span>
+        <span className="text-right">{dictionary.products.columnStock}</span>
+        <span className="text-center">{dictionary.products.columnStatus}</span>
+        <span className="text-right">{dictionary.products.columnActions}</span>
       </div>
 
       {products.map((product, index) => (
@@ -100,7 +98,7 @@ export function ProductTable({ products, startIndex, currentPage, totalPages, qu
             <span
               className={`rounded-pill px-3 py-1.5 text-[10.5px] font-semibold ${statusBadgeClassName(product.status)}`}
             >
-              {capitalizeStatus(product.status)}
+              {dictionary.products.statusLabels[product.status]}
             </span>
           </span>
           <ProductRowActions productId={product.id} />
@@ -109,16 +107,16 @@ export function ProductTable({ products, startIndex, currentPage, totalPages, qu
 
       {products.length === 0 ? (
         <div className="py-15 text-center text-[13px] text-ink-muted">
-          {query ? `No products match “${query}”.` : "No products yet."}
+          {query ? dictionary.products.noProductsMatch(query) : dictionary.products.noProductsYet}
         </div>
       ) : null}
 
       {totalPages > 1 ? (
-        <nav aria-label="Pagination" className="flex items-center justify-center gap-1.5 pt-5.5">
+        <nav aria-label={dictionary.common.paginationAriaLabel} className="flex items-center justify-center gap-1.5 pt-5.5">
           {currentPage > 0 ? (
             <Link
               href={buildProductsHref(currentPage - 1, query)}
-              aria-label="Previous page"
+              aria-label={dictionary.common.previousPage}
               className="flex h-8.5 w-8.5 items-center justify-center rounded-xl border border-hairline text-ink-muted transition-colors duration-200 hover:border-deep hover:text-ink"
             >
               <ChevronIcon className="rotate-180" />
@@ -145,7 +143,7 @@ export function ProductTable({ products, startIndex, currentPage, totalPages, qu
               <Link
                 key={pageNumber}
                 href={buildProductsHref(pageNumber - 1, query)}
-                aria-label={`Page ${pageNumber}`}
+                aria-label={dictionary.common.pageAriaLabel(pageNumber)}
                 className="flex h-8.5 w-8.5 items-center justify-center rounded-xl border border-hairline text-[12px] transition-colors duration-200 hover:border-deep"
               >
                 {pageNumber}
@@ -156,7 +154,7 @@ export function ProductTable({ products, startIndex, currentPage, totalPages, qu
           {currentPage < totalPages - 1 ? (
             <Link
               href={buildProductsHref(currentPage + 1, query)}
-              aria-label="Next page"
+              aria-label={dictionary.common.nextPage}
               className="flex h-8.5 w-8.5 items-center justify-center rounded-xl border border-hairline text-ink-muted transition-colors duration-200 hover:border-deep hover:text-ink"
             >
               <ChevronIcon />

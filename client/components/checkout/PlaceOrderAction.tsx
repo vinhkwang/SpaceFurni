@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
 import { CheckoutErrorBanner } from "@/components/checkout/CheckoutErrorBanner";
 import { OrderConfirmation } from "@/components/checkout/OrderConfirmation";
 import {
@@ -100,6 +101,7 @@ function clearCheckoutDrafts(): void {
 
 export function PlaceOrderAction({ cart }: PlaceOrderActionProps) {
   const router = useRouter();
+  const dictionary = useDictionary();
   const [idempotencyKey] = useState<string>(() => crypto.randomUUID());
   const [isSubmitting, startSubmission] = useTransition();
   const [checkoutError, setCheckoutError] = useState<CheckoutErrorState | null>(null);
@@ -115,7 +117,7 @@ export function PlaceOrderAction({ cart }: PlaceOrderActionProps) {
     if (deliveryDraft === null) {
       setCheckoutError({
         code: "MISSING_DELIVERY_DETAILS",
-        message: "Add your delivery details before placing the order.",
+        message: dictionary.checkout.missingDeliveryDetails,
         details: null,
       });
       return;
@@ -164,7 +166,7 @@ export function PlaceOrderAction({ cart }: PlaceOrderActionProps) {
           href="/checkout?step=delivery"
           className="text-[11px] font-semibold uppercase tracking-[0.13em] text-terracotta underline-offset-2 hover:underline"
         >
-          Add delivery details first
+          {dictionary.checkout.addDeliveryDetailsFirst}
         </Link>
       ) : null}
       <button
@@ -173,7 +175,7 @@ export function PlaceOrderAction({ cart }: PlaceOrderActionProps) {
         disabled={isSubmitting || deliveryDraft === null}
         className="flex h-[54px] w-full cursor-pointer items-center justify-center gap-3 rounded-pill bg-deep text-[11.5px] font-semibold uppercase tracking-[0.14em] text-white transition-colors duration-300 hover:bg-terracotta disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {isSubmitting ? "Placing order…" : "Place order"}
+        {isSubmitting ? dictionary.checkout.placingOrder : dictionary.checkout.placeOrder}
       </button>
     </div>
   );

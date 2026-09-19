@@ -1,8 +1,10 @@
 import type { OrderTimelineStepResponse } from "@/lib/api/types";
 import { formatOrderPlacedAt } from "@/lib/formatting/formatOrderPlacedAt";
+import type { Dictionary } from "@/lib/i18n/getDictionary";
 
 type OrderTimelineProps = {
   steps: OrderTimelineStepResponse[];
+  dictionary: Dictionary;
 };
 
 function CheckIcon() {
@@ -18,10 +20,10 @@ function formatStepDetail(detail: string): string {
   return `${placedAtParts.date} · ${placedAtParts.time}`;
 }
 
-export function OrderTimeline({ steps }: OrderTimelineProps) {
+export function OrderTimeline({ steps, dictionary }: OrderTimelineProps) {
   return (
     <div className="rounded-2xl border border-hairline-soft bg-white p-6.5">
-      <div className="mb-6 text-[15px] font-semibold text-ink">Progress</div>
+      <div className="mb-6 text-[15px] font-semibold text-ink">{dictionary.orders.progress}</div>
       {steps.map((step, stepIndex) => {
         const isLastStep = stepIndex === steps.length - 1;
         return (

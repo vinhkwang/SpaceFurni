@@ -1,11 +1,13 @@
 import { formatDeliveryDate } from "@/lib/formatting/formatDeliveryDate";
 import type { AdminOrderCustomerResponse, AdminOrderDeliveryAddressResponse, DeliveryWindow } from "@/lib/api/types";
+import type { Dictionary } from "@/lib/i18n/getDictionary";
 
 type OrderCustomerPanelProps = {
   customer: AdminOrderCustomerResponse;
   deliveryAddress: AdminOrderDeliveryAddressResponse;
   deliveryWindow: DeliveryWindow;
   placedAt: string;
+  dictionary: Dictionary;
 };
 
 const NEXT_DAY_DELIVERY_OFFSET_DAYS = 1;
@@ -59,13 +61,19 @@ function TruckIcon() {
   );
 }
 
-export function OrderCustomerPanel({ customer, deliveryAddress, deliveryWindow, placedAt }: OrderCustomerPanelProps) {
+export function OrderCustomerPanel({
+  customer,
+  deliveryAddress,
+  deliveryWindow,
+  placedAt,
+  dictionary,
+}: OrderCustomerPanelProps) {
   const deliveryDateLabel = formatDeliveryDate(new Date(placedAt), deliveryOffsetDays(deliveryWindow));
   const addressLine = [deliveryAddress.street, deliveryAddress.district, deliveryAddress.city].join(", ");
 
   return (
     <div className="rounded-2xl border border-hairline-soft bg-white p-6.5">
-      <div className="mb-5 text-[10.5px] uppercase tracking-[0.18em] text-ink-muted">Customer</div>
+      <div className="mb-5 text-[10.5px] uppercase tracking-[0.18em] text-ink-muted">{dictionary.orders.customerPanelTitle}</div>
 
       <div className="mb-5.5 flex items-center gap-3.5">
         <span className="flex h-11 w-11 items-center justify-center rounded-pill bg-deep text-[13px] font-semibold text-white">
@@ -81,14 +89,14 @@ export function OrderCustomerPanel({ customer, deliveryAddress, deliveryWindow, 
         <div className="flex items-start gap-3">
           <PhoneIcon />
           <div>
-            <div className="mb-1 text-[10px] uppercase tracking-[0.14em] text-ink-muted">Phone</div>
+            <div className="mb-1 text-[10px] uppercase tracking-[0.14em] text-ink-muted">{dictionary.orders.phone}</div>
             <div className="text-[12.5px] text-ink">{customer.phone}</div>
           </div>
         </div>
         <div className="flex items-start gap-3">
           <MapPinIcon />
           <div>
-            <div className="mb-1 text-[10px] uppercase tracking-[0.14em] text-ink-muted">Delivery address</div>
+            <div className="mb-1 text-[10px] uppercase tracking-[0.14em] text-ink-muted">{dictionary.orders.deliveryAddress}</div>
             <div className="text-[12.5px] leading-[1.55] text-ink">
               {addressLine}
               {deliveryAddress.note ? (
@@ -103,7 +111,7 @@ export function OrderCustomerPanel({ customer, deliveryAddress, deliveryWindow, 
         <div className="flex items-start gap-3">
           <TruckIcon />
           <div>
-            <div className="mb-1 text-[10px] uppercase tracking-[0.14em] text-ink-muted">Delivery window</div>
+            <div className="mb-1 text-[10px] uppercase tracking-[0.14em] text-ink-muted">{dictionary.orders.deliveryWindow}</div>
             <div className="text-[12.5px] text-ink">{deliveryDateLabel}, 9:00–18:00</div>
           </div>
         </div>

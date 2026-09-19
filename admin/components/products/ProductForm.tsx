@@ -11,6 +11,8 @@ import {
   uploadProductImageAction,
   type ProductFormValues,
 } from "@/lib/products/productActions";
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
+import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 import { StorefrontPreviewCard } from "@/components/products/StorefrontPreviewCard";
 import { useToast } from "@/components/ui/Toast";
 
@@ -30,11 +32,13 @@ const PICKABLE_IMAGE_URLS = [
   "/images/p-desk.png",
 ];
 
-const STATUS_OPTIONS: { value: ProductStatus; label: string }[] = [
-  { value: "PUBLISHED", label: "Published" },
-  { value: "DRAFT", label: "Draft" },
-  { value: "ARCHIVED", label: "Archived" },
-];
+function statusOptions(dictionary: Dictionary): { value: ProductStatus; label: string }[] {
+  return [
+    { value: "PUBLISHED", label: dictionary.products.statusLabels.PUBLISHED },
+    { value: "DRAFT", label: dictionary.products.statusLabels.DRAFT },
+    { value: "ARCHIVED", label: dictionary.products.statusLabels.ARCHIVED },
+  ];
+}
 
 const ALLOWED_IMAGE_CONTENT_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_IMAGE_FILE_SIZE_BYTES = 5 * 1024 * 1024;
@@ -46,12 +50,12 @@ function firstSubCategorySlug(department: CategoryTreeResponse | undefined): str
   return department?.subCategories[0]?.slug ?? "";
 }
 
-function imageFileValidationError(file: File): string | null {
+function imageFileValidationError(dictionary: Dictionary, file: File): string | null {
   if (!ALLOWED_IMAGE_CONTENT_TYPES.includes(file.type)) {
-    return "Image must be JPEG, PNG or WebP.";
+    return dictionary.products.imageMustBeJpeg;
   }
   if (file.size > MAX_IMAGE_FILE_SIZE_BYTES) {
-    return "Image must be 5MB or smaller.";
+    return dictionary.products.imageMustBe5MB;
   }
   return null;
 }
@@ -77,6 +81,7 @@ function UploadCloudIcon() {
 export function ProductForm({ departments, product }: ProductFormProps) {
   const router = useRouter();
   const { showToast } = useToast();
+  const dictionary = useDictionary();
   const isEditMode = product !== undefined;
 
   const initialDepartment =
@@ -110,7 +115,7 @@ export function ProductForm({ departments, product }: ProductFormProps) {
   }
 
   async function uploadImageFile(file: File) {
-    const validationError = imageFileValidationError(file);
+    const validationError = imageFileValidationError(dictionary, file);
     if (validationError) {
       setUploadErrorMessage(validationError);
       return;
@@ -125,7 +130,7 @@ export function ProductForm({ departments, product }: ProductFormProps) {
 
     if (result.success) {
       setImageUrl(result.imageUrl);
-      showToast("Photo uploaded.");
+      showToast(dictionary.products.photoUploaded);
     } else {
       setUploadErrorMessage(result.errorMessage);
     }
@@ -180,7 +185,13 @@ export function ProductForm({ departments, product }: ProductFormProps) {
         : await createProductAction(values);
 
     if (result.success) {
-      showToast(status === "ARCHIVED" ? "Product archived." : isEditMode ? "Product saved." : "Product created.");
+      showToast(
+        status === "ARCHIVED"
+          ? dictionary.products.productArchived
+          : isEditMode
+            ? dictionary.products.productSaved
+            : dictionary.products.productCreated,
+      );
       router.push("/products");
       router.refresh();
       return;
@@ -195,19 +206,21 @@ export function ProductForm({ departments, product }: ProductFormProps) {
     <div className="grid grid-cols-1 items-start gap-4.5 lg:grid-cols-[1fr_396px]">
       <form onSubmit={submitProduct} className="rounded-2xl border border-hairline-soft bg-white p-7.5">
         <div className="mb-7 flex items-center justify-between">
-          <div className="text-[16px] font-semibold text-ink">{isEditMode ? "Edit product" : "New product"}</div>
-          <div className="text-[11.5px] text-ink-muted">Fields marked · are required</div>
+          <div className="text-[16px] font-semibold text-ink">
+            {isEditMode ? dictionary.products.editProduct : dictionary.products.newProduct}
+          </div>
+          <div className="text-[11.5px] text-ink-muted">{dictionary.products.fieldsRequired}</div>
         </div>
 
         {isConflict ? (
           <div className="mb-6 flex items-center justify-between gap-4 rounded-xl bg-terracotta/10 px-4.5 py-3.5 text-[12.5px] text-terracotta">
-            <span>This product changed while you were editing.</span>
+            <span>{dictionary.products.productChangedWhileEditing}</span>
             <button
               type="button"
               onClick={() => router.refresh()}
               className="font-semibold underline underline-offset-2"
             >
-              Reload
+              {dictionary.common.reload}
             </button>
           </div>
         ) : errorMessage ? (
@@ -218,18 +231,18 @@ export function ProductForm({ departments, product }: ProductFormProps) {
 
         <div className="grid grid-cols-2 gap-4.5">
           <label className="col-span-2 flex flex-col gap-2">
-            <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">Product title ·</span>
+            <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">{dictionary.products.productTitleLabel}</span>
             <input
               required
               value={title}
               onChange={(changeEvent) => setTitle(changeEvent.target.value)}
-              placeholder="e.g. Halden Tub Chair"
+              placeholder={dictionary.products.productTitlePlaceholder}
               className={fieldClassName}
             />
           </label>
 
           <label className="flex flex-col gap-2">
-            <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">Department ·</span>
+            <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">{dictionary.products.department}</span>
             <select
               required
               value={departmentSlug}
@@ -245,7 +258,7 @@ export function ProductForm({ departments, product }: ProductFormProps) {
           </label>
 
           <label className="flex flex-col gap-2">
-            <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">Sub-category ·</span>
+            <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">{dictionary.products.subCategory}</span>
             <select
               required
               value={subCategorySlug}
@@ -261,44 +274,44 @@ export function ProductForm({ departments, product }: ProductFormProps) {
           </label>
 
           <label className="flex flex-col gap-2">
-            <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">Price (₫) ·</span>
+            <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">{dictionary.products.priceLabel}</span>
             <input
               required
               type="number"
               min={1}
               value={price}
               onChange={(changeEvent) => setPrice(changeEvent.target.value)}
-              placeholder="7200000"
+              placeholder={dictionary.products.pricePlaceholder}
               className={fieldClassName}
             />
           </label>
 
           <label className="flex flex-col gap-2">
-            <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">Stock on hand ·</span>
+            <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">{dictionary.products.stockOnHand}</span>
             <input
               required
               type="number"
               min={0}
               value={stock}
               onChange={(changeEvent) => setStock(changeEvent.target.value)}
-              placeholder="12"
+              placeholder={dictionary.products.stockPlaceholder}
               className={fieldClassName}
             />
           </label>
 
           <label className="col-span-2 flex flex-col gap-2">
-            <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">Description</span>
+            <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">{dictionary.products.description}</span>
             <textarea
               value={description}
               onChange={(changeEvent) => setDescription(changeEvent.target.value)}
-              placeholder="Two or three sentences on materials, comfort and scale…"
+              placeholder={dictionary.products.descriptionPlaceholder}
               rows={4}
               className={`${fieldClassName} h-auto resize-none py-3.5`}
             />
           </label>
 
           <div className="col-span-2 flex flex-col gap-3">
-            <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">Product image ·</span>
+            <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">{dictionary.products.productImage}</span>
             <div className="grid grid-cols-8 gap-2.5">
               {PICKABLE_IMAGE_URLS.map((pickableImageUrl) => (
                 <button
@@ -326,11 +339,7 @@ export function ProductForm({ departments, product }: ProductFormProps) {
               }`}
             >
               <UploadCloudIcon />
-              <span>
-                {isUploadingImage
-                  ? "Uploading…"
-                  : "Or drag a new photo here — 1600×1200 px, white background"}
-              </span>
+              <span>{isUploadingImage ? dictionary.products.uploading : dictionary.products.orDragPhoto}</span>
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
@@ -344,7 +353,7 @@ export function ProductForm({ departments, product }: ProductFormProps) {
 
           <div className="col-span-2 flex items-center justify-between border-t border-hairline-soft pt-5.5">
             <div className="flex gap-2">
-              {STATUS_OPTIONS.map((statusOption) => (
+              {statusOptions(dictionary).map((statusOption) => (
                 <button
                   key={statusOption.value}
                   type="button"
@@ -364,14 +373,14 @@ export function ProductForm({ departments, product }: ProductFormProps) {
                 href="/products"
                 className="flex h-12 items-center rounded-pill border border-hairline px-5.5 text-[11px] font-semibold uppercase tracking-[0.13em] text-ink transition-colors duration-200 hover:bg-surface"
               >
-                Cancel
+                {dictionary.common.cancel}
               </Link>
               <button
                 type="submit"
                 disabled={isSubmitting}
                 className="flex h-12 items-center rounded-pill bg-deep px-7 text-[11px] font-semibold uppercase tracking-[0.13em] text-white transition-colors duration-200 hover:bg-terracotta disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {isEditMode ? "Save changes" : "Publish product"}
+                {isEditMode ? dictionary.products.saveChanges : dictionary.products.publishProduct}
               </button>
             </div>
           </div>
@@ -384,6 +393,7 @@ export function ProductForm({ departments, product }: ProductFormProps) {
         departmentName={selectedDepartment?.name ?? ""}
         priceAmount={Number(price) || 0}
         imageUrl={imageUrl}
+        dictionary={dictionary}
       />
     </div>
   );

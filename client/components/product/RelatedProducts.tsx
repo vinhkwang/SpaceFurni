@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ProductSummaryResponse } from "@/lib/api/types";
 import { formatMoney } from "@/lib/formatting/formatMoney";
+import { getDictionary } from "@/lib/i18n/getDictionary";
+import { getLocale } from "@/lib/i18n/locale";
 
 type RelatedProductsProps = {
   relatedProducts: ProductSummaryResponse[];
@@ -13,22 +15,24 @@ const arrowRightIcon = (
   </svg>
 );
 
-export function RelatedProducts({ relatedProducts }: RelatedProductsProps) {
+export async function RelatedProducts({ relatedProducts }: RelatedProductsProps) {
   if (relatedProducts.length === 0) {
     return null;
   }
+
+  const dictionary = getDictionary(await getLocale());
 
   return (
     <section aria-labelledby="related-products-heading">
       <div className="mb-6.5 flex items-end justify-between">
         <h2 id="related-products-heading" className="text-[29px] font-medium tracking-[-0.015em]">
-          Goes well with
+          {dictionary.product.goesWellWith}
         </h2>
         <Link
           href="/products"
           className="flex items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted transition-colors duration-200 hover:text-terracotta"
         >
-          View all
+          {dictionary.product.viewAll}
           {arrowRightIcon}
         </Link>
       </div>

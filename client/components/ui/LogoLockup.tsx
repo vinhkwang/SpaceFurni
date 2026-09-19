@@ -1,6 +1,11 @@
+"use client";
+
 import Image from "next/image";
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
 
 export function LogoLockup() {
+  const dictionary = useDictionary();
+
   return (
     <span className="flex items-center gap-3.5">
       <span className="flex h-[34px] w-[88px] items-start overflow-hidden">
@@ -19,7 +24,7 @@ export function LogoLockup() {
           <span className="font-light text-ink-soft">FURNI</span>
         </span>
         <span className="text-[9.5px] uppercase tracking-[0.14em] text-ink-muted">
-          Furniture for real homes
+          {dictionary.header.tagline}
         </span>
       </span>
     </span>

@@ -1,8 +1,11 @@
 "use client";
 
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import type { CartLineResponse } from "@/lib/api/types";
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
 import { QuantityStepper } from "@/components/ui/QuantityStepper";
 import { formatMoney } from "@/lib/formatting/formatMoney";
 
@@ -37,6 +40,8 @@ export function CartLineItem({
   isDisabled,
   isHighlighted = false,
 }: CartLineItemProps) {
+  const dictionary = useDictionary();
+
   return (
     <div
       className={`flex items-center gap-5.5 rounded-[15px] border bg-white px-5.5 py-4.5 ${
@@ -76,7 +81,9 @@ export function CartLineItem({
               <span aria-hidden className="h-2.5 w-px bg-hairline" />
             </>
           )}
-          <span>{formatMoney(line.unitPriceAmount)} each</span>
+          <span>
+            {formatMoney(line.unitPriceAmount)} {dictionary.cart.each}
+          </span>
         </div>
       </div>
 
@@ -90,7 +97,7 @@ export function CartLineItem({
         type="button"
         onClick={onRemove}
         disabled={isDisabled}
-        aria-label={`Remove ${line.productName} from cart`}
+        aria-label={dictionary.cart.removeLineAriaLabel(line.productName)}
         className="flex h-9.5 w-9.5 flex-none items-center justify-center rounded-full text-ink-muted transition-colors duration-250 hover:bg-terracotta/10 hover:text-terracotta disabled:cursor-not-allowed disabled:opacity-50"
       >
         {removeIcon}
