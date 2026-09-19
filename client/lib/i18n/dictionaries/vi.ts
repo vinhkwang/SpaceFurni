@@ -98,8 +98,10 @@ export const vi: Dictionary = {
     promoSofaTitleLine1: "Sofa hiện đại",
     promoSofaTitleLine2: "tạo điểm nhấn cho căn phòng",
     promoShopSofas: "Mua sofa",
+    promoOfficeEyebrow: "Góc làm việc",
     promoOfficeTitleLine1: "Thiết kế",
     promoOfficeTitleLine2: "góc làm việc tại nhà",
+    promoBedroomEyebrow: "Phòng ngủ",
     promoBedroomTitleLine1: "Phòng ngủ",
     promoBedroomTitleLine2: "êm ái hơn",
     servicePromises: [
@@ -141,6 +143,35 @@ export const vi: Dictionary = {
       { value: "10 năm", label: "Bảo hành khung" },
       { value: "4.8", label: "Đánh giá trung bình" },
     ],
+    showroomEyebrow: "Ghé thăm showroom",
+    showroomTitle: "Ngồi thử trước khi mua.",
+    showroomBody:
+      "Mọi sản phẩm chúng tôi bán đều được trưng bày tại showroom Thanh Xuân, có mẫu vải để bạn mang về. Đặt một lịch hẹn 30 phút và nhà thiết kế sẽ cùng bạn đi khảo sát không gian.",
+    showroomAddressLabel: "Địa chỉ",
+    showroomAddressLine1: "18 Nguyễn Trãi",
+    showroomAddressLine2: "Thanh Xuân, Hà Nội",
+    showroomOpenLabel: "Giờ mở cửa",
+    showroomOpenLine1: "Thứ 2–7: 9:00–20:00",
+    showroomOpenLine2: "Chủ nhật: 10:00–18:00",
+    showroomBookVisit: "Đặt lịch ghé thăm",
+    showroomDirections: "Chỉ đường",
+    showroomProcessEyebrow: "Từ lúc đặt hàng đến khi về nhà bạn",
+    showroomSteps: [
+      {
+        title: "Chọn khung giờ giao hàng",
+        body: "Chọn khung giờ hai tiếng khi thanh toán — trong tuần tại Hà Nội, tuần sau trên toàn quốc.",
+      },
+      {
+        title: "Chúng tôi khuân vào và lắp đặt",
+        body: "Hai người, bọc giày, và toàn bộ bao bì được mang đi cùng chúng tôi. Không có gì đóng gói dẹt.",
+      },
+      {
+        title: "Dùng thử trong 30 ngày",
+        body: "Nếu không hợp với căn phòng, chúng tôi sẽ thu hồi và hoàn tiền toàn bộ — việc thu hồi do chúng tôi chịu trách nhiệm.",
+      },
+    ],
+    showroomTalkToDesigner: "Trò chuyện với nhà thiết kế",
+    showroomPhoneNumber: "+84 24 3856 1188",
   },
   catalog: {
     breadcrumbAriaLabel: "Đường dẫn điều hướng",

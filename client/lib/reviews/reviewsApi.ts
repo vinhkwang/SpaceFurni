@@ -1,4 +1,5 @@
 import { apiFetch } from "@/lib/api/apiClient";
+import { ApiError } from "@/lib/api/ApiError";
 import { getSessionToken } from "@/lib/auth/session";
 import type { OrderResponse, OrderSummaryResponse, PageResponse, RatingHistogramResponse, ReviewResponse } from "@/lib/api/types";
 
@@ -22,19 +23,26 @@ export async function findEligibleOrderItemId(productId: string): Promise<string
     return null;
   }
 
-  const orderHistory = await apiFetch<PageResponse<OrderSummaryResponse>>(
-    `/orders?size=${ORDER_HISTORY_LOOKUP_SIZE}`,
-    { cache: "no-store" },
-  );
-  const deliveredOrders = orderHistory.content.filter((order) => order.status === "DELIVERED");
+  try {
+    const orderHistory = await apiFetch<PageResponse<OrderSummaryResponse>>(
+      `/orders?size=${ORDER_HISTORY_LOOKUP_SIZE}`,
+      { cache: "no-store" },
+    );
+    const deliveredOrders = orderHistory.content.filter((order) => order.status === "DELIVERED");
 
-  for (const order of deliveredOrders) {
-    const detail = await apiFetch<OrderResponse>(`/orders/${order.orderNumber}`, { cache: "no-store" });
-    const matchingItem = detail.items.find((item) => item.productId === productId);
-    if (matchingItem) {
-      return matchingItem.id;
+    for (const order of deliveredOrders) {
+      const detail = await apiFetch<OrderResponse>(`/orders/${order.orderNumber}`, { cache: "no-store" });
+      const matchingItem = detail.items.find((item) => item.productId === productId);
+      if (matchingItem) {
+        return matchingItem.id;
+      }
     }
-  }
 
-  return null;
+    return null;
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      return null;
+    }
+    throw error;
+  }
 }
