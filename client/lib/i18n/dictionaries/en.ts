@@ -96,8 +96,10 @@ export const en = {
     promoSofaTitleLine1: "Modern sofas",
     promoSofaTitleLine2: "that make the room",
     promoShopSofas: "Shop sofas",
+    promoOfficeEyebrow: "Work & study",
     promoOfficeTitleLine1: "Design your",
     promoOfficeTitleLine2: "home office",
+    promoBedroomEyebrow: "Bedroom",
     promoBedroomTitleLine1: "A comfier",
     promoBedroomTitleLine2: "bedroom",
     servicePromises: [
@@ -139,6 +141,35 @@ export const en = {
       { value: "10 yr", label: "Frame guarantee" },
       { value: "4.8", label: "Average rating" },
     ],
+    showroomEyebrow: "Visit the showroom",
+    showroomTitle: "Sit on it before you buy it.",
+    showroomBody:
+      "Every piece we sell is on the floor in Thanh Xuan, with fabric swatches you can take home. Book a 30-minute slot and a designer walks the room with you.",
+    showroomAddressLabel: "Address",
+    showroomAddressLine1: "18 Nguyen Trai",
+    showroomAddressLine2: "Thanh Xuan, Hanoi",
+    showroomOpenLabel: "Open",
+    showroomOpenLine1: "Mon–Sat 9:00–20:00",
+    showroomOpenLine2: "Sun 10:00–18:00",
+    showroomBookVisit: "Book a visit",
+    showroomDirections: "Directions",
+    showroomProcessEyebrow: "From order to living room",
+    showroomSteps: [
+      {
+        title: "Pick a delivery window",
+        body: "Choose a two-hour slot at checkout — same week across Hanoi, next week nationwide.",
+      },
+      {
+        title: "We carry it in and assemble",
+        body: "Two people, shoe covers, and all the packaging leaves with us. Nothing flat-packed.",
+      },
+      {
+        title: "Live with it for 30 days",
+        body: "If the room disagrees, we collect it and refund in full — collection is on us.",
+      },
+    ],
+    showroomTalkToDesigner: "Talk to a designer",
+    showroomPhoneNumber: "+84 24 3856 1188",
   },
   catalog: {
     breadcrumbAriaLabel: "Breadcrumb",

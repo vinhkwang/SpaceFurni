@@ -5,6 +5,7 @@ import { HeroCarousel } from "@/components/home/HeroCarousel";
 import { HeroPromoBanners } from "@/components/home/HeroPromoBanners";
 import { ProductRail } from "@/components/home/ProductRail";
 import { ServicePromiseStrip } from "@/components/home/ServicePromiseStrip";
+import { ShowroomVisitBand } from "@/components/home/ShowroomVisitBand";
 import { WeeklyDropBand } from "@/components/home/WeeklyDropBand";
 import { WorkshopBand } from "@/components/home/WorkshopBand";
 import { Container } from "@/components/ui/Container";
@@ -14,17 +15,17 @@ export default async function HomePage() {
 
   return (
     <main className="pb-22">
-      <Container alignToNavLabel className="grid grid-cols-[1fr_486px] gap-3.5 pt-5.5">
+      <Container className="grid grid-cols-[1fr_486px] gap-3.5 pt-5.5">
         <HeroCarousel />
         <HeroPromoBanners />
       </Container>
-      <Container alignToNavLabel className="mt-14">
+      <Container className="mt-14">
         <ServicePromiseStrip />
       </Container>
-      <Container alignToNavLabel className="mt-21">
+      <Container className="mt-21">
         <DepartmentGrid />
       </Container>
-      <Container alignToNavLabel className="mt-21">
+      <Container className="mt-21">
         <ProductRail
           eyebrow={dictionary.home.newArrivalsEyebrow}
           title={dictionary.home.newArrivalsTitle}
@@ -32,10 +33,10 @@ export default async function HomePage() {
           shopAllHref="/products"
         />
       </Container>
-      <Container alignToNavLabel className="mt-21">
+      <Container className="mt-21">
         <WeeklyDropBand />
       </Container>
-      <Container alignToNavLabel className="mt-21">
+      <Container className="mt-21">
         <ProductRail
           eyebrow={dictionary.home.bestsellersEyebrow}
           title={dictionary.home.bestsellersTitle}
@@ -43,8 +44,11 @@ export default async function HomePage() {
           shopAllHref="/products"
         />
       </Container>
-      <Container alignToNavLabel className="mt-22">
+      <Container className="mt-22">
         <WorkshopBand />
+      </Container>
+      <Container className="mt-5.5">
+        <ShowroomVisitBand />
       </Container>
     </main>
   );

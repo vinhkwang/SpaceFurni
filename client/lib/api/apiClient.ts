@@ -59,6 +59,27 @@ async function resolveRequestHeaders(path: string): Promise<Record<string, strin
   return headers;
 }
 
+function envelopeForUnparseableResponse<T>(status: number): ApiEnvelope<T> {
+  const code = status === 401 ? "UNAUTHENTICATED" : status === 403 ? "FORBIDDEN" : "UNKNOWN_ERROR";
+  return {
+    success: false,
+    data: null,
+    error: { code, message: `Request failed with status ${status}`, details: null },
+  };
+}
+
+async function parseApiEnvelope<T>(response: Response): Promise<ApiEnvelope<T>> {
+  const responseText = await response.text();
+  if (responseText.length === 0) {
+    return envelopeForUnparseableResponse<T>(response.status);
+  }
+  try {
+    return JSON.parse(responseText) as ApiEnvelope<T>;
+  } catch {
+    return envelopeForUnparseableResponse<T>(response.status);
+  }
+}
+
 export async function apiFetch<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
   const headers = { ...(await resolveRequestHeaders(path)), ...options.headers };
 
@@ -70,7 +91,7 @@ export async function apiFetch<T>(path: string, options: ApiRequestOptions = {})
     next: options.next,
   });
 
-  const envelope = (await response.json()) as ApiEnvelope<T>;
+  const envelope = await parseApiEnvelope<T>(response);
 
   if (!envelope.success) {
     throw new ApiError(envelope.error.code, envelope.error.message, response.status, envelope.error.details);
