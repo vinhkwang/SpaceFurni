@@ -2,9 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { publicStorefrontUrl } from "@/lib/config/environment";
 import { useDictionary } from "@/lib/i18n/LocaleProvider";
 
 type AdminSidebarProps = {
@@ -84,32 +83,12 @@ function SettingsIcon() {
   );
 }
 
-function StoreIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden className="h-3.5 w-3.5 shrink-0 stroke-current" fill="none" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 9.5 5.5 4h13L20 9.5" />
-      <path d="M4 9.5a2.5 2.5 0 0 0 5 0 2.5 2.5 0 0 0 5 0 2.5 2.5 0 0 0 5 0" />
-      <path d="M5 10v10h14V10" />
-    </svg>
-  );
-}
-
-function SignOutIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden className="h-3.5 w-3.5 shrink-0 stroke-current" fill="none" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9 4H5v16h4" />
-      <path d="M12 12h9M17.5 8.5 21 12l-3.5 3.5" />
-    </svg>
-  );
-}
-
 function isNavItemActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 export function AdminSidebar({ publishedProductCount, pendingOrderCount }: AdminSidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const dictionary = useDictionary();
 
   const navItems: NavItem[] = [
@@ -121,12 +100,6 @@ export function AdminSidebar({ publishedProductCount, pendingOrderCount }: Admin
     { label: dictionary.sidebar.messages, href: "/messages", icon: <MessagesIcon />, count: null },
     { label: dictionary.sidebar.settings, href: "/settings", icon: <SettingsIcon />, count: null },
   ];
-
-  async function signOut() {
-    await fetch("/api/session/logout", { method: "POST" });
-    router.replace("/login");
-    router.refresh();
-  }
 
   return (
     <aside className="flex w-[262px] shrink-0 flex-col gap-6.5 bg-deep px-4.5 py-7.5">
@@ -169,24 +142,6 @@ export function AdminSidebar({ publishedProductCount, pendingOrderCount }: Admin
           );
         })}
       </nav>
-
-      <div className="mt-auto flex flex-col gap-[3px] border-t border-white/10 pt-5.5">
-        <a
-          href={publicStorefrontUrl}
-          className="flex h-11 items-center gap-3.5 rounded-xl px-4 text-[12.5px] text-white/60 transition-colors duration-200 hover:bg-white/7 hover:text-white"
-        >
-          <StoreIcon />
-          {dictionary.sidebar.backToStore}
-        </a>
-        <button
-          type="button"
-          onClick={signOut}
-          className="flex h-11 cursor-pointer items-center gap-3.5 rounded-xl px-4 text-[12.5px] text-white/60 transition-colors duration-200 hover:bg-white/7 hover:text-white"
-        >
-          <SignOutIcon />
-          {dictionary.sidebar.signOut}
-        </button>
-      </div>
     </aside>
   );
 }

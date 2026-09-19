@@ -57,6 +57,104 @@ public interface OrderRepository extends JpaRepository<Order, UUID>, JpaSpecific
             """, nativeQuery = true)
     List<DepartmentRevenueShareRow> findRevenueShareByDepartment();
 
+    @Query(value = CUSTOMER_AGGREGATE_QUERY, countQuery = CUSTOMER_AGGREGATE_COUNT_QUERY, nativeQuery = true)
+    Page<CustomerAggregateRow> findCustomerAggregates(@Param("searchPattern") String searchPattern,
+            @Param("minOrderCount") Integer minOrderCount, @Param("maxOrderCount") Integer maxOrderCount,
+            Pageable pageable);
+
+    @Query(value = CUSTOMER_AGGREGATE_QUERY, nativeQuery = true)
+    List<CustomerAggregateRow> findAllCustomerAggregates(@Param("searchPattern") String searchPattern,
+            @Param("minOrderCount") Integer minOrderCount, @Param("maxOrderCount") Integer maxOrderCount);
+
+    @Query(value = """
+            SELECT u.id AS id, u.full_name AS fullName, u.email AS email, latest.delivery_district AS district,
+                   COUNT(o.id) AS orderCount, COALESCE(SUM(o.total_amount), 0)::bigint AS lifetimeValueAmount,
+                   COALESCE(MAX(o.currency_code), 'VND') AS currencyCode, MIN(o.placed_at) AS firstOrderAt
+              FROM users u
+              JOIN orders o ON o.user_id = u.id AND o.status <> 'CANCELLED'
+              JOIN LATERAL (
+                  SELECT o2.delivery_district
+                    FROM orders o2
+                   WHERE o2.user_id = u.id AND o2.status <> 'CANCELLED'
+                   ORDER BY o2.placed_at DESC
+                   LIMIT 1
+              ) latest ON true
+             WHERE u.id = :customerId
+             GROUP BY u.id, u.full_name, u.email, latest.delivery_district
+            """, nativeQuery = true)
+    Optional<CustomerAggregateRow> findCustomerAggregateById(@Param("customerId") UUID customerId);
+
+    @Query(value = """
+            SELECT CASE WHEN order_count >= 3 THEN 'VIP' WHEN order_count = 2 THEN 'RETURNING' ELSE 'NEW' END AS tier,
+                   COUNT(*) AS total
+              FROM (
+                  SELECT o.user_id, COUNT(*) AS order_count
+                    FROM orders o
+                   WHERE o.status <> 'CANCELLED'
+                   GROUP BY o.user_id
+              ) per_customer
+             GROUP BY tier
+            """, nativeQuery = true)
+    List<CustomerTierCount> countGroupedByTier();
+
+    String CUSTOMER_AGGREGATE_QUERY = """
+            SELECT u.id AS id, u.full_name AS fullName, u.email AS email, latest.delivery_district AS district,
+                   COUNT(o.id) AS orderCount, COALESCE(SUM(o.total_amount), 0)::bigint AS lifetimeValueAmount,
+                   COALESCE(MAX(o.currency_code), 'VND') AS currencyCode, MIN(o.placed_at) AS firstOrderAt
+              FROM users u
+              JOIN orders o ON o.user_id = u.id AND o.status <> 'CANCELLED'
+              JOIN LATERAL (
+                  SELECT o2.delivery_district
+                    FROM orders o2
+                   WHERE o2.user_id = u.id AND o2.status <> 'CANCELLED'
+                   ORDER BY o2.placed_at DESC
+                   LIMIT 1
+              ) latest ON true
+             WHERE (:searchPattern IS NULL OR LOWER(u.full_name) LIKE :searchPattern
+                    OR LOWER(u.email) LIKE :searchPattern)
+             GROUP BY u.id, u.full_name, u.email, latest.delivery_district
+            HAVING (:minOrderCount IS NULL OR COUNT(o.id) >= :minOrderCount)
+               AND (:maxOrderCount IS NULL OR COUNT(o.id) <= :maxOrderCount)
+             ORDER BY lifetimeValueAmount DESC
+            """;
+
+    String CUSTOMER_AGGREGATE_COUNT_QUERY = """
+            SELECT COUNT(*) FROM (
+                SELECT u.id
+                  FROM users u
+                  JOIN orders o ON o.user_id = u.id AND o.status <> 'CANCELLED'
+                 WHERE (:searchPattern IS NULL OR LOWER(u.full_name) LIKE :searchPattern
+                        OR LOWER(u.email) LIKE :searchPattern)
+                 GROUP BY u.id
+                HAVING (:minOrderCount IS NULL OR COUNT(o.id) >= :minOrderCount)
+                   AND (:maxOrderCount IS NULL OR COUNT(o.id) <= :maxOrderCount)
+            ) matched_customers
+            """;
+
+    interface CustomerAggregateRow {
+        UUID getId();
+
+        String getFullName();
+
+        String getEmail();
+
+        String getDistrict();
+
+        long getOrderCount();
+
+        long getLifetimeValueAmount();
+
+        String getCurrencyCode();
+
+        Instant getFirstOrderAt();
+    }
+
+    interface CustomerTierCount {
+        String getTier();
+
+        long getTotal();
+    }
+
     interface OrderStatusCount {
         OrderStatus getStatus();
 
