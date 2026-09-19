@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
 
 type LoginFormProps = {
   redirectTo: string;
@@ -17,6 +18,7 @@ const inputClassName =
 
 export function LoginForm({ redirectTo }: LoginFormProps) {
   const router = useRouter();
+  const dictionary = useDictionary();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -36,7 +38,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
       const envelope = (await response.json()) as SessionEnvelope;
 
       if (!envelope.success) {
-        setErrorMessage(envelope.error?.message ?? "We could not sign you in. Try again.");
+        setErrorMessage(envelope.error?.message ?? dictionary.auth.couldNotSignIn);
         setIsSubmitting(false);
         return;
       }
@@ -44,7 +46,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
       router.replace(redirectTo);
       router.refresh();
     } catch {
-      setErrorMessage("We could not reach the server. Try again.");
+      setErrorMessage(dictionary.auth.couldNotReachServer);
       setIsSubmitting(false);
     }
   }
@@ -53,7 +55,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
     <form onSubmit={submitCredentials} className="flex flex-col gap-4 rounded-card border border-hairline bg-white p-8 shadow-sm">
       <label className="flex flex-col gap-2">
         <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">
-          Email address
+          {dictionary.auth.emailAddress}
         </span>
         <input
           type="email"
@@ -68,7 +70,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
 
       <label className="flex flex-col gap-2">
         <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">
-          Password
+          {dictionary.auth.password}
         </span>
         <input
           type="password"
@@ -92,7 +94,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
         disabled={isSubmitting}
         className="mt-1.5 flex h-12 w-full items-center justify-center rounded-pill bg-deep text-[12.5px] font-semibold uppercase tracking-[0.1em] text-white transition-opacity disabled:opacity-60"
       >
-        {isSubmitting ? "Signing in" : "Sign in"}
+        {isSubmitting ? dictionary.auth.signingIn : dictionary.auth.signIn}
       </button>
     </form>
   );

@@ -1,6 +1,9 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
+import type { Dictionary } from "@/lib/i18n/dictionaries/en";
+import { LanguageToggle } from "@/components/layout/LanguageToggle";
 
 type AdminTopBarProps = {
   userFullName: string;
@@ -12,23 +15,20 @@ type RouteMeta = {
   subtitle: string;
 };
 
-const ROUTE_META: Record<string, RouteMeta> = {
-  "/dashboard": { title: "Dashboard", subtitle: "An overview of the store" },
-  "/products": { title: "Products", subtitle: "Catalogue and stock levels" },
-  "/orders": { title: "Orders", subtitle: "Every order placed on the storefront" },
-  "/customers": { title: "Customers", subtitle: "Everyone who has bought from the store" },
-  "/reviews": { title: "Reviews", subtitle: "Moderate ratings and comments left on products" },
-  "/messages": { title: "Messages", subtitle: "Customer enquiries" },
-  "/settings": { title: "Settings", subtitle: "Store details, delivery rules and team access" },
-};
-
-const DEFAULT_ROUTE_META: RouteMeta = { title: "Admin console", subtitle: "" };
-
-function resolveRouteMeta(pathname: string): RouteMeta {
-  const matchedRoute = Object.keys(ROUTE_META).find(
+function resolveRouteMeta(dictionary: Dictionary, pathname: string): RouteMeta {
+  const routeMetaByPath: Record<string, RouteMeta> = {
+    "/dashboard": dictionary.topbar.routeMeta.dashboard,
+    "/products": dictionary.topbar.routeMeta.products,
+    "/orders": dictionary.topbar.routeMeta.orders,
+    "/customers": dictionary.topbar.routeMeta.customers,
+    "/reviews": dictionary.topbar.routeMeta.reviews,
+    "/messages": dictionary.topbar.routeMeta.messages,
+    "/settings": dictionary.topbar.routeMeta.settings,
+  };
+  const matchedRoute = Object.keys(routeMetaByPath).find(
     (route) => pathname === route || pathname.startsWith(`${route}/`),
   );
-  return matchedRoute ? ROUTE_META[matchedRoute] : DEFAULT_ROUTE_META;
+  return matchedRoute ? routeMetaByPath[matchedRoute] : { title: dictionary.topbar.defaultTitle, subtitle: "" };
 }
 
 function initialsFor(fullName: string): string {
@@ -42,7 +42,8 @@ function initialsFor(fullName: string): string {
 
 export function AdminTopBar({ userFullName, userRole }: AdminTopBarProps) {
   const pathname = usePathname();
-  const { title, subtitle } = resolveRouteMeta(pathname);
+  const dictionary = useDictionary();
+  const { title, subtitle } = resolveRouteMeta(dictionary, pathname);
 
   return (
     <header className="flex h-[82px] shrink-0 items-center justify-between border-b border-hairline bg-white px-8.5">
@@ -51,13 +52,16 @@ export function AdminTopBar({ userFullName, userRole }: AdminTopBarProps) {
         {subtitle ? <div className="mt-[3px] text-[11.5px] text-ink-muted">{subtitle}</div> : null}
       </div>
 
-      <div className="flex items-center gap-3.5 border-l border-hairline pl-3.5">
-        <span className="flex h-9.5 w-9.5 items-center justify-center rounded-pill bg-deep text-[12.5px] font-semibold text-white">
-          {initialsFor(userFullName)}
-        </span>
-        <div>
-          <div className="text-[12.5px] font-semibold text-ink">{userFullName}</div>
-          <div className="text-[10.5px] text-ink-muted">{userRole}</div>
+      <div className="flex items-center gap-4.5">
+        <LanguageToggle />
+        <div className="flex items-center gap-3.5 border-l border-hairline pl-4.5">
+          <span className="flex h-9.5 w-9.5 items-center justify-center rounded-pill bg-deep text-[12.5px] font-semibold text-white">
+            {initialsFor(userFullName)}
+          </span>
+          <div>
+            <div className="text-[12.5px] font-semibold text-ink">{userFullName}</div>
+            <div className="text-[10.5px] text-ink-muted">{userRole}</div>
+          </div>
         </div>
       </div>
     </header>

@@ -8,6 +8,7 @@ import {
   hasActivePriceFilter,
   type ProductListingFilters,
 } from "@/lib/catalog/productListingUrl";
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
 
 type PriceRangeFilterProps = {
   departmentSlug: string;
@@ -34,6 +35,7 @@ function sanitisedPriceBound(rawValue: FormDataEntryValue | null): string | unde
 
 export function PriceRangeFilter({ departmentSlug, filters }: PriceRangeFilterProps) {
   const router = useRouter();
+  const dictionary = useDictionary();
   const isPriceFilterActive = hasActivePriceFilter(filters);
 
   function applyPriceRange(submitEvent: FormEvent<HTMLFormElement>) {
@@ -56,13 +58,13 @@ export function PriceRangeFilter({ departmentSlug, filters }: PriceRangeFilterPr
       onSubmit={applyPriceRange}
       className="flex flex-wrap items-center gap-3.5"
     >
-      <span className="text-[10.5px] uppercase tracking-[0.16em] text-ink-muted">Price range</span>
+      <span className="text-[10.5px] uppercase tracking-[0.16em] text-ink-muted">{dictionary.catalog.priceRange}</span>
       <div className="flex items-center gap-2">
         <input
           name="minPrice"
           inputMode="numeric"
-          aria-label="Minimum price"
-          placeholder="From"
+          aria-label={dictionary.catalog.minimumPriceAriaLabel}
+          placeholder={dictionary.catalog.priceFrom}
           defaultValue={filters.minPrice ?? ""}
           className={priceFieldClassName}
         />
@@ -72,8 +74,8 @@ export function PriceRangeFilter({ departmentSlug, filters }: PriceRangeFilterPr
         <input
           name="maxPrice"
           inputMode="numeric"
-          aria-label="Maximum price"
-          placeholder="To"
+          aria-label={dictionary.catalog.maximumPriceAriaLabel}
+          placeholder={dictionary.catalog.priceTo}
           defaultValue={filters.maxPrice ?? ""}
           className={priceFieldClassName}
         />
@@ -81,7 +83,7 @@ export function PriceRangeFilter({ departmentSlug, filters }: PriceRangeFilterPr
           type="submit"
           className="h-10 cursor-pointer rounded-pill bg-deep px-5 text-[10.5px] font-semibold uppercase tracking-[0.13em] text-white transition-colors duration-250 hover:bg-terracotta"
         >
-          Apply
+          {dictionary.common.apply}
         </button>
         {isPriceFilterActive ? (
           <Link
@@ -93,7 +95,7 @@ export function PriceRangeFilter({ departmentSlug, filters }: PriceRangeFilterPr
             })}
             className="flex h-10 items-center rounded-pill border border-hairline px-4 text-[10.5px] uppercase tracking-[0.1em] transition-colors duration-250 hover:border-deep"
           >
-            Clear
+            {dictionary.catalog.clear}
           </Link>
         ) : null}
       </div>

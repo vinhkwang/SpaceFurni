@@ -1,7 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
+import { getDictionary } from "@/lib/i18n/getDictionary";
+import { getLocale } from "@/lib/i18n/locale";
 
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
+export default async function AuthLayout({ children }: { children: React.ReactNode }) {
+  const dictionary = getDictionary(await getLocale());
+
   return (
     <main className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
       <div className="relative hidden overflow-hidden lg:block">
@@ -26,13 +30,12 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               <span className="font-light text-white/75">FURNI</span>
             </span>
             <span className="mt-1.5 block text-[9.5px] uppercase tracking-[0.16em] text-white/60">
-              Furniture for real homes
+              {dictionary.header.tagline}
             </span>
           </span>
         </Link>
         <p className="absolute inset-x-13 bottom-14 max-w-[460px] text-[31px] leading-[1.28] tracking-[-0.01em] text-white">
-          “They measured the room, drew the layout, and carried the sofa up four floors. It has
-          been our favourite seat for three years.”
+          {dictionary.auth.testimonialQuote}
         </p>
       </div>
 

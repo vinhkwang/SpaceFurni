@@ -1,17 +1,21 @@
 import Link from "next/link";
 import { apiFetch } from "@/lib/api/apiClient";
 import type { AdminReviewRowResponse, PageResponse, ReviewStatus } from "@/lib/api/types";
+import { getDictionary, type Dictionary } from "@/lib/i18n/getDictionary";
+import { getLocale } from "@/lib/i18n/locale";
 import { ReviewsTable, buildReviewsHref } from "@/components/reviews/ReviewsTable";
 
 const PAGE_SIZE = 20;
 
 const REVIEW_STATUS_VALUES: ReviewStatus[] = ["PUBLISHED", "HIDDEN"];
 
-const STATUS_FILTERS: { value: ReviewStatus | undefined; label: string }[] = [
-  { value: undefined, label: "All" },
-  { value: "PUBLISHED", label: "Published" },
-  { value: "HIDDEN", label: "Hidden" },
-];
+function statusFilters(dictionary: Dictionary): { value: ReviewStatus | undefined; label: string }[] {
+  return [
+    { value: undefined, label: dictionary.common.all },
+    { value: "PUBLISHED", label: dictionary.reviews.statusLabels.PUBLISHED },
+    { value: "HIDDEN", label: dictionary.reviews.statusLabels.HIDDEN },
+  ];
+}
 
 function firstSearchParamValue(rawValue: string | string[] | undefined): string | undefined {
   return Array.isArray(rawValue) ? rawValue[0] : rawValue;
@@ -30,7 +34,7 @@ function resolveStatusFilter(rawStatus: string | undefined): ReviewStatus | unde
 }
 
 export default async function ReviewsPage({ searchParams }: PageProps<"/reviews">) {
-  const resolvedSearchParams = await searchParams;
+  const [resolvedSearchParams, dictionary] = await Promise.all([searchParams, getLocale().then(getDictionary)]);
   const statusFilter = resolveStatusFilter(firstSearchParamValue(resolvedSearchParams.status));
   const pageIndex = toPageIndex(firstSearchParamValue(resolvedSearchParams.page));
 
@@ -46,9 +50,9 @@ export default async function ReviewsPage({ searchParams }: PageProps<"/reviews"
   return (
     <div className="rounded-2xl border border-hairline-soft bg-white p-6.5">
       <div className="mb-6 flex flex-wrap gap-2">
-        {STATUS_FILTERS.map((filter) => (
+        {statusFilters(dictionary).map((filter) => (
           <Link
-            key={filter.label}
+            key={filter.value ?? "all"}
             href={buildReviewsHref(filter.value, 0)}
             className={`flex h-10 items-center gap-2 rounded-pill border px-4.5 text-[11.5px] transition-colors duration-200 ${
               filter.value === statusFilter
@@ -66,6 +70,7 @@ export default async function ReviewsPage({ searchParams }: PageProps<"/reviews"
         currentPage={reviewPage.page}
         totalPages={reviewPage.totalPages}
         status={statusFilter}
+        dictionary={dictionary}
       />
     </div>
   );

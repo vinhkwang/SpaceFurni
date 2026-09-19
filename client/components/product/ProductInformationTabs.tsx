@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import type { ProductDetailResponse } from "@/lib/api/types";
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
+import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 
 type ProductInformationTabsProps = {
   product: ProductDetailResponse;
@@ -14,11 +16,13 @@ type TabDefinition = {
   label: string;
 };
 
-const tabDefinitions: TabDefinition[] = [
-  { key: "description", label: "Description" },
-  { key: "specifications", label: "Specifications" },
-  { key: "delivery", label: "Delivery" },
-];
+function tabDefinitions(dictionary: Dictionary): TabDefinition[] {
+  return [
+    { key: "description", label: dictionary.product.tabDescription },
+    { key: "specifications", label: dictionary.product.tabSpecifications },
+    { key: "delivery", label: dictionary.product.tabDelivery },
+  ];
+}
 
 const commentIcon = (
   <svg viewBox="0 0 24 24" aria-hidden className="h-3 w-3 stroke-current" fill="none" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -27,12 +31,13 @@ const commentIcon = (
 );
 
 export function ProductInformationTabs({ product }: ProductInformationTabsProps) {
+  const dictionary = useDictionary();
   const [activeTab, setActiveTab] = useState<TabKey>("description");
 
   return (
     <div>
       <div role="tablist" className="flex gap-8.5 border-b border-hairline">
-        {tabDefinitions.map((tabDefinition) => {
+        {tabDefinitions(dictionary).map((tabDefinition) => {
           const isActive = tabDefinition.key === activeTab;
 
           return (
@@ -77,45 +82,32 @@ export function ProductInformationTabs({ product }: ProductInformationTabsProps)
           {activeTab === "delivery" ? (
             <div className="flex max-w-[640px] flex-col gap-5.5">
               <div>
-                <div className="mb-2 text-[14px] font-semibold">Delivery</div>
-                <p className="text-[13px] leading-[1.75] text-ink-soft">
-                  Free two-person delivery inside a 10 km radius of our Thanh Xuan showroom, Monday to
-                  Saturday. Outside Hanoi, we quote by district before we charge you — usually
-                  250.000–600.000 ₫.
-                </p>
+                <div className="mb-2 text-[14px] font-semibold">{dictionary.product.deliveryInfoHeading}</div>
+                <p className="text-[13px] leading-[1.75] text-ink-soft">{dictionary.product.deliveryInfoBody}</p>
               </div>
               <div>
-                <div className="mb-2 text-[14px] font-semibold">Assembly</div>
-                <p className="text-[13px] leading-[1.75] text-ink-soft">
-                  Sofas and beds arrive assembled. Shelving and desks are assembled in your room and the
-                  packaging leaves with our team.
-                </p>
+                <div className="mb-2 text-[14px] font-semibold">{dictionary.product.assemblyInfoHeading}</div>
+                <p className="text-[13px] leading-[1.75] text-ink-soft">{dictionary.product.assemblyInfoBody}</p>
               </div>
               <div>
-                <div className="mb-2 text-[14px] font-semibold">Returns</div>
-                <p className="text-[13px] leading-[1.75] text-ink-soft">
-                  30 days, no reason needed, as long as the piece is undamaged. Custom finishes are made to
-                  order and can&apos;t be returned.
-                </p>
+                <div className="mb-2 text-[14px] font-semibold">{dictionary.product.returnsInfoHeading}</div>
+                <p className="text-[13px] leading-[1.75] text-ink-soft">{dictionary.product.returnsInfoBody}</p>
               </div>
             </div>
           ) : null}
         </div>
 
         <div className="rounded-[16px] bg-surface px-8 py-7.5">
-          <div className="mb-4 text-[10.5px] uppercase tracking-[0.2em] text-terracotta">Need a hand?</div>
-          <div className="mb-3 text-[19px] font-medium leading-[1.35]">Not sure it fits your room?</div>
-          <p className="mb-5.5 text-[12.5px] leading-[1.7] text-ink-soft">
-            Send a photo and your wall measurements. A designer replies with a scaled layout within a day —
-            free, no obligation.
-          </p>
+          <div className="mb-4 text-[10.5px] uppercase tracking-[0.2em] text-terracotta">{dictionary.product.needAHand}</div>
+          <div className="mb-3 text-[19px] font-medium leading-[1.35]">{dictionary.product.notSureItFits}</div>
+          <p className="mb-5.5 text-[12.5px] leading-[1.7] text-ink-soft">{dictionary.product.designerBlurb}</p>
           <button
             type="button"
             disabled
             className="flex h-12 w-full cursor-not-allowed items-center justify-center gap-[11px] rounded-pill border border-hairline text-[11px] font-semibold uppercase tracking-[0.14em] opacity-50"
           >
             {commentIcon}
-            Ask a designer
+            {dictionary.product.askADesigner}
           </button>
         </div>
       </div>

@@ -4,6 +4,8 @@ import { ApiError } from "@/lib/api/ApiError";
 import { getSessionToken } from "@/lib/auth/session";
 import type { OrderResponse } from "@/lib/api/types";
 import { formatMoney } from "@/lib/formatting/formatMoney";
+import { getDictionary } from "@/lib/i18n/getDictionary";
+import { getLocale } from "@/lib/i18n/locale";
 import { formatOrderPlacedAt } from "@/lib/orders/formatOrderPlacedAt";
 import { formatOrderStatusLabel } from "@/lib/orders/formatOrderStatusLabel";
 import { CancelOrderButton } from "@/components/orders/CancelOrderButton";
@@ -33,7 +35,7 @@ export default async function OrderDetailPage({ params }: PageProps<"/account/or
     redirect("/login");
   }
 
-  const order = await fetchOrder(orderNumber);
+  const [order, dictionary] = await Promise.all([fetchOrder(orderNumber), getLocale().then(getDictionary)]);
   const placedAtParts = formatOrderPlacedAt(order.placedAt);
 
   return (
@@ -43,25 +45,25 @@ export default async function OrderDetailPage({ params }: PageProps<"/account/or
           <div>
             <h1 className="text-[38px] font-medium tracking-[-0.02em]">#{order.orderNumber}</h1>
             <p className="mt-1.5 text-[12.5px] text-ink-muted">
-              Placed {placedAtParts.date} · {placedAtParts.time}
+              {dictionary.orders.placedAt(placedAtParts.date, placedAtParts.time)}
             </p>
           </div>
           <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-soft">
-            {formatOrderStatusLabel(order.status)}
+            {formatOrderStatusLabel(dictionary, order.status)}
           </span>
         </div>
 
         <div className="grid grid-cols-1 items-start gap-6.5 lg:grid-cols-[1fr_360px]">
           <div className="flex flex-col gap-6.5">
             <div className="rounded-2xl border border-hairline bg-white p-6.5">
-              <div className="mb-5 text-[15px] font-semibold text-ink">Items</div>
+              <div className="mb-5 text-[15px] font-semibold text-ink">{dictionary.orders.items}</div>
               <div className="flex flex-col gap-4">
                 {order.items.map((item) => (
                   <div key={item.productId} className="flex items-center justify-between gap-4 text-[13px]">
                     <div>
                       <div className="font-medium text-ink">{item.productName}</div>
                       <div className="mt-0.5 text-[11.5px] text-ink-muted">
-                        {item.sku} · Qty {item.quantity}
+                        {item.sku} · {dictionary.orders.quantityAbbreviation} {item.quantity}
                       </div>
                     </div>
                     <div className="font-semibold text-ink">{formatMoney(item.lineTotalAmount)}</div>
@@ -71,28 +73,28 @@ export default async function OrderDetailPage({ params }: PageProps<"/account/or
 
               <div className="mt-6 flex flex-col gap-2.5 border-t border-hairline pt-5 text-[13px]">
                 <div className="flex justify-between">
-                  <span className="text-ink-soft">Subtotal</span>
+                  <span className="text-ink-soft">{dictionary.orders.subtotal}</span>
                   <span className="font-semibold">{formatMoney(order.subtotalAmount)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-ink-soft">Delivery</span>
+                  <span className="text-ink-soft">{dictionary.orders.delivery}</span>
                   <span className="font-semibold">{formatMoney(order.shippingAmount)}</span>
                 </div>
                 {order.discountAmount === 0 ? null : (
                   <div className="flex justify-between text-terracotta">
-                    <span>Discount</span>
+                    <span>{dictionary.orders.discount}</span>
                     <span className="font-semibold">−{formatMoney(order.discountAmount)}</span>
                   </div>
                 )}
                 <div className="flex items-baseline justify-between pt-2 text-[15px]">
-                  <span className="font-semibold uppercase tracking-[0.1em]">Total</span>
+                  <span className="font-semibold uppercase tracking-[0.1em]">{dictionary.orders.total}</span>
                   <span className="font-semibold">{formatMoney(order.totalAmount)}</span>
                 </div>
               </div>
             </div>
 
             <div className="rounded-2xl border border-hairline bg-white p-6.5">
-              <div className="mb-5 text-[15px] font-semibold text-ink">Delivery details</div>
+              <div className="mb-5 text-[15px] font-semibold text-ink">{dictionary.orders.deliveryDetails}</div>
               <div className="flex flex-col gap-1.5 text-[13px] text-ink-soft">
                 <div className="font-medium text-ink">{order.deliveryDetails.fullName}</div>
                 <div>{order.deliveryDetails.phone}</div>

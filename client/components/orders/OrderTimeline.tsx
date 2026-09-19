@@ -1,4 +1,6 @@
 import type { OrderTimelineStepResponse } from "@/lib/api/types";
+import { getDictionary } from "@/lib/i18n/getDictionary";
+import { getLocale } from "@/lib/i18n/locale";
 import { formatOrderPlacedAt } from "@/lib/orders/formatOrderPlacedAt";
 
 type OrderTimelineProps = {
@@ -16,10 +18,12 @@ function formatStepDetail(detail: string): string {
   return `${placedAtParts.date} · ${placedAtParts.time}`;
 }
 
-export function OrderTimeline({ steps }: OrderTimelineProps) {
+export async function OrderTimeline({ steps }: OrderTimelineProps) {
+  const dictionary = getDictionary(await getLocale());
+
   return (
     <div className="rounded-2xl border border-hairline-soft bg-white p-6.5">
-      <div className="mb-6 text-[15px] font-semibold text-ink">Progress</div>
+      <div className="mb-6 text-[15px] font-semibold text-ink">{dictionary.orders.progress}</div>
       {steps.map((step, stepIndex) => {
         const isLastStep = stepIndex === steps.length - 1;
         return (

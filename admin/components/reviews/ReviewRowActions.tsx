@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { ReviewStatus } from "@/lib/api/types";
 import { updateReviewStatusAction } from "@/lib/reviews/reviewActions";
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
 import { useToast } from "@/components/ui/Toast";
 
 type ReviewRowActionsProps = {
@@ -17,6 +18,7 @@ const actionButtonClassName =
 export function ReviewRowActions({ reviewId, status }: ReviewRowActionsProps) {
   const router = useRouter();
   const { showToast } = useToast();
+  const dictionary = useDictionary();
   const [isPending, setIsPending] = useState(false);
 
   async function toggleStatus() {
@@ -25,7 +27,7 @@ export function ReviewRowActions({ reviewId, status }: ReviewRowActionsProps) {
     const result = await updateReviewStatusAction(reviewId, nextStatus);
     setIsPending(false);
     if (result.success) {
-      showToast(nextStatus === "HIDDEN" ? "Review hidden." : "Review restored.");
+      showToast(nextStatus === "HIDDEN" ? dictionary.reviews.reviewHidden : dictionary.reviews.reviewRestored);
       router.refresh();
     }
   }
@@ -33,7 +35,7 @@ export function ReviewRowActions({ reviewId, status }: ReviewRowActionsProps) {
   return (
     <div className="flex items-center justify-end">
       <button type="button" disabled={isPending} onClick={toggleStatus} className={actionButtonClassName}>
-        {status === "PUBLISHED" ? "Hide" : "Restore"}
+        {status === "PUBLISHED" ? dictionary.reviews.hide : dictionary.reviews.restore}
       </button>
     </div>
   );

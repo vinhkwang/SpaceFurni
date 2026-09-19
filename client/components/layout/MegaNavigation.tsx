@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useState } from "react";
 import type { CategoryTreeResponse } from "@/lib/api/types";
+import { localizedCategoryName } from "@/lib/catalog/categoryName";
 import { buildProductListingHref } from "@/lib/catalog/productListingUrl";
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
 
 type MegaNavigationProps = {
   categories: CategoryTreeResponse[];
@@ -14,13 +16,14 @@ const navigationItemClassName =
 
 export function MegaNavigation({ categories }: MegaNavigationProps) {
   const [openCategoryId, setOpenCategoryId] = useState<string | null>(null);
+  const dictionary = useDictionary();
 
   return (
     <nav className="relative flex h-14 items-center rounded-pill bg-deep pl-1 pr-2.5">
       <ul className="flex h-14 list-none items-center">
         <li className="flex h-14 items-center">
           <Link href="/" className={navigationItemClassName}>
-            Homepage
+            {dictionary.header.homepage}
           </Link>
         </li>
         {categories.map((category) => (
@@ -31,7 +34,7 @@ export function MegaNavigation({ categories }: MegaNavigationProps) {
             onMouseLeave={() => setOpenCategoryId(null)}
           >
             <Link href={`/category/${category.slug}`} className={navigationItemClassName}>
-              {category.name}
+              {localizedCategoryName(dictionary, category)}
               {category.subCategories.length > 0 ? (
                 <svg
                   viewBox="0 0 24 24"
@@ -54,7 +57,7 @@ export function MegaNavigation({ categories }: MegaNavigationProps) {
                     href={buildProductListingHref(category.slug, { sub: subCategory.slug })}
                     className="flex items-center justify-between rounded-[9px] px-3 py-2.5 text-[12.5px] text-ink transition-colors duration-200 hover:bg-surface"
                   >
-                    <span>{subCategory.name}</span>
+                    <span>{localizedCategoryName(dictionary, subCategory)}</span>
                     <span className="text-[10.5px] text-ink-muted">
                       {subCategory.productCount}
                     </span>

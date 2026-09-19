@@ -2,6 +2,8 @@
 
 import { useState, type ReactNode } from "react";
 import { Input } from "@/components/ui/Input";
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
+import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 import type { PaymentMethod } from "@/lib/api/types";
 
 type CardDraftValues = {
@@ -65,13 +67,16 @@ type PaymentMethodOption = {
   hint?: string;
 };
 
-const PAYMENT_METHOD_OPTIONS: PaymentMethodOption[] = [
-  { value: "CARD", label: "Card", icon: cardIcon, hint: "Visa · Mastercard · JCB" },
-  { value: "CASH_ON_DELIVERY", label: "Cash on delivery", icon: cashIcon },
-  { value: "BANK_TRANSFER", label: "Bank transfer", icon: bankIcon },
-];
+function paymentMethodOptions(dictionary: Dictionary): PaymentMethodOption[] {
+  return [
+    { value: "CARD", label: dictionary.checkout.cardLabel, icon: cardIcon, hint: dictionary.checkout.cardHint },
+    { value: "CASH_ON_DELIVERY", label: dictionary.checkout.cashOnDeliveryLabel, icon: cashIcon },
+    { value: "BANK_TRANSFER", label: dictionary.checkout.bankTransferLabel, icon: bankIcon },
+  ];
+}
 
 export function PaymentMethodSelector() {
+  const dictionary = useDictionary();
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(() => loadStoredPaymentMethod());
   const [cardDraftValues, setCardDraftValues] = useState<CardDraftValues>(EMPTY_CARD_DRAFT_VALUES);
 
@@ -91,10 +96,10 @@ export function PaymentMethodSelector() {
 
   return (
     <div className="rounded-2xl border border-hairline bg-white px-8.5 py-8">
-      <h2 className="mb-6 text-[19px] font-medium">Payment</h2>
+      <h2 className="mb-6 text-[19px] font-medium">{dictionary.checkout.payment}</h2>
 
       <div className="mb-6.5 flex flex-col gap-3">
-        {PAYMENT_METHOD_OPTIONS.map((option) => {
+        {paymentMethodOptions(dictionary).map((option) => {
           const isSelected = paymentMethod === option.value;
           return (
             <label
@@ -130,11 +135,11 @@ export function PaymentMethodSelector() {
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-2.5 rounded-xl bg-surface-warm px-4.5 py-3.5 text-[12px] text-ink-soft">
             {infoIcon}
-            This is a simulated payment for this demo — no card network is contacted and no charge is made.
+            {dictionary.checkout.simulatedPaymentNotice}
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_130px_110px]">
             <Input
-              label="Card number"
+              label={dictionary.checkout.cardNumber}
               placeholder="4242 4242 4242 4242"
               value={cardDraftValues.cardNumber}
               onChange={(event) => updateCardDraftField("cardNumber", event.target.value)}
@@ -142,7 +147,7 @@ export function PaymentMethodSelector() {
               inputMode="numeric"
             />
             <Input
-              label="Expiry"
+              label={dictionary.checkout.expiry}
               placeholder="09 / 28"
               value={cardDraftValues.expiry}
               onChange={(event) => updateCardDraftField("expiry", event.target.value)}
@@ -150,7 +155,7 @@ export function PaymentMethodSelector() {
               inputMode="numeric"
             />
             <Input
-              label="CVC"
+              label={dictionary.checkout.cvc}
               placeholder="123"
               value={cardDraftValues.cvc}
               onChange={(event) => updateCardDraftField("cvc", event.target.value)}

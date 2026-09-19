@@ -3,6 +3,8 @@
 import Link from "next/link";
 import type { CartResponse } from "@/lib/api/types";
 import { useCart } from "@/lib/cart/useCart";
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
+import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 import { CartLineItem } from "@/components/cart/CartLineItem";
 import { EmptyCart } from "@/components/cart/EmptyCart";
 import { formatMoney } from "@/lib/formatting/formatMoney";
@@ -26,13 +28,14 @@ const backArrowIcon = (
   </svg>
 );
 
-function freeShippingNote(amountToFreeShippingAmount: number): string {
+function freeShippingNote(dictionary: Dictionary, amountToFreeShippingAmount: number): string {
   return amountToFreeShippingAmount > 0
-    ? `Add ${formatMoney(amountToFreeShippingAmount)} more for free delivery`
-    : "You have unlocked free delivery";
+    ? dictionary.cart.freeShippingNote(formatMoney(amountToFreeShippingAmount))
+    : dictionary.cart.freeShippingUnlocked;
 }
 
 export function CartLines({ cart, highlightProductId }: CartLinesProps) {
+  const dictionary = useDictionary();
   const { cart: optimisticCart, isMutating, updateQuantity, removeLine } = useCart(cart);
 
   if (optimisticCart.lines.length === 0) {
@@ -54,10 +57,10 @@ export function CartLines({ cart, highlightProductId }: CartLinesProps) {
       <div className="mt-2 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[0.13em]">
           {backArrowIcon}
-          Continue shopping
+          {dictionary.cart.continueShopping}
         </Link>
         <div className="text-[12px] text-ink-muted">
-          {freeShippingNote(optimisticCart.priceBreakdown.amountToFreeShippingAmount)}
+          {freeShippingNote(dictionary, optimisticCart.priceBreakdown.amountToFreeShippingAmount)}
         </div>
       </div>
     </div>

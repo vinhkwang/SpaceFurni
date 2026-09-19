@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { apiFetch } from "@/lib/api/apiClient";
 import { getSessionToken } from "@/lib/auth/session";
+import { getDictionary } from "@/lib/i18n/getDictionary";
+import { getLocale } from "@/lib/i18n/locale";
 import type { CartResponse, CategoryTreeResponse, CurrentUserResponse } from "@/lib/api/types";
 import { AccountMenu } from "@/components/layout/AccountMenu";
 import { CartIndicator } from "@/components/layout/CartIndicator";
+import { LanguageToggle } from "@/components/layout/LanguageToggle";
 import { MegaNavigation } from "@/components/layout/MegaNavigation";
 import { SearchBar } from "@/components/layout/SearchBar";
 import { Container } from "@/components/ui/Container";
@@ -32,11 +35,13 @@ async function fetchCurrentUser(): Promise<CurrentUserResponse | null> {
 }
 
 export async function ShopHeader() {
-  const [categories, cart, currentUser] = await Promise.all([
+  const [categories, cart, currentUser, locale] = await Promise.all([
     apiFetch<CategoryTreeResponse[]>("/categories"),
     apiFetch<CartResponse>("/cart"),
     fetchCurrentUser(),
+    getLocale(),
   ]);
+  const dictionary = getDictionary(locale);
 
   return (
     <header className="relative z-40 bg-canvas">
@@ -48,9 +53,11 @@ export async function ShopHeader() {
         <SearchBar />
 
         <div className="flex items-center gap-2.5">
+          <LanguageToggle />
+
           <span
             aria-disabled
-            title="Saved items — coming soon"
+            title={dictionary.header.savedComingSoon}
             className={`${inertHeaderPillClassName} px-4`}
           >
             <svg
@@ -64,7 +71,7 @@ export async function ShopHeader() {
             >
               <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21.2l8.8-8.8a5.5 5.5 0 0 0 0-7.8z" />
             </svg>
-            <span className="text-[11px] font-medium uppercase tracking-[0.1em]">Saved</span>
+            <span className="text-[11px] font-medium uppercase tracking-[0.1em]">{dictionary.header.saved}</span>
           </span>
 
           <CartIndicator itemCount={totalCartItemCount(cart)} />
@@ -87,7 +94,7 @@ export async function ShopHeader() {
                   <path d="M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" />
                 </svg>
               </span>
-              <span className="text-[11px] font-medium uppercase tracking-[0.1em]">Sign in</span>
+              <span className="text-[11px] font-medium uppercase tracking-[0.1em]">{dictionary.header.signIn}</span>
             </Link>
           )}
         </div>

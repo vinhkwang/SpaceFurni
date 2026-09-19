@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { getDictionary } from "@/lib/i18n/getDictionary";
+import { getLocale } from "@/lib/i18n/locale";
 
 type ServicePromise = {
   title: string;
@@ -57,28 +59,18 @@ const customDesignIcon = (
   </svg>
 );
 
-const servicePromises: ServicePromise[] = [
-  {
-    title: "Free delivery within 10 km",
-    body: "Same-week delivery across Hanoi, with two-person carry-in.",
-    icon: deliveryIcon,
-  },
-  {
-    title: "12-month warranty",
-    body: "Frames, joints and mechanisms covered — repaired in our workshop.",
-    icon: warrantyIcon,
-  },
-  {
-    title: "Custom design & install",
-    body: "Send us a floor plan; we draw the fit-out and install it for free.",
-    icon: customDesignIcon,
-  },
-];
+const servicePromiseIcons: ReactNode[] = [deliveryIcon, warrantyIcon, customDesignIcon];
 
-export function ServicePromiseStrip() {
+export async function ServicePromiseStrip() {
+  const dictionary = getDictionary(await getLocale());
+  const servicePromises: ServicePromise[] = dictionary.home.servicePromises.map((promise, index) => ({
+    ...promise,
+    icon: servicePromiseIcons[index],
+  }));
+
   return (
     <section
-      aria-label="Service promises"
+      aria-label={dictionary.home.servicePromisesAriaLabel}
       className="grid grid-cols-1 gap-4 md:grid-cols-3"
     >
       {servicePromises.map((promise) => (

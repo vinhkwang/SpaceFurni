@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { submitReviewAction } from "@/lib/reviews/reviewActions";
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
 
 type ReviewFormProps = {
   productId: string;
@@ -17,6 +18,7 @@ const starOutlinePath =
 
 export function ReviewForm({ productId, productSlug, orderItemId }: ReviewFormProps) {
   const router = useRouter();
+  const dictionary = useDictionary();
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -25,12 +27,12 @@ export function ReviewForm({ productId, productSlug, orderItemId }: ReviewFormPr
   const [isSubmitting, startSubmission] = useTransition();
 
   if (isSubmitted) {
-    return <p className="text-[13px] text-ink-soft">Thanks for sharing your review.</p>;
+    return <p className="text-[13px] text-ink-soft">{dictionary.reviews.thanksForSharing}</p>;
   }
 
   function submitReview(): void {
     if (rating === 0) {
-      setErrorMessage("Pick a star rating first.");
+      setErrorMessage(dictionary.reviews.pickStarRating);
       return;
     }
     startSubmission(async () => {
@@ -49,16 +51,16 @@ export function ReviewForm({ productId, productSlug, orderItemId }: ReviewFormPr
 
   return (
     <div className="flex flex-col gap-3.5 rounded-2xl border border-hairline bg-surface p-4.5">
-      <p className="text-[12.5px] font-medium text-ink">You bought this — how did it hold up?</p>
+      <p className="text-[12.5px] font-medium text-ink">{dictionary.reviews.youBoughtThis}</p>
 
-      <div className="flex items-center gap-1" role="radiogroup" aria-label="Rating">
+      <div className="flex items-center gap-1" role="radiogroup" aria-label={dictionary.reviews.ratingAriaLabel}>
         {starPositions.map((position) => (
           <button
             key={position}
             type="button"
             role="radio"
             aria-checked={rating === position}
-            aria-label={`${position} star${position === 1 ? "" : "s"}`}
+            aria-label={dictionary.reviews.starAriaLabel(position)}
             onMouseEnter={() => setHoveredRating(position)}
             onMouseLeave={() => setHoveredRating(0)}
             onClick={() => setRating(position)}
@@ -78,7 +80,7 @@ export function ReviewForm({ productId, productSlug, orderItemId }: ReviewFormPr
       <textarea
         value={comment}
         onChange={(event) => setComment(event.target.value)}
-        placeholder="Share a few words about the piece (optional)"
+        placeholder={dictionary.reviews.sharePlaceholder}
         rows={3}
         maxLength={2000}
         className="w-full rounded-xl border border-hairline bg-white px-3.5 py-3 text-[12.5px] text-ink outline-none focus:border-terracotta"
@@ -92,7 +94,7 @@ export function ReviewForm({ productId, productSlug, orderItemId }: ReviewFormPr
         disabled={isSubmitting}
         className="flex h-[44px] w-full cursor-pointer items-center justify-center rounded-pill bg-deep text-[11px] font-semibold uppercase tracking-[0.13em] text-white transition-colors duration-300 hover:bg-terracotta disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {isSubmitting ? "Submitting…" : "Submit review"}
+        {isSubmitting ? dictionary.reviews.submitting : dictionary.reviews.submitReview}
       </button>
     </div>
   );

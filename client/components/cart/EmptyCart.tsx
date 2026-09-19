@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
 
 const bagIcon = (
   <svg
@@ -16,20 +19,20 @@ const bagIcon = (
 );
 
 export function EmptyCart() {
+  const dictionary = useDictionary();
+
   return (
     <div className="flex flex-col items-center rounded-[18px] border border-hairline bg-white px-6 py-22.5 text-center">
       <div className="mb-6 flex h-[74px] w-[74px] items-center justify-center rounded-full bg-surface">
         {bagIcon}
       </div>
-      <p className="mb-2.5 text-[22px] font-medium">Your cart is empty</p>
-      <p className="mb-7 text-[13px] text-ink-muted">
-        Everything you add will wait here for 30 days.
-      </p>
+      <p className="mb-2.5 text-[22px] font-medium">{dictionary.cart.emptyTitle}</p>
+      <p className="mb-7 text-[13px] text-ink-muted">{dictionary.cart.emptyBody}</p>
       <Link
         href="/"
         className="inline-flex h-[50px] items-center rounded-pill bg-deep px-7.5 text-[11.5px] font-semibold uppercase tracking-[0.14em] text-white transition-colors duration-200 hover:bg-terracotta"
       >
-        Start shopping
+        {dictionary.cart.startShopping}
       </Link>
     </div>
   );

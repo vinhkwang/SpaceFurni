@@ -1,3 +1,5 @@
+import { getDictionary } from "@/lib/i18n/getDictionary";
+import { getLocale } from "@/lib/i18n/locale";
 import { DepartmentGrid } from "@/components/home/DepartmentGrid";
 import { HeroCarousel } from "@/components/home/HeroCarousel";
 import { HeroPromoBanners } from "@/components/home/HeroPromoBanners";
@@ -7,7 +9,9 @@ import { WeeklyDropBand } from "@/components/home/WeeklyDropBand";
 import { WorkshopBand } from "@/components/home/WorkshopBand";
 import { Container } from "@/components/ui/Container";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const dictionary = getDictionary(await getLocale());
+
   return (
     <main className="pb-22">
       <Container alignToNavLabel className="grid grid-cols-[1fr_486px] gap-3.5 pt-5.5">
@@ -22,8 +26,8 @@ export default function HomePage() {
       </Container>
       <Container alignToNavLabel className="mt-21">
         <ProductRail
-          eyebrow="Just landed"
-          title="New arrivals"
+          eyebrow={dictionary.home.newArrivalsEyebrow}
+          title={dictionary.home.newArrivalsTitle}
           sort="newest"
           shopAllHref="/products"
         />
@@ -33,8 +37,8 @@ export default function HomePage() {
       </Container>
       <Container alignToNavLabel className="mt-21">
         <ProductRail
-          eyebrow="Loved by 1,200 homes"
-          title="Our bestsellers"
+          eyebrow={dictionary.home.bestsellersEyebrow}
+          title={dictionary.home.bestsellersTitle}
           sort="rating"
           shopAllHref="/products"
         />

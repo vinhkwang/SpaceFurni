@@ -1,10 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { CategoryTreeResponse } from "@/lib/api/types";
+import { localizedCategoryName } from "@/lib/catalog/categoryName";
 import {
   buildProductListingHref,
   type ProductListingFilters,
 } from "@/lib/catalog/productListingUrl";
+import { getDictionary } from "@/lib/i18n/getDictionary";
+import { getLocale } from "@/lib/i18n/locale";
 
 type SubCategoryFilterProps = {
   departmentSlug: string;
@@ -20,11 +23,7 @@ const activeChipClassName = "border-deep shadow-sm";
 
 const inactiveChipClassName = "border-hairline-soft hover:border-ink-muted";
 
-function itemCountLabel(productCount: number): string {
-  return productCount === 1 ? "1 item" : `${productCount} items`;
-}
-
-export function SubCategoryFilter({
+export async function SubCategoryFilter({
   departmentSlug,
   subCategories,
   activeSubCategorySlug,
@@ -34,13 +33,14 @@ export function SubCategoryFilter({
     return null;
   }
 
+  const dictionary = getDictionary(await getLocale());
   const totalProductCount = subCategories.reduce(
     (runningTotal, subCategory) => runningTotal + subCategory.productCount,
     0,
   );
 
   return (
-    <nav aria-label="Filter by subcategory" className="flex flex-wrap gap-3">
+    <nav aria-label={dictionary.catalog.filterBySubcategoryAriaLabel} className="flex flex-wrap gap-3">
       <Link
         href={buildProductListingHref(departmentSlug, {
           ...filters,
@@ -54,15 +54,16 @@ export function SubCategoryFilter({
           {subCategories.length}
         </span>
         <span>
-          <span className="block text-[12.5px] font-semibold tracking-[0.05em]">All</span>
+          <span className="block text-[12.5px] font-semibold tracking-[0.05em]">{dictionary.catalog.all}</span>
           <span className="mt-[3px] block text-[10.5px] text-ink-muted">
-            {itemCountLabel(totalProductCount)}
+            {dictionary.catalog.itemCount(totalProductCount)}
           </span>
         </span>
       </Link>
 
       {subCategories.map((subCategory) => {
         const isActive = subCategory.slug === activeSubCategorySlug;
+        const subCategoryName = localizedCategoryName(dictionary, subCategory);
 
         return (
           <Link
@@ -86,16 +87,16 @@ export function SubCategoryFilter({
                 />
               ) : (
                 <span className="text-[13px] font-medium text-ink-muted">
-                  {subCategory.name.charAt(0)}
+                  {subCategoryName.charAt(0)}
                 </span>
               )}
             </span>
             <span>
               <span className="block text-[12.5px] font-semibold tracking-[0.05em]">
-                {subCategory.name}
+                {subCategoryName}
               </span>
               <span className="mt-[3px] block text-[10.5px] text-ink-muted">
-                {itemCountLabel(subCategory.productCount)}
+                {dictionary.catalog.itemCount(subCategory.productCount)}
               </span>
             </span>
           </Link>

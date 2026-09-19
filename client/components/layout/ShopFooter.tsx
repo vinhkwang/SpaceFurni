@@ -1,5 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
+import { getDictionary, type Dictionary } from "@/lib/i18n/getDictionary";
+import { getLocale } from "@/lib/i18n/locale";
 import { Container } from "@/components/ui/Container";
 
 type FooterLink = {
@@ -7,23 +9,27 @@ type FooterLink = {
   href: string | null;
 };
 
-const aboutLinks: FooterLink[] = [
-  { label: "Our story", href: null },
-  { label: "The workshop", href: null },
-  { label: "Showroom", href: null },
-  { label: "Materials", href: null },
-  { label: "Journal", href: null },
-  { label: "Careers", href: null },
-];
+function aboutLinks(dictionary: Dictionary): FooterLink[] {
+  return [
+    { label: dictionary.footer.ourStory, href: null },
+    { label: dictionary.footer.theWorkshop, href: null },
+    { label: dictionary.footer.showroom, href: null },
+    { label: dictionary.footer.materials, href: null },
+    { label: dictionary.footer.journal, href: null },
+    { label: dictionary.footer.careers, href: null },
+  ];
+}
 
-const customerServiceLinks: FooterLink[] = [
-  { label: "Track my order", href: "/account/orders" },
-  { label: "Delivery & assembly", href: null },
-  { label: "Returns", href: null },
-  { label: "Care & repair", href: null },
-  { label: "Wishlist", href: null },
-  { label: "Terms of use", href: null },
-];
+function customerServiceLinks(dictionary: Dictionary): FooterLink[] {
+  return [
+    { label: dictionary.footer.trackMyOrder, href: "/account/orders" },
+    { label: dictionary.footer.deliveryAndAssembly, href: null },
+    { label: dictionary.footer.returns, href: null },
+    { label: dictionary.footer.careAndRepair, href: null },
+    { label: dictionary.footer.wishlist, href: null },
+    { label: dictionary.footer.termsOfUse, href: null },
+  ];
+}
 
 const socialAccounts = [
   { name: "Facebook", initials: "Fb" },
@@ -31,9 +37,7 @@ const socialAccounts = [
   { name: "Twitter", initials: "Tw" },
 ];
 
-const acceptedPaymentMethods = ["Visa", "Mastercard", "JCB", "Cash"];
-
-const serviceDesks = ["Customer service", "Shopping assistant"];
+const acceptedPaymentMethods = ["Visa", "Mastercard", "JCB"] as const;
 
 const columnHeadingClassName =
   "text-[11px] font-semibold uppercase tracking-[0.18em] text-ink";
@@ -61,27 +65,28 @@ function renderFooterLink(link: FooterLink) {
   );
 }
 
-export function ShopFooter() {
+export async function ShopFooter() {
+  const locale = await getLocale();
+  const dictionary = getDictionary(locale);
+
   return (
     <footer className="mt-24">
       <Container className="flex flex-col items-start justify-between gap-10 border-y border-hairline py-14 lg:flex-row lg:items-center">
         <div>
           <p className="mb-3 text-[10.5px] uppercase tracking-[0.22em] text-terracotta">
-            Newsletter
+            {dictionary.footer.newsletterEyebrow}
           </p>
           <h2 className="mb-2 text-[27px] font-medium tracking-[-0.015em]">
-            Be the first to know about our best deals
+            {dictionary.footer.newsletterHeading}
           </h2>
-          <p className="text-[12.5px] text-ink-muted">
-            One email a week — new drops, showroom events, nothing else.
-          </p>
+          <p className="text-[12.5px] text-ink-muted">{dictionary.footer.newsletterBody}</p>
         </div>
         <div className="flex w-full shrink-0 flex-col gap-2.5 sm:w-auto sm:flex-row">
           <input
             type="email"
             disabled
-            placeholder="Email address"
-            aria-label="Email address"
+            placeholder={dictionary.footer.emailPlaceholder}
+            aria-label={dictionary.footer.emailPlaceholder}
             className="h-14 w-full cursor-not-allowed rounded-pill border border-hairline bg-white px-[22px] text-[13px] opacity-50 sm:w-[300px]"
           />
           <button
@@ -89,7 +94,7 @@ export function ShopFooter() {
             disabled
             className="flex h-14 cursor-not-allowed items-center justify-center gap-3 rounded-pill bg-deep px-[30px] text-[11.5px] font-semibold uppercase tracking-[0.14em] text-white opacity-50"
           >
-            Subscribe
+            {dictionary.footer.subscribe}
           </button>
         </div>
       </Container>
@@ -113,8 +118,7 @@ export function ShopFooter() {
               </span>
             </div>
             <p className="mb-6 max-w-[290px] text-[12.5px] leading-[1.75] text-ink-soft">
-              Furniture designed and built in Hanoi since 2016. Visit the showroom — the coffee is
-              free and you can sit on everything.
+              {dictionary.footer.tagline}
             </p>
             <div className="flex gap-2">
               {socialAccounts.map((account) => (
@@ -130,35 +134,35 @@ export function ShopFooter() {
           </div>
 
           <div className="flex flex-col gap-3.5">
-            <h3 className={`${columnHeadingClassName} mb-1.5`}>About us</h3>
-            {aboutLinks.map(renderFooterLink)}
+            <h3 className={`${columnHeadingClassName} mb-1.5`}>{dictionary.footer.aboutUs}</h3>
+            {aboutLinks(dictionary).map(renderFooterLink)}
           </div>
 
           <div className="flex flex-col gap-3.5">
-            <h3 className={`${columnHeadingClassName} mb-1.5`}>Customer service</h3>
-            {customerServiceLinks.map(renderFooterLink)}
+            <h3 className={`${columnHeadingClassName} mb-1.5`}>{dictionary.footer.customerService}</h3>
+            {customerServiceLinks(dictionary).map(renderFooterLink)}
           </div>
 
           <div>
-            <h3 className={`${columnHeadingClassName} mb-5`}>Talk to us</h3>
+            <h3 className={`${columnHeadingClassName} mb-5`}>{dictionary.footer.talkToUs}</h3>
             <div className="mb-6 flex flex-col gap-2.5">
               <button type="button" disabled className={`${inertPillClassName} bg-deep text-white`}>
-                Call us now
+                {dictionary.footer.callUsNow}
               </button>
               <button
                 type="button"
                 disabled
                 className={`${inertPillClassName} border border-hairline text-ink`}
               >
-                Quick service
+                {dictionary.footer.quickService}
               </button>
             </div>
             <div className="flex flex-col gap-3">
-              {serviceDesks.map((desk) => (
+              {[dictionary.footer.customerServiceDesk, dictionary.footer.shoppingAssistant].map((desk) => (
                 <div key={desk}>
                   <p className="text-[12.5px] font-semibold">{desk}</p>
                   <p className="mt-[3px] text-[11.5px] text-ink-muted">
-                    <span className="text-success">● Open</span> · closes 18:00
+                    <span className="text-success">● {dictionary.footer.openClosesAt}</span>
                   </p>
                 </div>
               ))}
@@ -167,9 +171,7 @@ export function ShopFooter() {
         </Container>
 
         <Container className="flex flex-col items-center justify-between gap-4 border-t border-hairline-soft pb-7 pt-5 sm:flex-row">
-          <p className="text-[11.5px] text-ink-muted">
-            © 2026 SpaceFurni Co. · Business licence 0106824913
-          </p>
+          <p className="text-[11.5px] text-ink-muted">{dictionary.footer.copyright}</p>
           <div className="flex items-center gap-3.5">
             {acceptedPaymentMethods.map((method) => (
               <span
@@ -179,6 +181,9 @@ export function ShopFooter() {
                 {method}
               </span>
             ))}
+            <span className="rounded-[4px] border border-hairline-soft px-2 py-1 text-[9.5px] uppercase tracking-[0.1em] text-ink-muted">
+              {dictionary.footer.cash}
+            </span>
           </div>
         </Container>
       </div>

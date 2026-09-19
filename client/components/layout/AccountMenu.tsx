@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { CurrentUserResponse } from "@/lib/api/types";
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
 
 type AccountMenuProps = {
   currentUser: CurrentUserResponse;
@@ -23,6 +24,7 @@ function userInitials(fullName: string): string {
 
 export function AccountMenu({ currentUser }: AccountMenuProps) {
   const router = useRouter();
+  const dictionary = useDictionary();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -70,7 +72,7 @@ export function AccountMenu({ currentUser }: AccountMenuProps) {
             onClick={() => setIsOpen(false)}
             className="block px-5 py-2.5 text-[12.5px] text-ink transition-colors duration-200 hover:bg-surface"
           >
-            Profile
+            {dictionary.accountMenu.profile}
           </Link>
           <Link
             href="/account/orders"
@@ -78,7 +80,7 @@ export function AccountMenu({ currentUser }: AccountMenuProps) {
             onClick={() => setIsOpen(false)}
             className="block px-5 py-2.5 text-[12.5px] text-ink transition-colors duration-200 hover:bg-surface"
           >
-            Orders
+            {dictionary.accountMenu.orders}
           </Link>
           <button
             type="button"
@@ -86,7 +88,7 @@ export function AccountMenu({ currentUser }: AccountMenuProps) {
             onClick={signOut}
             className="block w-full cursor-pointer px-5 py-2.5 text-left text-[12.5px] text-terracotta transition-colors duration-200 hover:bg-surface"
           >
-            Logout
+            {dictionary.accountMenu.logout}
           </button>
         </div>
       ) : null}

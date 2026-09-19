@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { AdminReviewRowResponse, ReviewStatus } from "@/lib/api/types";
 import { formatOrderPlacedAt } from "@/lib/formatting/formatOrderPlacedAt";
-import { REVIEW_STATUS_PRESENTATION } from "@/lib/reviews/reviewStatusPresentation";
+import type { Dictionary } from "@/lib/i18n/getDictionary";
+import { reviewStatusPresentation } from "@/lib/reviews/reviewStatusPresentation";
 import { ReviewRowActions } from "@/components/reviews/ReviewRowActions";
 
 type ReviewsTableProps = {
@@ -9,6 +10,7 @@ type ReviewsTableProps = {
   currentPage: number;
   totalPages: number;
   status: ReviewStatus | undefined;
+  dictionary: Dictionary;
 };
 
 const tableRowGridClassName = "grid grid-cols-[130px_130px_90px_1.6fr_110px_100px_90px] items-center gap-3.5";
@@ -53,24 +55,24 @@ function pageNumbers(totalPages: number): number[] {
   return Array.from({ length: totalPages }, (_, pageOffset) => pageOffset + 1);
 }
 
-export function ReviewsTable({ reviews, currentPage, totalPages, status }: ReviewsTableProps) {
+export function ReviewsTable({ reviews, currentPage, totalPages, status, dictionary }: ReviewsTableProps) {
   return (
     <div>
       <div
         className={`${tableRowGridClassName} border-b border-hairline-soft px-2.5 pb-3.5 text-[10px] uppercase tracking-[0.14em] text-ink-muted`}
       >
-        <span>Product</span>
-        <span>Customer</span>
-        <span>Rating</span>
-        <span>Comment</span>
-        <span>Submitted</span>
-        <span className="text-center">Status</span>
-        <span className="text-right">Actions</span>
+        <span>{dictionary.reviews.columnProduct}</span>
+        <span>{dictionary.reviews.columnCustomer}</span>
+        <span>{dictionary.reviews.columnRating}</span>
+        <span>{dictionary.reviews.columnComment}</span>
+        <span>{dictionary.reviews.columnSubmitted}</span>
+        <span className="text-center">{dictionary.reviews.columnStatus}</span>
+        <span className="text-right">{dictionary.reviews.columnActions}</span>
       </div>
 
       {reviews.map((review) => {
         const submittedAt = formatOrderPlacedAt(review.createdAt);
-        const statusPresentation = REVIEW_STATUS_PRESENTATION[review.status];
+        const statusPresentation = reviewStatusPresentation(dictionary, review.status);
         return (
           <div
             key={review.id}
@@ -79,7 +81,7 @@ export function ReviewsTable({ reviews, currentPage, totalPages, status }: Revie
             <span className="font-mono text-[12px] text-ink-soft">{truncatedId(review.productId)}</span>
             <span className="font-mono text-[12px] text-ink-soft">{truncatedId(review.userId)}</span>
             <span className="text-[13px] tracking-[0.05em] text-brass">{starGlyphs(review.rating)}</span>
-            <span className="truncate text-[12.5px] text-ink-soft">{review.comment ?? "—"}</span>
+            <span className="truncate text-[12.5px] text-ink-soft">{review.comment ?? dictionary.reviews.noComment}</span>
             <div>
               <div className="text-[12px] text-ink">{submittedAt.date}</div>
               <div className="mt-0.5 text-[11px] text-ink-muted">{submittedAt.time}</div>
@@ -98,15 +100,15 @@ export function ReviewsTable({ reviews, currentPage, totalPages, status }: Revie
       })}
 
       {reviews.length === 0 ? (
-        <div className="py-15 text-center text-[13px] text-ink-muted">No reviews match this filter.</div>
+        <div className="py-15 text-center text-[13px] text-ink-muted">{dictionary.reviews.noReviewsMatch}</div>
       ) : null}
 
       {totalPages > 1 ? (
-        <nav aria-label="Pagination" className="flex items-center justify-center gap-1.5 pt-5.5">
+        <nav aria-label={dictionary.common.paginationAriaLabel} className="flex items-center justify-center gap-1.5 pt-5.5">
           {currentPage > 0 ? (
             <Link
               href={buildReviewsHref(status, currentPage - 1)}
-              aria-label="Previous page"
+              aria-label={dictionary.common.previousPage}
               className="flex h-8.5 w-8.5 items-center justify-center rounded-xl border border-hairline text-ink-muted transition-colors duration-200 hover:border-deep hover:text-ink"
             >
               <ChevronIcon className="rotate-180" />
@@ -133,7 +135,7 @@ export function ReviewsTable({ reviews, currentPage, totalPages, status }: Revie
               <Link
                 key={pageNumber}
                 href={buildReviewsHref(status, pageNumber - 1)}
-                aria-label={`Page ${pageNumber}`}
+                aria-label={dictionary.common.pageAriaLabel(pageNumber)}
                 className="flex h-8.5 w-8.5 items-center justify-center rounded-xl border border-hairline text-[12px] transition-colors duration-200 hover:border-deep"
               >
                 {pageNumber}
@@ -144,7 +146,7 @@ export function ReviewsTable({ reviews, currentPage, totalPages, status }: Revie
           {currentPage < totalPages - 1 ? (
             <Link
               href={buildReviewsHref(status, currentPage + 1)}
-              aria-label="Next page"
+              aria-label={dictionary.common.nextPage}
               className="flex h-8.5 w-8.5 items-center justify-center rounded-xl border border-hairline text-ink-muted transition-colors duration-200 hover:border-deep hover:text-ink"
             >
               <ChevronIcon />

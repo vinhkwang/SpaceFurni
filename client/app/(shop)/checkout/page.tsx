@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { apiFetch } from "@/lib/api/apiClient";
 import type { CartResponse } from "@/lib/api/types";
+import { getDictionary, type Dictionary } from "@/lib/i18n/getDictionary";
+import { getLocale } from "@/lib/i18n/locale";
 import { Container } from "@/components/ui/Container";
 import { CheckoutStepper, type CheckoutStep } from "@/components/checkout/CheckoutStepper";
 import { DeliveryDetailsForm } from "@/components/checkout/DeliveryDetailsForm";
@@ -19,14 +21,14 @@ function toCheckoutStep(rawStep: string | string[] | undefined): CheckoutStep {
   return CHECKOUT_STEPS.find((step) => step === requestedStep) ?? "delivery";
 }
 
-function stepTitle(step: CheckoutStep): string {
+function stepTitle(dictionary: Dictionary, step: CheckoutStep): string {
   if (step === "delivery") {
-    return "Delivery";
+    return dictionary.checkout.stepDelivery;
   }
   if (step === "payment") {
-    return "Payment";
+    return dictionary.checkout.stepPayment;
   }
-  return "Order confirmed";
+  return dictionary.checkout.stepOrderConfirmed;
 }
 
 function stepContent(step: CheckoutStep, cart: CartResponse) {
@@ -69,10 +71,13 @@ const backArrowIcon = (
 );
 
 export default async function CheckoutPage(props: PageProps<"/checkout">) {
-  const resolvedSearchParams = await props.searchParams;
+  const [resolvedSearchParams, cart, locale] = await Promise.all([
+    props.searchParams,
+    apiFetch<CartResponse>("/cart", { cache: "no-store" }),
+    getLocale(),
+  ]);
+  const dictionary = getDictionary(locale);
   const step = toCheckoutStep(resolvedSearchParams.step);
-
-  const cart = await apiFetch<CartResponse>("/cart", { cache: "no-store" });
   const backLink = backHref(step);
   const isConfirmationStep = step === "confirmation";
   const showSummary = !isConfirmationStep && cart.lines.length > 0;
@@ -81,7 +86,7 @@ export default async function CheckoutPage(props: PageProps<"/checkout">) {
     <main className="py-8.5">
       <Container>
         <div className="mb-8.5 flex flex-wrap items-center justify-between gap-6">
-          <h1 className="text-[38px] font-medium tracking-[-0.02em]">{stepTitle(step)}</h1>
+          <h1 className="text-[38px] font-medium tracking-[-0.02em]">{stepTitle(dictionary, step)}</h1>
           <CheckoutStepper currentStep={step} />
         </div>
 
@@ -101,7 +106,7 @@ export default async function CheckoutPage(props: PageProps<"/checkout">) {
                 className="flex items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[0.13em]"
               >
                 {backArrowIcon}
-                Back a step
+                {dictionary.checkout.backAStep}
               </Link>
             )}
           </div>

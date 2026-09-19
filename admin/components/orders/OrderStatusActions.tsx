@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { OrderStatus } from "@/lib/api/types";
 import { transitionOrderStatusAction } from "@/lib/orders/orderActions";
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
 import { useToast } from "@/components/ui/Toast";
 
 type OrderStatusActionsProps = {
@@ -14,17 +15,10 @@ type OrderStatusActionsProps = {
 
 const ALL_ORDER_STATUSES: OrderStatus[] = ["PENDING", "PAID", "PACKING", "DELIVERED", "CANCELLED"];
 
-const STATUS_LABELS: Record<OrderStatus, string> = {
-  PENDING: "Pending",
-  PAID: "Paid",
-  PACKING: "Packing",
-  DELIVERED: "Delivered",
-  CANCELLED: "Cancelled",
-};
-
 export function OrderStatusActions({ orderNumber, currentStatus, version }: OrderStatusActionsProps) {
   const router = useRouter();
   const { showToast } = useToast();
+  const dictionary = useDictionary();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isConflict, setIsConflict] = useState(false);
@@ -38,7 +32,7 @@ export function OrderStatusActions({ orderNumber, currentStatus, version }: Orde
 
     setIsSubmitting(false);
     if (result.success) {
-      showToast("Status updated.");
+      showToast(dictionary.orders.statusUpdated);
       router.refresh();
       return;
     }
@@ -48,17 +42,17 @@ export function OrderStatusActions({ orderNumber, currentStatus, version }: Orde
 
   return (
     <div className="rounded-2xl border border-hairline-soft bg-white p-6.5">
-      <div className="mb-4.5 text-[10.5px] uppercase tracking-[0.18em] text-ink-muted">Update status</div>
+      <div className="mb-4.5 text-[10.5px] uppercase tracking-[0.18em] text-ink-muted">{dictionary.orders.updateStatus}</div>
 
       {isConflict ? (
         <div className="mb-4.5 flex items-center justify-between gap-3 rounded-xl bg-terracotta/10 px-4 py-3 text-[12px] text-terracotta">
-          <span>This order changed elsewhere.</span>
+          <span>{dictionary.orders.orderChangedElsewhere}</span>
           <button
             type="button"
             onClick={() => router.refresh()}
             className="cursor-pointer font-semibold underline underline-offset-2"
           >
-            Reload
+            {dictionary.common.reload}
           </button>
         </div>
       ) : errorMessage ? (
@@ -82,7 +76,7 @@ export function OrderStatusActions({ orderNumber, currentStatus, version }: Orde
                   : "border-hairline text-ink hover:border-ink-muted disabled:cursor-not-allowed disabled:opacity-50"
               }`}
             >
-              {STATUS_LABELS[status]}
+              {dictionary.orders.statusLabels[status]}
             </button>
           );
         })}

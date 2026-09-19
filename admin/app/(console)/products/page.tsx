@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { apiFetch } from "@/lib/api/apiClient";
 import type { AdminProductRowResponse, PageResponse } from "@/lib/api/types";
+import { getDictionary } from "@/lib/i18n/getDictionary";
+import { getLocale } from "@/lib/i18n/locale";
 import { ProductTable } from "@/components/products/ProductTable";
 
 const PAGE_SIZE = 20;
@@ -15,11 +17,6 @@ function toPageIndex(rawPage: string | undefined): number {
     return 0;
   }
   return parsedPage;
-}
-
-function resultCountLabel(totalElements: number, query: string): string {
-  const pieceLabel = totalElements === 1 ? "1 product" : `${totalElements} products`;
-  return query ? `${pieceLabel} matching “${query}”` : pieceLabel;
 }
 
 function SearchIcon() {
@@ -40,7 +37,7 @@ function SearchIcon() {
 }
 
 export default async function ProductsPage({ searchParams }: PageProps<"/products">) {
-  const resolvedSearchParams = await searchParams;
+  const [resolvedSearchParams, dictionary] = await Promise.all([searchParams, getLocale().then(getDictionary)]);
   const query = firstSearchParamValue(resolvedSearchParams.q) ?? "";
   const pageIndex = toPageIndex(firstSearchParamValue(resolvedSearchParams.page));
 
@@ -58,9 +55,9 @@ export default async function ProductsPage({ searchParams }: PageProps<"/product
     <div className="rounded-2xl border border-hairline-soft bg-white p-6.5">
       <div className="mb-6.5 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <div className="text-[16px] font-semibold text-ink">Products list</div>
+          <div className="text-[16px] font-semibold text-ink">{dictionary.products.productsList}</div>
           <div className="mt-1 text-[11.5px] text-ink-muted">
-            {resultCountLabel(productPage.totalElements, query)}
+            {dictionary.products.resultCount(productPage.totalElements, query)}
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -70,8 +67,8 @@ export default async function ProductsPage({ searchParams }: PageProps<"/product
               type="text"
               name="q"
               defaultValue={query}
-              placeholder="Search products…"
-              aria-label="Search products"
+              placeholder={dictionary.products.searchPlaceholder}
+              aria-label={dictionary.products.searchAriaLabel}
               className="flex-1 bg-transparent text-[12.5px] text-ink outline-none placeholder:text-ink-muted"
             />
           </form>
@@ -79,7 +76,7 @@ export default async function ProductsPage({ searchParams }: PageProps<"/product
             href="/products/new"
             className="flex h-11 items-center rounded-pill bg-deep px-5.5 text-[11px] font-semibold uppercase tracking-[0.13em] text-white transition-colors duration-200 hover:bg-terracotta"
           >
-            Create
+            {dictionary.products.create}
           </Link>
         </div>
       </div>
@@ -90,6 +87,7 @@ export default async function ProductsPage({ searchParams }: PageProps<"/product
         currentPage={productPage.page}
         totalPages={productPage.totalPages}
         query={query}
+        dictionary={dictionary}
       />
     </div>
   );

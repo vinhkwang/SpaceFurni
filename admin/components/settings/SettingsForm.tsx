@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import type { PlatformSettingsResponse } from "@/lib/api/types";
 import { updateSettingsAction } from "@/lib/settings/settingsActions";
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
 import { useToast } from "@/components/ui/Toast";
 
 type SettingsFormProps = {
@@ -25,6 +26,7 @@ function InfoIcon() {
 export function SettingsForm({ settings }: SettingsFormProps) {
   const router = useRouter();
   const { showToast } = useToast();
+  const dictionary = useDictionary();
 
   const [freeDeliveryThresholdAmount, setFreeDeliveryThresholdAmount] = useState(
     String(settings.freeDeliveryThresholdAmount),
@@ -53,7 +55,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
 
     setIsSubmitting(false);
     if (result.success) {
-      showToast("Settings saved.");
+      showToast(dictionary.settings.settingsSaved);
       router.refresh();
       return;
     }
@@ -63,13 +65,13 @@ export function SettingsForm({ settings }: SettingsFormProps) {
   return (
     <form onSubmit={submitSettings} className="rounded-2xl border border-hairline-soft bg-white p-7.5">
       <div className="mb-6.5 flex items-center justify-between">
-        <div className="text-[15px] font-semibold text-ink">Delivery & pricing rules</div>
+        <div className="text-[15px] font-semibold text-ink">{dictionary.settings.deliveryAndPricingRules}</div>
         <button
           type="submit"
           disabled={isSubmitting}
           className="flex h-11 items-center rounded-pill bg-deep px-6 text-[11px] font-semibold uppercase tracking-[0.13em] text-white transition-colors duration-200 hover:bg-terracotta disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Save changes
+          {dictionary.settings.saveChanges}
         </button>
       </div>
 
@@ -81,7 +83,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
 
       <div className="grid grid-cols-2 gap-4.5">
         <label className="flex flex-col gap-2">
-          <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">Free delivery over</span>
+          <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">{dictionary.settings.freeDeliveryOver}</span>
           <input
             required
             type="number"
@@ -92,7 +94,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
           />
         </label>
         <label className="flex flex-col gap-2">
-          <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">Standard delivery fee</span>
+          <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">{dictionary.settings.standardDeliveryFee}</span>
           <input
             required
             type="number"
@@ -103,7 +105,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
           />
         </label>
         <label className="flex flex-col gap-2">
-          <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">Next-day delivery fee</span>
+          <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">{dictionary.settings.nextDayDeliveryFee}</span>
           <input
             required
             type="number"
@@ -114,7 +116,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
           />
         </label>
         <label className="flex flex-col gap-2">
-          <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">Low-stock threshold</span>
+          <span className="text-[10.5px] uppercase tracking-[0.14em] text-ink-muted">{dictionary.settings.lowStockThreshold}</span>
           <input
             required
             type="number"
@@ -128,10 +130,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
 
       <div className="mt-6.5 flex gap-3 rounded-xl bg-surface-raised px-5 py-4 text-[12px] leading-relaxed text-ink-soft">
         <InfoIcon />
-        <span>
-          Amounts are in VND đồng. Changes apply immediately across pricing, delivery and inventory — no deploy
-          required.
-        </span>
+        <span>{dictionary.settings.infoNote}</span>
       </div>
     </form>
   );

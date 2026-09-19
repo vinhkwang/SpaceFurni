@@ -2,13 +2,15 @@ import Link from "next/link";
 import type { AdminOrderRowResponse, OrderStatus } from "@/lib/api/types";
 import { formatMoney } from "@/lib/formatting/formatMoney";
 import { formatOrderPlacedAt } from "@/lib/formatting/formatOrderPlacedAt";
-import { ORDER_STATUS_PRESENTATION } from "@/lib/orders/orderStatusPresentation";
+import type { Dictionary } from "@/lib/i18n/getDictionary";
+import { orderStatusPresentation } from "@/lib/orders/orderStatusPresentation";
 
 type OrderTableProps = {
   orders: AdminOrderRowResponse[];
   currentPage: number;
   totalPages: number;
   status: OrderStatus | undefined;
+  dictionary: Dictionary;
 };
 
 const tableRowGridClassName = "grid grid-cols-[112px_1.3fr_1.5fr_120px_130px_120px] items-center gap-4";
@@ -45,23 +47,23 @@ function pageNumbers(totalPages: number): number[] {
   return Array.from({ length: totalPages }, (_, pageOffset) => pageOffset + 1);
 }
 
-export function OrderTable({ orders, currentPage, totalPages, status }: OrderTableProps) {
+export function OrderTable({ orders, currentPage, totalPages, status, dictionary }: OrderTableProps) {
   return (
     <div>
       <div
         className={`${tableRowGridClassName} border-b border-hairline-soft px-2.5 pb-3.5 text-[10px] uppercase tracking-[0.14em] text-ink-muted`}
       >
-        <span>Order</span>
-        <span>Customer</span>
-        <span>Items</span>
-        <span>Placed</span>
-        <span className="text-right">Total</span>
-        <span className="text-center">Status</span>
+        <span>{dictionary.orders.columnOrder}</span>
+        <span>{dictionary.orders.columnCustomer}</span>
+        <span>{dictionary.orders.columnItems}</span>
+        <span>{dictionary.orders.columnPlaced}</span>
+        <span className="text-right">{dictionary.orders.columnTotal}</span>
+        <span className="text-center">{dictionary.orders.columnStatus}</span>
       </div>
 
       {orders.map((order) => {
         const placedAt = formatOrderPlacedAt(order.placedAt);
-        const statusPresentation = ORDER_STATUS_PRESENTATION[order.status];
+        const statusPresentation = orderStatusPresentation(dictionary, order.status);
         return (
           <Link
             key={order.orderNumber}
@@ -76,7 +78,7 @@ export function OrderTable({ orders, currentPage, totalPages, status }: OrderTab
             <div>
               <div className="text-[12.5px] text-ink-soft">{order.itemSummary}</div>
               <div className="mt-0.5 text-[11px] text-ink-muted">
-                {order.lineCount === 1 ? "1 item" : `${order.lineCount} items`} · {order.paymentLabel}
+                {dictionary.orders.itemCount(order.lineCount)} · {order.paymentLabel}
               </div>
             </div>
             <div>
@@ -97,15 +99,15 @@ export function OrderTable({ orders, currentPage, totalPages, status }: OrderTab
       })}
 
       {orders.length === 0 ? (
-        <div className="py-15 text-center text-[13px] text-ink-muted">No orders match this filter.</div>
+        <div className="py-15 text-center text-[13px] text-ink-muted">{dictionary.orders.noOrdersMatch}</div>
       ) : null}
 
       {totalPages > 1 ? (
-        <nav aria-label="Pagination" className="flex items-center justify-center gap-1.5 pt-5.5">
+        <nav aria-label={dictionary.common.paginationAriaLabel} className="flex items-center justify-center gap-1.5 pt-5.5">
           {currentPage > 0 ? (
             <Link
               href={buildOrdersHref(status, currentPage - 1)}
-              aria-label="Previous page"
+              aria-label={dictionary.common.previousPage}
               className="flex h-8.5 w-8.5 items-center justify-center rounded-xl border border-hairline text-ink-muted transition-colors duration-200 hover:border-deep hover:text-ink"
             >
               <ChevronIcon className="rotate-180" />
@@ -132,7 +134,7 @@ export function OrderTable({ orders, currentPage, totalPages, status }: OrderTab
               <Link
                 key={pageNumber}
                 href={buildOrdersHref(status, pageNumber - 1)}
-                aria-label={`Page ${pageNumber}`}
+                aria-label={dictionary.common.pageAriaLabel(pageNumber)}
                 className="flex h-8.5 w-8.5 items-center justify-center rounded-xl border border-hairline text-[12px] transition-colors duration-200 hover:border-deep"
               >
                 {pageNumber}
@@ -143,7 +145,7 @@ export function OrderTable({ orders, currentPage, totalPages, status }: OrderTab
           {currentPage < totalPages - 1 ? (
             <Link
               href={buildOrdersHref(status, currentPage + 1)}
-              aria-label="Next page"
+              aria-label={dictionary.common.nextPage}
               className="flex h-8.5 w-8.5 items-center justify-center rounded-xl border border-hairline text-ink-muted transition-colors duration-200 hover:border-deep hover:text-ink"
             >
               <ChevronIcon />

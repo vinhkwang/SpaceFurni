@@ -1,7 +1,11 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import type { ProductSummaryResponse } from "@/lib/api/types";
+import { localizedCategoryLabel } from "@/lib/catalog/categoryName";
 import { formatMoney } from "@/lib/formatting/formatMoney";
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
 
 type SearchSuggestionsProps = {
   suggestions: ProductSummaryResponse[];
@@ -10,15 +14,17 @@ type SearchSuggestionsProps = {
 };
 
 export function SearchSuggestions({ suggestions, activeIndex, onSelect }: SearchSuggestionsProps) {
+  const dictionary = useDictionary();
+
   return (
     <div
       id="search-suggestions-listbox"
       role="listbox"
-      aria-label="Search suggestions"
+      aria-label={dictionary.header.searchSuggestionsAriaLabel}
       className="absolute inset-x-0 top-[54px] z-60 rounded-2xl border border-hairline-soft bg-white p-2 shadow-2xl"
     >
       {suggestions.length === 0 ? (
-        <p className="px-3 py-4 text-[12.5px] text-ink-muted">No products match that search.</p>
+        <p className="px-3 py-4 text-[12.5px] text-ink-muted">{dictionary.header.noSearchMatches}</p>
       ) : (
         suggestions.map((product, suggestionIndex) => (
           <Link
@@ -45,7 +51,7 @@ export function SearchSuggestions({ suggestions, activeIndex, onSelect }: Search
             <span className="flex-1">
               <span className="block text-[12.5px] font-medium">{product.name}</span>
               <span className="block text-[10.5px] tracking-[0.04em] text-ink-muted">
-                {product.categoryName}
+                {localizedCategoryLabel(dictionary, product.categoryName)}
               </span>
             </span>
             <span className="text-[12px] font-medium text-ink-soft">

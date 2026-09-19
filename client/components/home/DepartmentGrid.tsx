@@ -2,38 +2,37 @@ import Image from "next/image";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api/apiClient";
 import type { CategoryTreeResponse } from "@/lib/api/types";
-
-function productCountLabel(productCount: number): string {
-  return productCount === 1 ? "1 item" : `${productCount} items`;
-}
+import { localizedCategoryName } from "@/lib/catalog/categoryName";
+import { getDictionary, type Dictionary } from "@/lib/i18n/getDictionary";
+import { getLocale } from "@/lib/i18n/locale";
 
 function totalProductCount(departments: CategoryTreeResponse[]): number {
   return departments.reduce((runningTotal, department) => runningTotal + department.productCount, 0);
 }
 
-function departmentSummaryLine(departments: CategoryTreeResponse[]): string {
-  return `${departments.length} rooms, ${totalProductCount(departments)} pieces in stock — every item photographed in our Thanh Xuan showroom.`;
-}
-
 export async function DepartmentGrid() {
-  const departments = await apiFetch<CategoryTreeResponse[]>("/categories");
+  const [departments, locale] = await Promise.all([
+    apiFetch<CategoryTreeResponse[]>("/categories"),
+    getLocale(),
+  ]);
+  const dictionary: Dictionary = getDictionary(locale);
 
   return (
     <section aria-labelledby="department-grid-heading">
       <div className="mb-[30px] flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="mb-3 text-[10.5px] uppercase tracking-[0.22em] text-terracotta">
-            Browse the store
+            {dictionary.home.browseTheStore}
           </p>
           <h2
             id="department-grid-heading"
             className="text-[36px] font-medium leading-[1.1] tracking-[-0.015em]"
           >
-            Shop by department
+            {dictionary.home.shopByDepartment}
           </h2>
         </div>
         <p className="max-w-[330px] text-[12.5px] leading-[1.65] text-ink-muted md:text-right">
-          {departmentSummaryLine(departments)}
+          {dictionary.home.departmentSummary(departments.length, totalProductCount(departments))}
         </p>
       </div>
 
@@ -56,11 +55,11 @@ export async function DepartmentGrid() {
             <span className="absolute inset-0 bg-linear-to-b from-transparent from-[38%] to-deep/85" />
             <span className="absolute inset-x-[18px] bottom-[18px]">
               <span className="mb-[5px] block text-[13.5px] font-semibold uppercase tracking-[0.09em] text-white">
-                {department.name}
+                {localizedCategoryName(dictionary, department)}
               </span>
               <span className="flex items-center justify-between">
                 <span className="text-[10.5px] tracking-[0.1em] text-white/70">
-                  {productCountLabel(department.productCount)}
+                  {dictionary.home.itemCount(department.productCount)}
                 </span>
                 <span
                   aria-hidden

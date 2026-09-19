@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { buildProductListingHref } from "@/lib/catalog/productListingUrl";
+import { getDictionary } from "@/lib/i18n/getDictionary";
+import { getLocale } from "@/lib/i18n/locale";
 
 function ArrowRightIcon({ className }: { className: string }) {
   return (
@@ -18,7 +20,9 @@ function ArrowRightIcon({ className }: { className: string }) {
   );
 }
 
-export function HeroPromoBanners() {
+export async function HeroPromoBanners() {
+  const dictionary = getDictionary(await getLocale());
+
   return (
     <div className="flex flex-col gap-3.5">
       <Link
@@ -35,16 +39,16 @@ export function HeroPromoBanners() {
         <div className="absolute inset-0 bg-linear-to-b from-white/86 from-0% via-white/20 via-[58%] to-transparent" />
         <div className="absolute inset-x-7 top-[26px]">
           <p className="mb-2.5 text-[10.5px] uppercase tracking-[0.22em] text-terracotta">
-            New arrival
+            {dictionary.home.promoNewArrival}
           </p>
           <p className="text-[27px] font-medium leading-[1.16] tracking-[-0.01em] text-ink">
-            Modern sofas
+            {dictionary.home.promoSofaTitleLine1}
             <br />
-            that make the room
+            {dictionary.home.promoSofaTitleLine2}
           </p>
         </div>
         <div className="absolute bottom-6 left-7 flex items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-ink">
-          Shop sofas
+          {dictionary.home.promoShopSofas}
           <ArrowRightIcon className="h-[9px] w-[9px] stroke-current" />
         </div>
       </Link>
@@ -67,9 +71,9 @@ export function HeroPromoBanners() {
               −20%
             </span>
             <p className="text-[15.5px] font-medium leading-[1.3] text-white">
-              Design your
+              {dictionary.home.promoOfficeTitleLine1}
               <br />
-              home office
+              {dictionary.home.promoOfficeTitleLine2}
             </p>
           </div>
         </Link>
@@ -91,9 +95,9 @@ export function HeroPromoBanners() {
               −50%
             </span>
             <p className="text-[15.5px] font-medium leading-[1.3] text-white">
-              A comfier
+              {dictionary.home.promoBedroomTitleLine1}
               <br />
-              bedroom
+              {dictionary.home.promoBedroomTitleLine2}
             </p>
           </div>
         </Link>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { archiveProductAction } from "@/lib/products/productActions";
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
 import { useToast } from "@/components/ui/Toast";
 
 type ProductRowActionsProps = {
@@ -19,6 +20,7 @@ const deleteButtonClassName =
 export function ProductRowActions({ productId }: ProductRowActionsProps) {
   const router = useRouter();
   const { showToast } = useToast();
+  const dictionary = useDictionary();
   const [isPending, setIsPending] = useState(false);
 
   async function deleteProduct() {
@@ -26,7 +28,7 @@ export function ProductRowActions({ productId }: ProductRowActionsProps) {
     const result = await archiveProductAction(productId);
     setIsPending(false);
     if (result.success) {
-      showToast("Product deleted.");
+      showToast(dictionary.products.productDeleted);
       router.refresh();
     }
   }
@@ -34,10 +36,10 @@ export function ProductRowActions({ productId }: ProductRowActionsProps) {
   return (
     <div className="flex items-center justify-end gap-1.5">
       <Link href={`/products/${productId}/edit`} className={editButtonClassName}>
-        Edit
+        {dictionary.common.edit}
       </Link>
       <button type="button" disabled={isPending} onClick={deleteProduct} className={deleteButtonClassName}>
-        Delete
+        {dictionary.common.delete}
       </button>
     </div>
   );

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import type { ProductSummaryResponse } from "@/lib/api/types";
 import { publicApiBaseUrl } from "@/lib/config/environment";
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
 import { SearchSuggestions } from "@/components/layout/SearchSuggestions";
 
 const SUGGESTION_DEBOUNCE_MILLISECONDS = 250;
@@ -27,6 +28,7 @@ async function fetchSuggestions(
 
 export function SearchBar() {
   const router = useRouter();
+  const dictionary = useDictionary();
   const [query, setQuery] = useState("");
   const [searchedQuery, setSearchedQuery] = useState("");
   const [suggestions, setSuggestions] = useState<ProductSummaryResponse[]>([]);
@@ -114,8 +116,8 @@ export function SearchBar() {
           onChange={(event) => setQuery(event.target.value)}
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleInputKeyDown}
-          placeholder="Search sofas, tables, shelves…"
-          aria-label="Search products"
+          placeholder={dictionary.header.searchPlaceholder}
+          aria-label={dictionary.header.searchAriaLabel}
           role="combobox"
           aria-expanded={isShowingSuggestions}
           aria-controls="search-suggestions-listbox"
@@ -124,7 +126,7 @@ export function SearchBar() {
         {query.length > 0 ? (
           <button
             type="button"
-            aria-label="Clear search"
+            aria-label={dictionary.header.clearSearchAriaLabel}
             onClick={() => setQuery("")}
             className="cursor-pointer text-ink-muted"
           >

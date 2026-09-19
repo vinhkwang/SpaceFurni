@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { formatMoney } from "@/lib/formatting/formatMoney";
+import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 
 type StorefrontPreviewCardProps = {
   title: string;
@@ -7,6 +8,7 @@ type StorefrontPreviewCardProps = {
   departmentName: string;
   priceAmount: number;
   imageUrl: string;
+  dictionary: Dictionary;
 };
 
 export function StorefrontPreviewCard({
@@ -15,15 +17,16 @@ export function StorefrontPreviewCard({
   departmentName,
   priceAmount,
   imageUrl,
+  dictionary,
 }: StorefrontPreviewCardProps) {
-  const previewTitle = title.trim() || "Product title";
-  const previewSubtitle = [subCategoryName.trim() || "Sub-category", departmentName.trim()]
+  const previewTitle = title.trim() || dictionary.products.previewTitleFallback;
+  const previewSubtitle = [subCategoryName.trim() || dictionary.products.previewSubCategoryFallback, departmentName.trim()]
     .filter(Boolean)
     .join(" · ");
 
   return (
     <aside className="sticky top-5 rounded-2xl border border-hairline-soft bg-white p-6.5">
-      <div className="mb-5 text-[10.5px] uppercase tracking-[0.18em] text-ink-muted">Storefront preview</div>
+      <div className="mb-5 text-[10.5px] uppercase tracking-[0.18em] text-ink-muted">{dictionary.products.storefrontPreview}</div>
 
       <div className="overflow-hidden rounded-2xl border border-hairline-soft">
         <div className="relative flex aspect-[4/3.2] items-center justify-center bg-surface-warm">
@@ -38,18 +41,14 @@ export function StorefrontPreviewCard({
             disabled
             className="mt-[5px] flex h-[42px] cursor-not-allowed items-center justify-center gap-2.5 rounded-pill border border-hairline text-[10.5px] font-semibold uppercase tracking-[0.14em] opacity-50"
           >
-            Add to cart
+            {dictionary.products.addToCart}
           </button>
         </div>
       </div>
 
       <div className="mt-5.5 flex flex-col gap-3 border-t border-hairline-soft pt-5">
-        <p className="text-[11.5px] leading-[1.55] text-ink-muted">
-          Photos on a white background sit best in the grid — the storefront blends them into the card.
-        </p>
-        <p className="text-[11.5px] leading-[1.55] text-ink-muted">
-          The title and sub-category are what customers search on. Keep them plain.
-        </p>
+        <p className="text-[11.5px] leading-[1.55] text-ink-muted">{dictionary.products.photoTip1}</p>
+        <p className="text-[11.5px] leading-[1.55] text-ink-muted">{dictionary.products.photoTip2}</p>
       </div>
     </aside>
   );

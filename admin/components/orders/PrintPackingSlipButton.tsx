@@ -1,5 +1,7 @@
 "use client";
 
+import { useDictionary } from "@/lib/i18n/LocaleProvider";
+
 function PrintIcon() {
   return (
     <svg
@@ -19,6 +21,8 @@ function PrintIcon() {
 }
 
 export function PrintPackingSlipButton() {
+  const dictionary = useDictionary();
+
   return (
     <button
       type="button"
@@ -26,7 +30,7 @@ export function PrintPackingSlipButton() {
       className="flex h-10 shrink-0 cursor-pointer items-center gap-2.5 rounded-pill border border-hairline px-4.5 text-[10.5px] font-semibold uppercase tracking-[0.12em] transition-colors duration-200 hover:border-deep hover:bg-deep hover:text-white"
     >
       <PrintIcon />
-      Packing slip
+      {dictionary.orders.packingSlip}
     </button>
   );
 }
